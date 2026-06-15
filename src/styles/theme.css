@@ -1,0 +1,119 @@
+/* ============================================================
+   GomĐơn — Design tokens (reuse deck system: navy + off-white,
+   Be Vietnam Pro, JetBrains Mono). Light + dark themes.
+   ============================================================ */
+:root{
+  --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+
+  --shadow-sm: 0 1px 2px rgba(15,17,23,.05), 0 1px 3px rgba(15,17,23,.04);
+  --shadow-md: 0 4px 12px rgba(15,17,23,.07), 0 2px 4px rgba(15,17,23,.04);
+  --shadow-lg: 0 18px 50px rgba(15,17,23,.16), 0 6px 16px rgba(15,17,23,.08);
+  --shadow-pop: 0 24px 60px rgba(15,17,23,.22);
+
+  --sb-w: 252px;
+  --topbar-h: 68px;
+
+  --ease: cubic-bezier(.4,0,.2,1);
+}
+
+/* ---------- LIGHT ---------- */
+:root, [data-theme="light"]{
+  --bg: #f4f4f0;
+  --surface: #ffffff;
+  --surface-2: #fafaf7;
+  --surface-3: #f1f1ec;
+  --ink: #14161c;
+  --ink-2: #353a44;
+  --muted: #5b616b;
+  --faint: #949aa4;
+  --line: #e7e7e1;
+  --line-2: #d9d9d2;
+  --accent: #2a6fdb;
+  --accent-ink: #2a6fdb;
+  --accent-soft: #e9f0fb;
+  --accent-2: #1f5cc0;
+
+  --sidebar-bg: #0f1117;
+  --sidebar-ink: #eceef2;
+  --sidebar-muted: #888fa0;
+  --sidebar-line: #23262f;
+  --sidebar-active: #1c2741;
+  --sidebar-accent: #6f9bf0;
+
+  /* status (shared chroma family) */
+  --st-green:#1f8a5b;   --st-green-bg:#e4f3ec;
+  --st-amber:#bb7d12;   --st-amber-bg:#f7efdc;
+  --st-blue:#2a6fdb;    --st-blue-bg:#e9f0fb;
+  --st-violet:#6a53cf;  --st-violet-bg:#ece8f9;
+  --st-red:#cf4257;     --st-red-bg:#fae8eb;
+  --st-slate:#646b77;   --st-slate-bg:#eceef1;
+
+  --pos:#1f8a5b;
+  --neg:#cf4257;
+}
+
+/* ---------- DARK ---------- */
+[data-theme="dark"]{
+  --bg: #0c0e13;
+  --surface: #15181f;
+  --surface-2: #1a1e27;
+  --surface-3: #202531;
+  --ink: #eef0f4;
+  --ink-2: #c4c9d2;
+  --muted: #9298a3;
+  --faint: #646b78;
+  --line: #262b36;
+  --line-2: #333a48;
+  --accent: #5b8def;
+  --accent-ink: #7aa4f4;
+  --accent-soft: #18233a;
+  --accent-2: #6f9bf0;
+
+  --sidebar-bg: #090a0e;
+  --sidebar-ink: #eceef2;
+  --sidebar-muted: #7c8395;
+  --sidebar-line: #1c1f28;
+  --sidebar-active: #18233a;
+  --sidebar-accent: #7aa4f4;
+
+  --st-green:#3fb27e;   --st-green-bg:#13301f;
+  --st-amber:#d59b2f;   --st-amber-bg:#33260d;
+  --st-blue:#5b8def;    --st-blue-bg:#152139;
+  --st-violet:#9384e0;  --st-violet-bg:#221d3a;
+  --st-red:#e0697c;     --st-red-bg:#33141b;
+  --st-slate:#8b929e;   --st-slate-bg:#222731;
+
+  --pos:#3fb27e;
+  --neg:#e0697c;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.3);
+  --shadow-md: 0 4px 14px rgba(0,0,0,.4);
+  --shadow-lg: 0 18px 50px rgba(0,0,0,.55);
+  --shadow-pop: 0 24px 60px rgba(0,0,0,.6);
+}
+
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  font-family:var(--font-sans);
+  background:var(--bg);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+button{ font-family:inherit; cursor:pointer; }
+::selection{ background:var(--accent-soft); }
+
+/* scrollbars */
+*::-webkit-scrollbar{ width:10px; height:10px; }
+*::-webkit-scrollbar-thumb{ background:var(--line-2); border-radius:20px; border:2px solid var(--bg); }
+*::-webkit-scrollbar-track{ background:transparent; }
+
+.mono{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+.tnum{ font-variant-numeric:tabular-nums; }

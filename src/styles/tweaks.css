@@ -1,0 +1,34 @@
+/* ============================================================
+   GomĐơn — Tweaks floating panel
+   ============================================================ */
+.tweaks-fab{ position:fixed; right:20px; bottom:20px; z-index:95; display:flex; flex-direction:column; align-items:flex-end; gap:12px; }
+.tweaks-btn{
+  width:46px; height:46px; border-radius:50%; border:1px solid var(--line);
+  background:var(--surface); color:var(--muted); display:grid; place-items:center;
+  box-shadow:var(--shadow-md); transition:.15s var(--ease);
+}
+.tweaks-btn:hover{ color:var(--accent-ink); border-color:var(--line-2); transform:rotate(30deg); }
+
+.tweaks-card{
+  width:300px; background:var(--surface); border:1px solid var(--line);
+  border-radius:16px; box-shadow:var(--shadow-lg); overflow:hidden;
+}
+.tweaks-head{ display:flex; align-items:center; gap:9px; padding:14px 16px; border-bottom:1px solid var(--line); color:var(--ink); }
+.tweaks-head b{ font-size:14px; font-weight:700; }
+.tweaks-x{ margin-left:auto; background:none; border:none; color:var(--faint); display:grid; place-items:center; padding:0; }
+.tweaks-x:hover{ color:var(--ink); }
+.tweaks-body{ padding:8px 16px 16px; display:flex; flex-direction:column; gap:4px; }
+
+.tweak-section{ font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); padding:14px 0 6px; }
+.tweak-row{ display:flex; flex-direction:column; gap:8px; padding:8px 0; }
+.tweak-label{ font-size:13px; font-weight:600; color:var(--ink-2); }
+
+.tweak-colors{ display:flex; gap:9px; }
+.tweak-swatch{ width:30px; height:30px; border-radius:9px; border:2px solid transparent; display:grid; place-items:center; color:#fff; box-shadow:inset 0 0 0 1px rgba(0,0,0,.08); transition:.15s var(--ease); }
+.tweak-swatch:hover{ transform:scale(1.08); }
+.tweak-swatch.active{ border-color:var(--ink); }
+
+.tweak-seg{ display:inline-flex; background:var(--surface-3); border:1px solid var(--line); border-radius:10px; padding:3px; gap:2px; }
+.tweak-seg-item{ flex:1; padding:7px 10px; border-radius:8px; font-size:12.5px; font-weight:600; color:var(--muted); background:none; border:none; transition:.15s var(--ease); white-space:nowrap; }
+.tweak-seg-item:hover{ color:var(--ink); }
+.tweak-seg-item.active{ background:var(--surface); color:var(--ink); box-shadow:var(--shadow-sm); }

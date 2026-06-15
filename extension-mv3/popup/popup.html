@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+<div class="ext-pop">
+  <div class="ext-head">
+    <div class="ext-logo">GĐ</div>
+    <div class="ext-title"><b>GomĐơn Collector</b><span>Tiện ích thu thập đơn hàng</span></div>
+    <div class="ext-conn off" id="conn"><span class="cd"></span><span id="connText">Đang kiểm tra…</span></div>
+  </div>
+
+  <div class="ext-body">
+    <!-- auto hero -->
+    <div class="ext-hero" id="hero">
+      <div class="ext-hero-ic">⟳</div>
+      <div class="ext-hero-tx">
+        <b>Thu thập tự động</b>
+        <span id="autoSub">Tự gửi đơn mới về hệ thống</span>
+      </div>
+      <div class="switch" id="autoSwitch"><div class="kn"></div></div>
+    </div>
+
+    <!-- stats -->
+    <div class="ext-stats">
+      <div class="ext-stat"><b class="tnum" id="today">0</b><span>Đã thu hôm nay</span></div>
+      <div class="ext-stat"><b class="tnum" id="session" style="color:var(--accent-ink)">0</b><span>Phiên hiện tại</span></div>
+    </div>
+
+    <!-- current page -->
+    <div class="ext-page-card">
+      <div class="ext-pc-top">
+        <span class="ext-pc-plat"><span class="pd" id="platDot" style="background:#ff7a45"></span><span id="platName">Trang hiện tại</span></span>
+        <span class="ext-pc-detected">Phát hiện <b id="detected">0</b> đơn</span>
+      </div>
+      <div class="ext-progress"><div class="ext-progress-fill" id="prog" style="width:0%"></div></div>
+      <button class="ext-btn" id="collectBtn"><span id="collectLabel">Thu thập trang hiện tại</span></button>
+    </div>
+
+    <!-- log -->
+    <div>
+      <div class="ext-sec-label" style="margin-bottom:8px">Hoạt động gần đây</div>
+      <div class="ext-log" id="log"><div class="ext-empty">Chưa thu thập đơn nào.</div></div>
+    </div>
+  </div>
+
+  <!-- settings -->
+  <div class="ext-settings">
+    <button class="ext-set-toggle" id="setToggle">⚙ Cấu hình API<span class="chev">▾</span></button>
+    <div class="ext-set-body" id="setBody" style="display:none">
+      <div class="ext-field"><label>API Endpoint</label><input id="endpoint" placeholder="http://localhost:8080"></div>
+      <div class="ext-field"><label>Access Token</label><input id="token" placeholder="gd_live_…"></div>
+      <div class="ext-save-row">
+        <button class="ext-btn ghost" id="saveBtn" style="width:auto;padding:8px 16px">Lưu cấu hình</button>
+        <span class="ext-saved" id="saved" style="display:none">✓ Đã lưu</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ext-foot">
+    <a href="http://localhost:5173" target="_blank" rel="noopener">↗ Mở Dashboard</a>
+    <span class="ver">v1.0.0 · MV3</span>
+  </div>
+</div>
+<script src="popup.js"></script>
+</body>
+</html>

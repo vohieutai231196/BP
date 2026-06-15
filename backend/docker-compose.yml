@@ -1,0 +1,49 @@
+# ============================================================
+#  GomĐơn — chỉ 2 container: Web API (.NET 8) + PostgreSQL
+#  (theo PRD: tối giản tài nguyên, không service phụ trợ)
+# ============================================================
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: gomdon-db
+    environment:
+      POSTGRES_DB: gomdon
+      POSTGRES_USER: gomdon
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gomdon}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # auto-chạy schema khi volume còn trống
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gomdon -d gomdon"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gomdon-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Postgres: "Host=db;Port=5432;Database=gomdon;Username=gomdon;Password=${POSTGRES_PASSWORD:-gomdon}"
+      Cors__Origins__0: "${CORS_ORIGIN:-http://localhost:5173}"
+      Seed__DemoData: "false"
+      # Secret nạp từ .env (không hardcode):
+      Jwt__Key: "${JWT_KEY:?JWT_KEY chưa được đặt trong .env}"
+      Ingest__Token: "${INGEST_TOKEN:?INGEST_TOKEN chưa được đặt trong .env}"
+      # Dịch Trung→Việt bằng Gemini 2.5 Flash (để trống thì bỏ qua dịch):
+      Gemini__ApiKey: "${GEMINI_API_KEY:-}"
+      Gemini__Model: "gemini-2.5-flash"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./logs:/app/logs
+
+volumes:
+  pgdata:

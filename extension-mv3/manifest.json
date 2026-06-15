@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "GomĐơn Collector",
+  "version": "1.0.0",
+  "description": "Thu thập đơn mua hộ từ các sàn Trung Quốc về hệ thống GomĐơn.",
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "GomĐơn Collector"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["storage", "activeTab", "scripting", "tabs"],
+  "host_permissions": [
+    "http://localhost:8080/*",
+    "https://ordergiakho.com/*",
+    "https://*.ordergiakho.com/*",
+    "https://*.taobao.com/*",
+    "https://*.tmall.com/*",
+    "https://*.1688.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://ordergiakho.com/*",
+        "https://*.ordergiakho.com/*",
+        "https://*.taobao.com/*",
+        "https://*.tmall.com/*",
+        "https://*.1688.com/*",
+        "http://localhost:8090/*"
+      ],
+      "js": ["content/collector.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

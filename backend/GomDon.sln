@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{41C6F153-37DA-450B-81D0-B0A546C66B1B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GomDon.Api", "src\GomDon.Api\GomDon.Api.csproj", "{06BD9E10-92A0-4EAA-9742-B74957DE8C62}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GomDon.Shared", "src\GomDon.Shared\GomDon.Shared.csproj", "{5EC06D7C-A32C-4666-B932-F494A4AB6282}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GomDon.Infrastructure", "src\GomDon.Infrastructure\GomDon.Infrastructure.csproj", "{7BCACB82-C150-4DAC-A9F1-210F074A6A0E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GomDon.Modules.Orders", "src\GomDon.Modules.Orders\GomDon.Modules.Orders.csproj", "{9CAE95BB-406E-4361-B92C-C6519438D8E3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{9B5A8B84-11A5-46DD-A702-8B0BBDF752F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GomDon.Tests", "tests\GomDon.Tests\GomDon.Tests.csproj", "{347D85E2-63F2-486F-B13D-5278C70C3444}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{06BD9E10-92A0-4EAA-9742-B74957DE8C62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06BD9E10-92A0-4EAA-9742-B74957DE8C62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06BD9E10-92A0-4EAA-9742-B74957DE8C62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06BD9E10-92A0-4EAA-9742-B74957DE8C62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EC06D7C-A32C-4666-B932-F494A4AB6282}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EC06D7C-A32C-4666-B932-F494A4AB6282}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EC06D7C-A32C-4666-B932-F494A4AB6282}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EC06D7C-A32C-4666-B932-F494A4AB6282}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BCACB82-C150-4DAC-A9F1-210F074A6A0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BCACB82-C150-4DAC-A9F1-210F074A6A0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BCACB82-C150-4DAC-A9F1-210F074A6A0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BCACB82-C150-4DAC-A9F1-210F074A6A0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CAE95BB-406E-4361-B92C-C6519438D8E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CAE95BB-406E-4361-B92C-C6519438D8E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CAE95BB-406E-4361-B92C-C6519438D8E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CAE95BB-406E-4361-B92C-C6519438D8E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{347D85E2-63F2-486F-B13D-5278C70C3444}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{347D85E2-63F2-486F-B13D-5278C70C3444}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{347D85E2-63F2-486F-B13D-5278C70C3444}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{347D85E2-63F2-486F-B13D-5278C70C3444}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{06BD9E10-92A0-4EAA-9742-B74957DE8C62} = {41C6F153-37DA-450B-81D0-B0A546C66B1B}
+		{5EC06D7C-A32C-4666-B932-F494A4AB6282} = {41C6F153-37DA-450B-81D0-B0A546C66B1B}
+		{7BCACB82-C150-4DAC-A9F1-210F074A6A0E} = {41C6F153-37DA-450B-81D0-B0A546C66B1B}
+		{9CAE95BB-406E-4361-B92C-C6519438D8E3} = {41C6F153-37DA-450B-81D0-B0A546C66B1B}
+		{347D85E2-63F2-486F-B13D-5278C70C3444} = {9B5A8B84-11A5-46DD-A702-8B0BBDF752F9}
+	EndGlobalSection
+EndGlobal

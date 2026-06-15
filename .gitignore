@@ -1,0 +1,24 @@
+# --- Node / frontend ---
+node_modules/
+dist/
+*.local
+.vite/
+
+# --- Env & secrets (KHÔNG bao giờ push) ---
+.env
+.env.*
+!.env.example
+
+# --- Logs ---
+logs/
+*.log
+npm-debug.log*
+
+# --- .NET (phòng khi build ở gốc) ---
+**/bin/
+**/obj/
+
+# --- OS / editor ---
+.DS_Store
+.vscode/
+.idea/
