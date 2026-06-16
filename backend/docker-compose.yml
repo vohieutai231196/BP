@@ -6,12 +6,16 @@ services:
   db:
     image: postgres:16-alpine
     container_name: gomdon-db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: gomdon
       POSTGRES_USER: gomdon
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gomdon}
-    ports:
-      - "5432:5432"
+    # KHÔNG expose 5432 ra ngoài — API nói chuyện với DB qua mạng nội bộ Docker.
+    # Cần truy cập DB từ máy local? Bỏ comment dòng dưới (chỉ mở trên loopback):
+    #   - "127.0.0.1:5432:5432"
+    expose:
+      - "5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       # auto-chạy schema khi volume còn trống
@@ -27,6 +31,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: gomdon-api
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
