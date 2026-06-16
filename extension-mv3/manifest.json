@@ -12,6 +12,7 @@
   },
   "permissions": ["storage", "activeTab", "scripting", "tabs"],
   "host_permissions": [
+    "https://gomdons.com/*",
     "http://localhost:8080/*",
     "https://ordergiakho.com/*",
     "https://*.ordergiakho.com/*",

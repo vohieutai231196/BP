@@ -9,7 +9,7 @@ let scraped = [];   // đơn đã phát hiện trên trang
 async function init() {
   // nạp cấu hình + bộ đếm
   const s = await chrome.storage.local.get(["endpoint", "token", "auto", "today", "session", "log"]);
-  $("endpoint").value = s.endpoint || "http://localhost:8080";
+  $("endpoint").value = s.endpoint || "https://gomdons.com";
   $("token").value = s.token || "";
   setAuto(!!s.auto, false);
   $("today").textContent = s.today || 0;

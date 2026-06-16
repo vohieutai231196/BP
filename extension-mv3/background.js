@@ -3,7 +3,7 @@
    Giữ cấu hình (endpoint/token) trong chrome.storage, gửi đơn
    thu thập lên API /v1/orders/ingest, cập nhật bộ đếm + log.
    ============================================================ */
-const DEFAULTS = { endpoint: "http://localhost:8080", token: "", auto: false };
+const DEFAULTS = { endpoint: "https://gomdons.com", token: "", auto: false };
 
 async function getCfg() {
   const s = await chrome.storage.local.get(["endpoint", "token", "auto"]);
