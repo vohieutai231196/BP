@@ -45,10 +45,28 @@ services:
       # Dịch Trung→Việt bằng Gemini 2.5 Flash (để trống thì bỏ qua dịch):
       Gemini__ApiKey: "${GEMINI_API_KEY:-}"
       Gemini__Model: "gemini-2.5-flash"
-    ports:
-      - "8080:8080"
+    # KHÔNG publish 8080 ra ngoài — chỉ Caddy (mạng nội bộ) gọi tới.
+    expose:
+      - "8080"
     volumes:
       - ./logs:/app/logs
 
+  # Reverse proxy + HTTPS tự động (Let's Encrypt). Nhận 80/443 → chuyển vào api:8080.
+  caddy:
+    image: caddy:2-alpine
+    container_name: gomdon-caddy
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
 volumes:
   pgdata:
+  caddy_data:
+  caddy_config:
