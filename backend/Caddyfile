@@ -1,6 +1,5 @@
-# gomdons.com → HTTPS tự động (Let's Encrypt) khi DNS sẵn sàng.
-# http://103.188.83.45 → truy cập ngay qua HTTP trong lúc chờ SSL.
-gomdons.com, http://103.188.83.45 {
+# Production: chỉ phục vụ qua HTTPS trên domain. HTTP tự redirect sang HTTPS.
+gomdons.com {
 	encode gzip
 
 	# Mọi API đều dưới /v1/* ; thêm /health, /swagger để debug.
@@ -15,4 +14,9 @@ gomdons.com, http://103.188.83.45 {
 		try_files {path} /index.html
 		file_server
 	}
+}
+
+# www → tên miền gốc.
+www.gomdons.com {
+	redir https://gomdons.com{uri} permanent
 }
