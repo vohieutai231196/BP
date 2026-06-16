@@ -30,6 +30,14 @@ try
     var config = builder.Configuration;
     var connectionString = config.GetConnectionString("Postgres")!;
 
+    // Secret bắt buộc — không nhúng trong appsettings.json (xem README/.env.example).
+    // Prod/Docker: biến môi trường Jwt__Key. Dev local: `dotnet user-secrets set "Jwt:Key" "..."`.
+    var jwtKey = config["Jwt:Key"];
+    if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+        throw new InvalidOperationException(
+            "Thiếu/không hợp lệ Jwt:Key (cần >= 32 ký tự). " +
+            "Đặt env Jwt__Key (prod/docker) hoặc `dotnet user-secrets set \"Jwt:Key\" \"...\"` (dev).");
+
     // ---------- DI ----------
     builder.Services.AddInfrastructure(connectionString);
     builder.Services.AddOrdersModule();
@@ -78,7 +86,7 @@ try
                 ValidateIssuer = true, ValidIssuer = jwt["Issuer"],
                 ValidateAudience = true, ValidAudience = jwt["Audience"],
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!)),
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.FromMinutes(1),
             };

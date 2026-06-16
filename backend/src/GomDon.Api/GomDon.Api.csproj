@@ -4,6 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Dev-local secrets (Jwt:Key, Ingest:Token...) lưu ngoài repo qua `dotnet user-secrets`. -->
+    <UserSecretsId>gomdon-api-9c3b1f2a</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
