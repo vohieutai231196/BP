@@ -7,6 +7,7 @@ import React from "react";
 import { Icon } from "./icons.jsx";
 import DATA from "./data.js";
 import { StatusBadge, ProductThumb, PlatformTag } from "./components.jsx";
+import { imgUrl } from "./api.js";
 
 export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete }) {
   const d = DATA, f = d.fmt, c = order.costs;
@@ -152,7 +153,7 @@ export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete 
                         return (
                           <tr key={l.idx + "-" + l.linkCode}>
                             <td className="cell-sub">{l.idx}</td>
-                            <td>{l.imageUrl ? <img src={l.imageUrl.replace(/^http:\/\//i, "https://")} alt={l.spec || ""} referrerPolicy="no-referrer" loading="lazy" style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 7, border: "1px solid var(--line)" }} /> : <span className="cell-sub">—</span>}</td>
+                            <td>{l.imageUrl ? <img src={imgUrl(l.imageUrl)} alt={l.spec || ""} referrerPolicy="no-referrer" loading="lazy" style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 7, border: "1px solid var(--line)" }} /> : <span className="cell-sub">—</span>}</td>
                             <td className="mono" style={{ fontSize: 12 }}>{l.linkCode}</td>
                             <td>{l.specVi || l.spec || "—"}{l.specVi && l.spec ? <div className="cell-sub">{l.spec}</div> : null}</td>
                             <td className="cell-sub">{l.qty || "—"}</td>

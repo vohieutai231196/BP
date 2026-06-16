@@ -14,6 +14,10 @@ export const setToken = (t) => { t ? localStorage.setItem(TOKEN_KEY, t) : localS
 let onUnauthorized = null;
 export const setOnUnauthorized = (fn) => { onUnauthorized = fn; };
 
+// Ảnh sản phẩm nằm trên CDN alicdn — một số nhà mạng VN chặn trên 4G/5G nên
+// điện thoại không tải được. Đẩy qua proxy cùng origin (/v1/img) để server tự lấy.
+export const imgUrl = (u) => u ? `${BASE}/v1/img?u=${encodeURIComponent(u)}` : u;
+
 export class ApiError extends Error {
   constructor(status, message) { super(message); this.status = status; }
 }

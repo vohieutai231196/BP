@@ -42,6 +42,7 @@ try
     builder.Services.AddInfrastructure(connectionString);
     builder.Services.AddOrdersModule();
     builder.Services.AddHttpClient<GomDon.Modules.Orders.Services.ITranslationService, GomDon.Api.Integrations.GeminiTranslationService>();
+    builder.Services.AddHttpClient(); // IHttpClientFactory cho ImageProxyController
     builder.Services.AddScoped<AuthService>();
     builder.Services.AddScoped<DbBootstrapper>();
 
