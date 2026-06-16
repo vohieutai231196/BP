@@ -1,3 +1,18 @@
-gomdons.com {
-	reverse_proxy api:8080
+# gomdons.com → HTTPS tự động (Let's Encrypt) khi DNS sẵn sàng.
+# http://103.188.83.45 → truy cập ngay qua HTTP trong lúc chờ SSL.
+gomdons.com, http://103.188.83.45 {
+	encode gzip
+
+	# Mọi API đều dưới /v1/* ; thêm /health, /swagger để debug.
+	@api path /v1/* /health /swagger /swagger/*
+	handle @api {
+		reverse_proxy api:8080
+	}
+
+	# Còn lại phục vụ FE tĩnh (SPA → fallback index.html).
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
 }

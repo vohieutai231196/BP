@@ -3,7 +3,9 @@
    Quản lý JWT trong localStorage, đính Authorization header,
    xử lý 401 (hết phiên) tập trung.
    ============================================================ */
-const BASE = import.meta.env.VITE_API_BASE || "http://localhost:8080";
+// Mặc định gọi cùng origin ("" → /v1/... tương đối). Dev local đặt VITE_API_BASE
+// trong .env.local để trỏ sang VPS. Dùng ?? để chuỗi rỗng (cùng origin) được giữ.
+const BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8080";
 const TOKEN_KEY = "gd_token";
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);

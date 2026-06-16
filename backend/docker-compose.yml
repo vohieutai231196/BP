@@ -51,9 +51,11 @@ services:
     volumes:
       - ./logs:/app/logs
 
-  # Reverse proxy + HTTPS tự động (Let's Encrypt). Nhận 80/443 → chuyển vào api:8080.
+  # Web: build FE (Vite) + Caddy phục vụ tĩnh, reverse proxy /v1/* → api, HTTPS tự động.
   caddy:
-    image: caddy:2-alpine
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile.web
     container_name: gomdon-caddy
     restart: unless-stopped
     depends_on:
@@ -62,7 +64,6 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
 

@@ -1,0 +1,10 @@
+node_modules
+dist
+.git
+.claude
+.agents
+.vite
+**/bin
+**/obj
+backend/logs
+*.log

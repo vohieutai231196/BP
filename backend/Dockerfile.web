@@ -1,0 +1,14 @@
+# ---------- build frontend (Vite) ----------
+# Context build là GỐC repo (xem docker-compose: context ..), nên thấy package.json + src.
+FROM node:20-alpine AS fe
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+# .env.production (VITE_API_BASE rỗng) → FE gọi cùng origin.
+RUN npm run build
+
+# ---------- Caddy: phục vụ FE tĩnh + reverse proxy /v1 → api ----------
+FROM caddy:2-alpine
+COPY --from=fe /app/dist /srv
+COPY backend/Caddyfile /etc/caddy/Caddyfile
