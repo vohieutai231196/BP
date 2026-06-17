@@ -98,6 +98,28 @@ export const api = {
     changePassword: (currentPassword, newPassword) => request("/v1/account/password", { method: "PATCH", body: { currentPassword, newPassword } }),
     updateProfile: (name) => request("/v1/account/profile", { method: "PATCH", body: { name } }),
   },
+  retail: {
+    products: (query) => request("/v1/products" + qs(query)),
+    createProduct: (body) => request("/v1/products", { method: "POST", body }),
+    updateProduct: (id, body) => request(`/v1/products/${id}`, { method: "PATCH", body }),
+    deleteProduct: (id) => request(`/v1/products/${id}`, { method: "DELETE" }),
+    costTypes: (query) => request("/v1/cost-types" + qs(query)),
+    createCostType: (body) => request("/v1/cost-types", { method: "POST", body }),
+    updateCostType: (id, body) => request(`/v1/cost-types/${id}`, { method: "PATCH", body }),
+    deleteCostType: (id) => request(`/v1/cost-types/${id}`, { method: "DELETE" }),
+    calcPrice: (body) => request("/v1/pricing/calc", { method: "POST", body }),
+    summary: () => request("/v1/retail/summary"),
+    receivePreview: (orderId) => request(`/v1/retail/receive/preview/${orderId}`),
+    receiveConfirm: (body) => request("/v1/retail/receive/confirm", { method: "POST", body }),
+    sales: () => request("/v1/sales"),
+    createSale: (body) => request("/v1/sales", { method: "POST", body }),
+    promotions: () => request("/v1/promotions"),
+    promotionProducts: (id) => request(`/v1/promotions/${id}/products`),
+    activePromotions: () => request("/v1/promotions/active"),
+    createPromotion: (body) => request("/v1/promotions", { method: "POST", body }),
+    updatePromotion: (id, body) => request(`/v1/promotions/${id}`, { method: "PATCH", body }),
+    deletePromotion: (id) => request(`/v1/promotions/${id}`, { method: "DELETE" }),
+  },
 };
 
 export default api;

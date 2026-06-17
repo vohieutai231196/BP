@@ -64,6 +64,23 @@ export function Sidebar({ route, onNav, collapsed, open, onCloseMobile, onLogout
         {[items[0], items[1]].map(NavBtn)}
         <div className="sb-section-label"><span>Cần chú ý</span></div>
         {[items[2], items[3]].map(NavBtn)}
+        <div className="sb-section-label"><span>Bán lẻ</span></div>
+        <button className={"sb-item" + (route === "inventory" ? " active" : "")}
+          onClick={() => { onNav("inventory"); onCloseMobile && onCloseMobile(); }}>
+          <Icon name="warehouse" size={19} /><span>Kho &amp; Sản phẩm</span>
+        </button>
+        <button className={"sb-item" + (route === "pricing" ? " active" : "")}
+          onClick={() => { onNav("pricing"); onCloseMobile && onCloseMobile(); }}>
+          <Icon name="coins" size={19} /><span>Máy tính giá</span>
+        </button>
+        <button className={"sb-item" + (route === "sales" ? " active" : "")}
+          onClick={() => { onNav("sales"); onCloseMobile && onCloseMobile(); }}>
+          <Icon name="wallet" size={19} /><span>Đơn bán</span>
+        </button>
+        <button className={"sb-item" + (route === "promotions" ? " active" : "")}
+          onClick={() => { onNav("promotions"); onCloseMobile && onCloseMobile(); }}>
+          <Icon name="tag" size={19} /><span>Khuyến mãi</span>
+        </button>
         {isAdmin && (
           <>
             <div className="sb-section-label"><span>Hệ thống</span></div>

@@ -17,6 +17,10 @@ import { Orders } from "./orders.jsx";
 import { OrderDetail } from "./orderDetail.jsx";
 import { Login } from "./login.jsx";
 import { Users } from "./users.jsx";
+import { Inventory } from "./retail.jsx";
+import { Pricing } from "./pricing.jsx";
+import { Sales } from "./sales.jsx";
+import { Promotions } from "./promotions.jsx";
 import { AccountModal } from "./account.jsx";
 import { useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor } from "./tweaks.jsx";
 import { api, getToken, setToken, setOnUnauthorized } from "./api.js";
@@ -160,6 +164,10 @@ function App() {
     dashboard: { t: "Tổng quan", s: "Bức tranh toàn cảnh đơn mua hộ" },
     orders: { t: "Đơn hàng", s: (summary ? summary.totalOrders : "—") + " đơn · cập nhật hôm nay" },
     users: { t: "Người dùng", s: "Quản lý tài khoản & phân quyền" },
+    inventory: { t: "Kho & Sản phẩm", s: "Quản lý sản phẩm bán lẻ & tồn kho" },
+    pricing: { t: "Máy tính giá", s: "Tính giá bán & lợi nhuận theo mức lời" },
+    sales: { t: "Đơn bán", s: "Tạo đơn bán & theo dõi lợi nhuận" },
+    promotions: { t: "Khuyến mãi", s: "Đợt giảm giá theo sản phẩm" },
   };
 
   return (
@@ -192,6 +200,11 @@ function App() {
           {route === "users" && user?.role !== "admin" && (
             <div className="card empty"><Icon name="close" size={40} /><div>Bạn không có quyền truy cập trang này.</div></div>
           )}
+
+          {route === "inventory" && <Inventory onToast={showToast} />}
+          {route === "pricing" && <Pricing onToast={showToast} />}
+          {route === "sales" && <Sales onToast={showToast} />}
+          {route === "promotions" && <Promotions onToast={showToast} />}
         </div>
       </div>
 

@@ -3,6 +3,7 @@ using GomDon.Api.Auth;
 using GomDon.Api.Startup;
 using GomDon.Infrastructure;
 using GomDon.Modules.Orders;
+using GomDon.Modules.Retail;
 using GomDon.Modules.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
@@ -43,6 +44,7 @@ try
     builder.Services.AddInfrastructure(connectionString);
     builder.Services.AddOrdersModule();
     builder.Services.AddUsersModule();
+    builder.Services.AddRetailModule();
     builder.Services.AddHttpClient<GomDon.Modules.Orders.Services.ITranslationService, GomDon.Api.Integrations.GeminiTranslationService>();
     builder.Services.AddHttpClient(); // IHttpClientFactory cho ImageProxyController
     builder.Services.AddScoped<AuthService>();

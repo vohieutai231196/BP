@@ -160,6 +160,117 @@ ALTER TABLE order_links ADD COLUMN IF NOT EXISTS image_url TEXT;
 --  Giữ ở dạng bảng thường cho giai đoạn MVP.
 -- ============================================================
 
+-- ============================================================
+--  BÁN LẺ (Retail) — catalog sản phẩm, chi phí, sổ kho
+-- ============================================================
+
+-- ---------- Sản phẩm bán lẻ (SKU) ----------
+CREATE TABLE IF NOT EXISTS products (
+  id          BIGSERIAL PRIMARY KEY,
+  sku         TEXT NOT NULL UNIQUE,
+  name        TEXT NOT NULL,
+  category    TEXT NOT NULL DEFAULT 'other',
+  image_url   TEXT,
+  status      TEXT NOT NULL DEFAULT 'active',   -- active | hidden
+  avg_cost    BIGINT NOT NULL DEFAULT 0,        -- giá vốn TB (₫), GĐ1 nhập tay
+  list_price  BIGINT,                           -- giá niêm yết (₫)
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ix_products_status ON products(status);
+
+-- ---------- Danh mục loại chi phí phát sinh ----------
+CREATE TABLE IF NOT EXISTS cost_types (
+  id              BIGSERIAL PRIMARY KEY,
+  name            TEXT NOT NULL,
+  default_amount  BIGINT,                        -- gợi ý số tiền/tỷ lệ (nullable)
+  unit            TEXT NOT NULL DEFAULT 'vnd',   -- vnd | percent
+  active          BOOLEAN NOT NULL DEFAULT true
+);
+
+-- ---------- Sổ xuất–nhập kho (GĐ2 ghi tự động; GĐ1 chỉ tạo bảng) ----------
+CREATE TABLE IF NOT EXISTS stock_movements (
+  id          BIGSERIAL PRIMARY KEY,
+  product_id  BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  type        TEXT NOT NULL,                     -- in | out | adjust
+  qty         INT NOT NULL,                      -- âm khi xuất
+  unit_cost   BIGINT NOT NULL DEFAULT 0,
+  ref_type    TEXT,                              -- import_order | sale | manual
+  ref_id      BIGINT,
+  at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+  note        TEXT
+);
+CREATE INDEX IF NOT EXISTS ix_stock_product ON stock_movements(product_id, at);
+
+-- ---------- Nguồn nhập của SKU (link mua hộ → SKU) ----------
+CREATE TABLE IF NOT EXISTS product_sources (
+  id            BIGSERIAL PRIMARY KEY,
+  product_id    BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  order_id      BIGINT,
+  order_link_id BIGINT,
+  link_code     TEXT,
+  at            TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ix_psources_product ON product_sources(product_id);
+CREATE INDEX IF NOT EXISTS ix_psources_link    ON product_sources(link_code);
+
+-- ---------- Đơn bán (header) ----------
+CREATE TABLE IF NOT EXISTS sales (
+  id            BIGSERIAL PRIMARY KEY,
+  code          TEXT NOT NULL,
+  customer_name TEXT,
+  channel       TEXT,
+  sold_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  revenue       BIGINT NOT NULL DEFAULT 0,
+  cogs          BIGINT NOT NULL DEFAULT 0,
+  promo_cost    BIGINT NOT NULL DEFAULT 0,
+  extra_cost    BIGINT NOT NULL DEFAULT 0,
+  profit        BIGINT NOT NULL DEFAULT 0,
+  status        TEXT NOT NULL DEFAULT 'done'
+);
+CREATE INDEX IF NOT EXISTS ix_sales_sold_at ON sales(sold_at DESC);
+
+-- ---------- Dòng hàng đơn bán ----------
+CREATE TABLE IF NOT EXISTS sale_items (
+  id          BIGSERIAL PRIMARY KEY,
+  sale_id     BIGINT NOT NULL REFERENCES sales(id) ON DELETE CASCADE,
+  product_id  BIGINT REFERENCES products(id),
+  combo_id    BIGINT,
+  qty         INT NOT NULL,
+  unit_price  BIGINT NOT NULL,
+  unit_cost   BIGINT NOT NULL,
+  line_type   TEXT NOT NULL DEFAULT 'ban',   -- ban | tang
+  promo_id    BIGINT
+);
+CREATE INDEX IF NOT EXISTS ix_sale_items_sale ON sale_items(sale_id);
+
+-- ---------- Chi phí phát sinh của đơn bán ----------
+CREATE TABLE IF NOT EXISTS sale_costs (
+  id           BIGSERIAL PRIMARY KEY,
+  sale_id      BIGINT NOT NULL REFERENCES sales(id) ON DELETE CASCADE,
+  cost_type_id BIGINT,
+  name         TEXT NOT NULL,
+  amount       BIGINT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_sale_costs_sale ON sale_costs(sale_id);
+
+-- ---------- Khuyến mãi ----------
+CREATE TABLE IF NOT EXISTS promotions (
+  id        BIGSERIAL PRIMARY KEY,
+  name      TEXT NOT NULL,
+  type      TEXT NOT NULL DEFAULT 'percent',  -- percent | fixed
+  value     BIGINT NOT NULL DEFAULT 0,        -- percent: % giảm; fixed: giá cố định (₫)
+  start_at  TIMESTAMPTZ,
+  end_at    TIMESTAMPTZ,
+  active    BOOLEAN NOT NULL DEFAULT true
+);
+
+CREATE TABLE IF NOT EXISTS promotion_products (
+  promotion_id BIGINT NOT NULL REFERENCES promotions(id) ON DELETE CASCADE,
+  product_id   BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  PRIMARY KEY (promotion_id, product_id)
+);
+CREATE INDEX IF NOT EXISTS ix_promo_products_product ON promotion_products(product_id);
+
 -- ---------- Seed lookup ----------
 INSERT INTO platforms (key, label, tint) VALUES
   ('taobao',  'Taobao',    '#ff6a00'),

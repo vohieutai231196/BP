@@ -24,6 +24,7 @@
     <ProjectReference Include="..\..\src\GomDon.Shared\GomDon.Shared.csproj" />
     <ProjectReference Include="..\..\src\GomDon.Modules.Orders\GomDon.Modules.Orders.csproj" />
     <ProjectReference Include="..\..\src\GomDon.Modules.Users\GomDon.Modules.Users.csproj" />
+    <ProjectReference Include="..\..\src\GomDon.Modules.Retail\GomDon.Modules.Retail.csproj" />
   </ItemGroup>
 
 </Project>
