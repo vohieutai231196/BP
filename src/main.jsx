@@ -17,6 +17,7 @@ import { Orders } from "./orders.jsx";
 import { OrderDetail } from "./orderDetail.jsx";
 import { Login } from "./login.jsx";
 import { Users } from "./users.jsx";
+import { AccountModal } from "./account.jsx";
 import { useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor } from "./tweaks.jsx";
 import { api, getToken, setToken, setOnUnauthorized } from "./api.js";
 import { adaptSummary, adaptDetail, adaptDashboard } from "./data.js";
@@ -44,6 +45,7 @@ function App() {
   const [sbOpen, setSbOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [user, setUser] = useState(null);   // {id, name, email, role}
+  const [accountOpen, setAccountOpen] = useState(false);
 
   const [summary, setSummary] = useState(null);
   const [recent, setRecent] = useState([]);
@@ -163,7 +165,7 @@ function App() {
   return (
     <div className="app-shell">
       <Sidebar route={route} onNav={nav} open={sbOpen} onCloseMobile={() => setSbOpen(false)}
-        onLogout={logout} counts={counts} user={user} />
+        onLogout={logout} counts={counts} user={user} onOpenAccount={() => setAccountOpen(true)} />
       <div className={"sb-backdrop" + (sbOpen ? " show" : "")} onClick={() => setSbOpen(false)} />
       <div className="main">
         <TopBar title={titles[route].t} sub={titles[route].s} search={search} setSearch={setSearch}
@@ -194,8 +196,9 @@ function App() {
       </div>
 
       {detailLoading && !selected && <div className="overlay" />}
-      {selected && <OrderDetail order={selected} onClose={() => setSelected(null)} onToast={showToast} onChangeStatus={changeStatus} onDelete={deleteOrder} />}
+      {selected && <OrderDetail order={selected} onClose={() => setSelected(null)} onToast={showToast} onChangeStatus={changeStatus} onDelete={deleteOrder} role={user?.role} />}
       {toast && <div className="toast"><Icon name="check" size={16} stroke={2.4} />{toast}</div>}
+      {accountOpen && <AccountModal user={user} onClose={() => setAccountOpen(false)} onUpdated={setUser} onToast={showToast} />}
       {tweaksPanel()}
     </div>
   );

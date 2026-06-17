@@ -31,7 +31,7 @@ export function ProductThumb({ order, lg }) {
 }
 
 /* ---------- Sidebar ---------- */
-export function Sidebar({ route, onNav, collapsed, open, onCloseMobile, onLogout, counts, user }) {
+export function Sidebar({ route, onNav, collapsed, open, onCloseMobile, onLogout, counts, user, onOpenAccount }) {
   const c = counts || {};
   const isAdmin = user?.role === "admin";
   const items = [
@@ -80,13 +80,13 @@ export function Sidebar({ route, onNav, collapsed, open, onCloseMobile, onLogout
         </a>
       </nav>
       <div className="sb-footer">
-        <div className="sb-user" role="button" onClick={onLogout} title="Đăng xuất">
+        <div className="sb-user" role="button" onClick={onOpenAccount} title="Tài khoản của tôi">
           <div className="sb-avatar">{(user?.name || "?").trim().charAt(0).toUpperCase()}</div>
           <div className="sb-user-info">
             <b>{user?.name || "Người dùng"}</b>
             <span>{user?.role === "admin" ? "Quản trị viên" : user?.role === "staff" ? "Nhân viên" : "Chỉ xem"}</span>
           </div>
-          <Icon name="logout" size={17} style={{ marginLeft: "auto", color: "var(--sidebar-muted)" }} />
+          <button className="icon-btn" title="Đăng xuất" onClick={(e) => { e.stopPropagation(); onLogout(); }}><Icon name="external" size={16} /></button>
         </div>
       </div>
     </aside>

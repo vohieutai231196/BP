@@ -9,7 +9,7 @@ import DATA from "./data.js";
 import { StatusBadge, ProductThumb, PlatformTag } from "./components.jsx";
 import { imgUrl } from "./api.js";
 
-export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete }) {
+export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete, role }) {
   const d = DATA, f = d.fmt, c = order.costs;
   const [busy, setBusy] = React.useState(false);
   const [deleting, setDeleting] = React.useState(false);
@@ -227,13 +227,17 @@ export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete 
 
         <div className="drawer-foot">
           <button className="btn" onClick={() => onToast("Đã sao chép mã đơn #" + order.id)}><Icon name="copy" size={16} />Sao chép mã</button>
-          <button className="btn" onClick={remove} disabled={deleting} style={{ color: "var(--neg)", borderColor: "var(--neg)" }}>
-            <Icon name="close" size={16} />{deleting ? "Đang xoá…" : "Xoá đơn"}
-          </button>
+          {role === "admin" && (
+            <button className="btn" onClick={remove} disabled={deleting} style={{ color: "var(--neg)", borderColor: "var(--neg)" }}>
+              <Icon name="close" size={16} />{deleting ? "Đang xoá…" : "Xoá đơn"}
+            </button>
+          )}
           <span style={{ flex: 1 }} />
-          <button className="btn btn-primary" onClick={complete} disabled={busy || order.status === "da_tra"}>
-            <Icon name="check" size={16} />{busy ? "Đang lưu…" : order.status === "da_tra" ? "Đã hoàn thành" : "Hoàn thành đơn"}
-          </button>
+          {role !== "viewer" && (
+            <button className="btn btn-primary" onClick={complete} disabled={busy || order.status === "da_tra"}>
+              <Icon name="check" size={16} />{busy ? "Đang lưu…" : order.status === "da_tra" ? "Đã hoàn thành" : "Hoàn thành đơn"}
+            </button>
+          )}
         </div>
       </div>
     </>
