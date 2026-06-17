@@ -16,6 +16,7 @@ import { Dashboard } from "./dashboard.jsx";
 import { Orders } from "./orders.jsx";
 import { OrderDetail } from "./orderDetail.jsx";
 import { Login } from "./login.jsx";
+import { Users } from "./users.jsx";
 import { useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor } from "./tweaks.jsx";
 import { api, getToken, setToken, setOnUnauthorized } from "./api.js";
 import { adaptSummary, adaptDetail, adaptDashboard } from "./data.js";
@@ -42,6 +43,7 @@ function App() {
   const [layout, setLayout] = useState(LAYOUT_MAP[t.layout] || "table");
   const [sbOpen, setSbOpen] = useState(false);
   const [toast, setToast] = useState(null);
+  const [user, setUser] = useState(null);   // {id, name, email, role}
 
   const [summary, setSummary] = useState(null);
   const [recent, setRecent] = useState([]);
@@ -119,8 +121,17 @@ function App() {
     setReloadKey((k) => k + 1);            // refresh summary + recent + list
   }, []);
 
-  const logout = () => { setToken(null); setLogged(false); setSummary(null); setSelected(null); setRoute("dashboard"); };
-  const onLoggedIn = () => { setLogged(true); setReloadKey((k) => k + 1); };
+  const logout = () => { setToken(null); setLogged(false); setUser(null); setSummary(null); setSelected(null); setRoute("dashboard"); };
+  const onLoggedIn = (u) => { setUser(u); setLogged(true); setReloadKey((k) => k + 1); };
+
+  // Có token nhưng chưa có thông tin user (vd refresh trang) → nạp /me.
+  useEffect(() => {
+    if (!logged || user) return;
+    let alive = true;
+    api.me().then((m) => { if (alive) setUser({ id: m.id, name: m.name, email: m.email, role: m.role }); })
+      .catch(() => { /* 401 đã được xử lý tập trung */ });
+    return () => { alive = false; };
+  }, [logged, user]);
 
   function tweaksPanel() {
     return (
@@ -146,11 +157,13 @@ function App() {
   const titles = {
     dashboard: { t: "Tổng quan", s: "Bức tranh toàn cảnh đơn mua hộ" },
     orders: { t: "Đơn hàng", s: (summary ? summary.totalOrders : "—") + " đơn · cập nhật hôm nay" },
+    users: { t: "Người dùng", s: "Quản lý tài khoản & phân quyền" },
   };
 
   return (
     <div className="app-shell">
-      <Sidebar route={route} onNav={nav} open={sbOpen} onCloseMobile={() => setSbOpen(false)} onLogout={logout} counts={counts} />
+      <Sidebar route={route} onNav={nav} open={sbOpen} onCloseMobile={() => setSbOpen(false)}
+        onLogout={logout} counts={counts} user={user} />
       <div className={"sb-backdrop" + (sbOpen ? " show" : "")} onClick={() => setSbOpen(false)} />
       <div className="main">
         <TopBar title={titles[route].t} sub={titles[route].s} search={search} setSearch={setSearch}
@@ -169,6 +182,13 @@ function App() {
             <Orders statusCounts={summary?.statusCounts} total={summary?.totalOrders ?? 0}
               search={search} preset={preset} onOpen={openOrder}
               layout={layout} setLayout={setLayout} onToast={showToast} reloadKey={reloadKey} />
+          )}
+
+          {route === "users" && user?.role === "admin" && (
+            <Users onToast={showToast} currentUserId={user?.id} />
+          )}
+          {route === "users" && user?.role !== "admin" && (
+            <div className="card empty"><Icon name="close" size={40} /><div>Bạn không có quyền truy cập trang này.</div></div>
           )}
         </div>
       </div>
