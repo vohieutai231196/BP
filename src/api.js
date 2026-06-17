@@ -35,14 +35,29 @@ async function request(path, { method = "GET", body, auth = true, headers = {} }
     throw new ApiError(0, "Không kết nối được máy chủ. Kiểm tra API đang chạy ở " + BASE);
   }
 
+  // 401 chỉ là "hết phiên" khi request có gửi token (auth). 401 từ login/register
+  // (auth:false) nghĩa là sai thông tin đăng nhập → giữ message thật của server.
   if (res.status === 401) {
-    setToken(null);
-    onUnauthorized && onUnauthorized();
-    throw new ApiError(401, "Phiên đăng nhập đã hết hạn.");
+    if (auth) {
+      setToken(null);
+      onUnauthorized && onUnauthorized();
+      throw new ApiError(401, "Phiên đăng nhập đã hết hạn.");
+    }
+    let msg = "Email hoặc mật khẩu không đúng.";
+    try { const j = await res.json(); msg = j.detail || j.title || j.message || msg; } catch { /* ignore */ }
+    throw new ApiError(401, msg);
   }
   if (!res.ok) {
     let msg = `Lỗi ${res.status}`;
-    try { const j = await res.json(); msg = j.detail || j.title || j.message || msg; } catch { /* ignore */ }
+    try {
+      const j = await res.json();
+      // ValidationProblemDetails (FluentValidation): lý do thật nằm trong j.errors theo
+      // từng field, title chỉ là "Dữ liệu không hợp lệ" → gộp các message field để hiện rõ.
+      const fieldErrors = j.errors && typeof j.errors === "object"
+        ? Object.values(j.errors).flat().filter(Boolean).join(" ")
+        : "";
+      msg = j.detail || j.message || fieldErrors || j.title || msg;
+    } catch { /* ignore */ }
     throw new ApiError(res.status, msg);
   }
   if (res.status === 204) return null;

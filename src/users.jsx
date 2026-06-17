@@ -1,152 +1,301 @@
 /* ============================================================
    GomĐơn — Quản lý người dùng (admin)
-   Danh sách + lọc trạng thái; duyệt/từ chối, đổi role, khóa/mở,
-   đặt lại mật khẩu, tạo user. Gọi api.users.*
+   Danh sách + lọc trạng thái (có đếm), duyệt/từ chối, đổi vai trò,
+   khóa/mở, đặt lại mật khẩu, tạo user. Modal thay cho prompt.
    ============================================================ */
 import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
 
-const ROLE_LABEL = { admin: "Quản trị viên", staff: "Nhân viên", viewer: "Chỉ xem" };
-const STATUS_LABEL = { pending: "Chờ duyệt", active: "Hoạt động", disabled: "Đã khóa" };
-const STATUS_COLOR = { pending: "var(--st-amber)", active: "var(--st-green)", disabled: "var(--st-red)" };
+const ROLES = [
+  { key: "admin", label: "Quản trị viên", desc: "Toàn quyền + quản lý người dùng" },
+  { key: "staff", label: "Nhân viên", desc: "Xử lý đơn hàng, không quản lý user" },
+  { key: "viewer", label: "Chỉ xem", desc: "Chỉ xem dashboard & đơn, không sửa" },
+];
+const ROLE_LABEL = Object.fromEntries(ROLES.map((r) => [r.key, r.label]));
+const STATUS = {
+  pending: { label: "Chờ duyệt", color: "amber" },
+  active: { label: "Hoạt động", color: "green" },
+  disabled: { label: "Đã khóa", color: "slate" },
+};
 const TABS = [
   { key: "", label: "Tất cả" },
   { key: "pending", label: "Chờ duyệt" },
   { key: "active", label: "Hoạt động" },
   { key: "disabled", label: "Đã khóa" },
 ];
+const AV_TINTS = ["#2a6fdb", "#1f8a5b", "#6a53cf", "#d2762f", "#c0392b", "#0e7490", "#b8418f"];
+const tintFor = (s) => AV_TINTS[[...(s || "?")].reduce((a, c) => a + c.charCodeAt(0), 0) % AV_TINTS.length];
+const initial = (s) => (s || "?").trim().charAt(0).toUpperCase();
+const fmtDate = (d) => { try { return new Date(d).toLocaleDateString("vi-VN"); } catch { return "—"; } };
 
 export function Users({ onToast, currentUserId }) {
   const [tab, setTab] = React.useState("");
   const [search, setSearch] = React.useState("");
-  const [data, setData] = React.useState({ items: [], total: 0 });
+  const [all, setAll] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [err, setErr] = React.useState(null);
   const [reload, setReload] = React.useState(0);
   const [creating, setCreating] = React.useState(false);
+  const [action, setAction] = React.useState(null); // { type, user }
 
   React.useEffect(() => {
     let alive = true;
     setLoading(true); setErr(null);
-    api.users.list({ status: tab || undefined, search: search || undefined, pageSize: 100 })
-      .then((d) => { if (alive) setData(d); })
+    api.users.list({ pageSize: 200 })
+      .then((d) => { if (alive) setAll(d.items || []); })
       .catch((e) => { if (alive) setErr(e.message); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [tab, search, reload]);
+  }, [reload]);
 
   const refresh = () => setReload((r) => r + 1);
   const run = async (fn, okMsg) => {
-    try { await fn(); onToast && onToast(okMsg); refresh(); }
+    try { await fn(); onToast && onToast(okMsg); setAction(null); setCreating(false); refresh(); }
     catch (e) { onToast && onToast("Lỗi: " + e.message); }
   };
 
-  const approve = (u) => { const role = window.prompt("Gán role khi duyệt: staff (Nhân viên) hoặc viewer (Chỉ xem)", "staff"); if (!role) return; run(() => api.users.approve(u.id, role.trim()), `Đã duyệt ${u.email}`); };
-  const reject = (u) => { if (window.confirm(`Từ chối & xóa đăng ký ${u.email}?`)) run(() => api.users.reject(u.id), "Đã từ chối"); };
-  const changeRole = (u) => { const role = window.prompt(`Đổi role cho ${u.email} (admin/staff/viewer)`, u.role); if (!role || role === u.role) return; run(() => api.users.update(u.id, { role: role.trim() }), "Đã đổi role"); };
-  const disable = (u) => { if (window.confirm(`Khóa tài khoản ${u.email}?`)) run(() => api.users.disable(u.id), "Đã khóa"); };
-  const enable = (u) => run(() => api.users.enable(u.id), "Đã mở khóa");
-  const resetPw = (u) => { const np = window.prompt(`Mật khẩu mới cho ${u.email} (≥ 6 ký tự)`); if (!np) return; run(() => api.users.resetPassword(u.id, np), "Đã đặt lại mật khẩu"); };
+  const counts = React.useMemo(() => {
+    const c = { "": all.length, pending: 0, active: 0, disabled: 0 };
+    all.forEach((u) => { c[u.status] = (c[u.status] || 0) + 1; });
+    return c;
+  }, [all]);
+
+  const q = search.trim().toLowerCase();
+  const rows = all.filter((u) =>
+    (!tab || u.status === tab) &&
+    (!q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)));
 
   return (
-    <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div className="card">
-        <div className="card-head">
-          <Icon name="user" size={18} style={{ color: "var(--muted)" }} />
-          <h3>Người dùng</h3>
-          <span className="topbar-spacer" />
-          <div className="search" style={{ marginRight: 8 }}>
-            <input placeholder="Tìm tên / email…" value={search} onChange={(e) => setSearch(e.target.value)} />
-          </div>
-          <button className="btn btn-primary" onClick={() => setCreating(true)}><Icon name="plus" size={16} /> Tạo user</button>
+    <div className="fade-in">
+      {/* toolbar: lọc trạng thái (có đếm) + tìm + tạo */}
+      <div className="toolbar">
+        <div className="chips">
+          {TABS.map((t) => (
+            <button key={t.key} className={"chip" + (tab === t.key ? " active" : "")} onClick={() => setTab(t.key)}>
+              {t.label}<span className="cc">{counts[t.key] || 0}</span>
+            </button>
+          ))}
         </div>
-        <div className="card-pad">
-          <div className="tabs" style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-            {TABS.map((t) => (
-              <button key={t.key} className={"tag-soft" + (tab === t.key ? " active" : "")}
-                onClick={() => setTab(t.key)} style={tab === t.key ? { background: "var(--accent-soft)", color: "var(--accent-ink)" } : {}}>
-                {t.label}
-              </button>
-            ))}
-          </div>
-
-          {loading && <div className="empty"><Icon name="refresh" size={32} /><div>Đang tải…</div></div>}
-          {err && <div className="empty" style={{ color: "var(--st-red)" }}><Icon name="close" size={32} /><div>{err}</div></div>}
-          {!loading && !err && (
-            <table className="tbl" style={{ width: "100%" }}>
-              <thead>
-                <tr><th>Tên</th><th>Email</th><th>Role</th><th>Trạng thái</th><th>Ngày tạo</th><th style={{ textAlign: "right" }}>Thao tác</th></tr>
-              </thead>
-              <tbody>
-                {data.items.map((u) => (
-                  <tr key={u.id}>
-                    <td><b>{u.name}</b>{u.id === currentUserId && <span className="tag-soft" style={{ marginLeft: 6 }}>bạn</span>}</td>
-                    <td>{u.email}</td>
-                    <td>{ROLE_LABEL[u.role] || u.role}</td>
-                    <td><span style={{ color: STATUS_COLOR[u.status], fontWeight: 700 }}>{STATUS_LABEL[u.status] || u.status}</span></td>
-                    <td>{new Date(u.createdAt).toLocaleDateString("vi-VN")}</td>
-                    <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                      {u.status === "pending" && (<>
-                        <button className="btn btn-sm" onClick={() => approve(u)}>Duyệt</button>
-                        <button className="btn btn-sm" onClick={() => reject(u)}>Từ chối</button>
-                      </>)}
-                      {u.status === "active" && (<>
-                        <button className="btn btn-sm" onClick={() => changeRole(u)}>Đổi role</button>
-                        <button className="btn btn-sm" onClick={() => resetPw(u)}>Đặt lại MK</button>
-                        <button className="btn btn-sm" onClick={() => disable(u)}>Khóa</button>
-                      </>)}
-                      {u.status === "disabled" && (
-                        <button className="btn btn-sm" onClick={() => enable(u)}>Mở khóa</button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                {data.items.length === 0 && <tr><td colSpan={6}><div className="empty">Không có người dùng.</div></td></tr>}
-              </tbody>
-            </table>
-          )}
+        <span className="spacer" />
+        <div className="search" style={{ maxWidth: 240 }}>
+          <Icon name="search" size={16} style={{ color: "var(--faint)" }} />
+          <input placeholder="Tìm tên / email…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
+        <button className="btn btn-sm btn-primary" onClick={() => setCreating(true)}>
+          <Icon name="plus" size={15} /> Tạo user
+        </button>
       </div>
 
-      {creating && <CreateUserModal onClose={() => setCreating(false)} onDone={() => { setCreating(false); refresh(); }} onToast={onToast} />}
+      {loading ? (
+        <div className="card empty"><Icon name="refresh" size={40} /><div>Đang tải…</div></div>
+      ) : err ? (
+        <div className="card empty" style={{ color: "var(--st-red)" }}><Icon name="close" size={40} /><div>{err}</div></div>
+      ) : rows.length === 0 ? (
+        <div className="card empty"><Icon name="user" size={40} /><div>Không có người dùng phù hợp.</div></div>
+      ) : (
+        <div className="card"><div className="grid-wrap"><table className="dg">
+          <thead>
+            <tr>
+              <th>Người dùng</th><th>Vai trò</th><th>Trạng thái</th><th>Ngày tạo</th>
+              <th style={{ textAlign: "right" }}>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((u) => {
+              const st = STATUS[u.status] || { label: u.status, color: "slate" };
+              const isSelf = u.id === currentUserId;
+              return (
+                <tr key={u.id}>
+                  <td>
+                    <div className="cell-prod">
+                      <div className="u-avatar" style={{ background: tintFor(u.email) }}>{initial(u.name)}</div>
+                      <div style={{ minWidth: 0 }}>
+                        <div className="pn">{u.name}{isSelf && <span className="u-you">bạn</span>}</div>
+                        <div className="pm" title={u.email}>{u.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span className={"role-pill " + u.role}>{ROLE_LABEL[u.role] || u.role}</span></td>
+                  <td><span className={"badge " + st.color}><span className="dot" /> {st.label}</span></td>
+                  <td className="cell-sub">{fmtDate(u.createdAt)}</td>
+                  <td>
+                    <div className="u-actions">
+                      {u.status === "pending" && (<>
+                        <button className="btn btn-sm btn-primary" onClick={() => setAction({ type: "approve", user: u })}>
+                          <Icon name="check" size={15} /> Duyệt
+                        </button>
+                        <button className="btn btn-sm btn-ghost" onClick={() => setAction({ type: "reject", user: u })}>
+                          <Icon name="close" size={15} /> Từ chối
+                        </button>
+                      </>)}
+                      {u.status === "active" && (<>
+                        <button className="btn btn-sm btn-ghost" onClick={() => setAction({ type: "role", user: u })}>
+                          <Icon name="settings" size={15} /> Vai trò
+                        </button>
+                        <button className="btn btn-sm btn-ghost" onClick={() => setAction({ type: "password", user: u })}>
+                          <Icon name="refresh" size={15} /> Mật khẩu
+                        </button>
+                        {!isSelf && (
+                          <button className="btn btn-sm btn-ghost" onClick={() => setAction({ type: "disable", user: u })}>
+                            <Icon name="power" size={15} /> Khóa
+                          </button>
+                        )}
+                      </>)}
+                      {u.status === "disabled" && (
+                        <button className="btn btn-sm btn-ghost" onClick={() => run(() => api.users.enable(u.id), "Đã mở khóa " + u.email)}>
+                          <Icon name="power" size={15} /> Mở khóa
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table></div></div>
+      )}
+
+      {creating && <CreateUserModal onRun={run} onClose={() => setCreating(false)} />}
+      {action?.type === "approve" && (
+        <RoleModal icon="check" title="Duyệt tài khoản" sub={action.user.email} confirm="Duyệt & kích hoạt"
+          start="staff" onClose={() => setAction(null)}
+          onSubmit={(role) => run(() => api.users.approve(action.user.id, role), "Đã duyệt " + action.user.email)} />
+      )}
+      {action?.type === "role" && (
+        <RoleModal icon="settings" title="Đổi vai trò" sub={action.user.email} confirm="Lưu vai trò"
+          start={action.user.role} onClose={() => setAction(null)}
+          onSubmit={(role) => run(() => api.users.update(action.user.id, { role }), "Đã đổi vai trò " + action.user.email)} />
+      )}
+      {action?.type === "password" && (
+        <PasswordModal user={action.user} onClose={() => setAction(null)}
+          onSubmit={(pw) => run(() => api.users.resetPassword(action.user.id, pw), "Đã đặt lại mật khẩu " + action.user.email)} />
+      )}
+      {action?.type === "reject" && (
+        <ConfirmModal title="Từ chối đăng ký" confirm="Từ chối & xóa"
+          message={<>Xóa vĩnh viễn đăng ký của <b>{action.user.email}</b>? Hành động này không thể hoàn tác.</>}
+          onClose={() => setAction(null)} onConfirm={() => run(() => api.users.reject(action.user.id), "Đã từ chối " + action.user.email)} />
+      )}
+      {action?.type === "disable" && (
+        <ConfirmModal title="Khóa tài khoản" confirm="Khóa tài khoản"
+          message={<>Khóa <b>{action.user.email}</b>? Người này sẽ không đăng nhập được cho đến khi mở khóa.</>}
+          onClose={() => setAction(null)} onConfirm={() => run(() => api.users.disable(action.user.id), "Đã khóa " + action.user.email)} />
+      )}
     </div>
   );
 }
 
-function CreateUserModal({ onClose, onDone, onToast }) {
+/* ---------- Modal vỏ chung ---------- */
+function Modal({ icon, title, sub, children, onClose }) {
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          {icon && <div className="mh-ic"><Icon name={icon} size={18} /></div>}
+          <div>
+            <h3>{title}</h3>
+            {sub && <div className="mh-sub">{sub}</div>}
+          </div>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Bộ chọn vai trò (thẻ radio) ---------- */
+function RolePicker({ value, onChange }) {
+  return (
+    <div className="role-opts">
+      {ROLES.map((r) => (
+        <div key={r.key} className={"role-opt" + (value === r.key ? " sel" : "")} onClick={() => onChange(r.key)}>
+          <div className="ro-r" />
+          <div className="ro-t"><b>{r.label}</b><span>{r.desc}</span></div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RoleModal({ icon, title, sub, confirm, start, onSubmit, onClose }) {
+  const [role, setRole] = React.useState(start);
+  const [busy, setBusy] = React.useState(false);
+  const go = async () => { setBusy(true); await onSubmit(role); setBusy(false); };
+  return (
+    <Modal icon={icon} title={title} sub={sub} onClose={onClose}>
+      <div className="modal-body"><RolePicker value={role} onChange={setRole} /></div>
+      <div className="modal-foot">
+        <button className="btn" onClick={onClose}>Hủy</button>
+        <button className="btn btn-primary" disabled={busy} onClick={go}>{busy ? "Đang lưu…" : confirm}</button>
+      </div>
+    </Modal>
+  );
+}
+
+function PasswordModal({ user, onSubmit, onClose }) {
+  const [pw, setPw] = React.useState("");
+  const [busy, setBusy] = React.useState(false);
+  const valid = pw.length >= 6;
+  const submit = async (e) => { e.preventDefault(); if (!valid) return; setBusy(true); await onSubmit(pw); setBusy(false); };
+  return (
+    <Modal icon="refresh" title="Đặt lại mật khẩu" sub={user.email} onClose={onClose}>
+      <form onSubmit={submit}>
+        <div className="modal-body">
+          <label className="field">
+            <span>Mật khẩu mới (≥ 6 ký tự)</span>
+            <div className="input"><Icon name="settings" size={16} /><input type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoFocus required minLength={6} /></div>
+          </label>
+        </div>
+        <div className="modal-foot">
+          <button type="button" className="btn" onClick={onClose}>Hủy</button>
+          <button className="btn btn-primary" disabled={busy || !valid}>{busy ? "Đang lưu…" : "Đặt lại mật khẩu"}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function ConfirmModal({ title, message, confirm, onConfirm, onClose }) {
+  const [busy, setBusy] = React.useState(false);
+  const go = async () => { setBusy(true); await onConfirm(); setBusy(false); };
+  return (
+    <Modal icon="close" title={title} onClose={onClose}>
+      <div className="modal-body"><div className="mb-text">{message}</div></div>
+      <div className="modal-foot">
+        <button className="btn" onClick={onClose}>Hủy</button>
+        <button className="btn btn-primary" disabled={busy} onClick={go}
+          style={{ background: "var(--st-red)", borderColor: "var(--st-red)", boxShadow: "none" }}>
+          {busy ? "Đang xử lý…" : confirm}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+function CreateUserModal({ onRun, onClose }) {
   const [f, setF] = React.useState({ email: "", name: "", role: "staff", password: "" });
   const [busy, setBusy] = React.useState(false);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
-
   const submit = async (e) => {
     e.preventDefault(); setBusy(true);
-    try { await api.users.create(f); onToast && onToast("Đã tạo user " + f.email); onDone(); }
-    catch (err) { onToast && onToast("Lỗi: " + err.message); setBusy(false); }
+    await onRun(() => api.users.create(f), "Đã tạo user " + f.email);
+    setBusy(false);
   };
-
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="card" style={{ maxWidth: 420, margin: "10vh auto", padding: 20 }} onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ marginBottom: 12 }}>Tạo người dùng</h3>
-        <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <label className="field"><span>Họ tên</span><div className="input"><input value={f.name} onChange={set("name")} required /></div></label>
-          <label className="field"><span>Email</span><div className="input"><input type="email" value={f.email} onChange={set("email")} required /></div></label>
-          <label className="field"><span>Role</span>
-            <div className="input"><select value={f.role} onChange={set("role")}>
-              <option value="admin">Quản trị viên</option>
-              <option value="staff">Nhân viên</option>
-              <option value="viewer">Chỉ xem</option>
-            </select></div>
-          </label>
-          <label className="field"><span>Mật khẩu (≥ 6 ký tự)</span><div className="input"><input type="password" value={f.password} onChange={set("password")} required minLength={6} /></div></label>
-          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 8 }}>
-            <button type="button" className="btn" onClick={onClose}>Hủy</button>
-            <button className="btn btn-primary" disabled={busy}>{busy ? "Đang tạo…" : "Tạo"}</button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <Modal icon="plus" title="Tạo người dùng" sub="Tài khoản được kích hoạt ngay" onClose={onClose}>
+      <form onSubmit={submit}>
+        <div className="modal-body">
+          <label className="field"><span>Họ tên</span><div className="input"><Icon name="user" size={16} /><input value={f.name} onChange={set("name")} autoFocus required /></div></label>
+          <label className="field"><span>Email</span><div className="input"><Icon name="link" size={16} /><input type="email" value={f.email} onChange={set("email")} required /></div></label>
+          <div className="field"><span style={{ marginBottom: 4 }}>Vai trò</span><RolePicker value={f.role} onChange={(role) => setF({ ...f, role })} /></div>
+          <label className="field"><span>Mật khẩu (≥ 6 ký tự)</span><div className="input"><Icon name="settings" size={16} /><input type="password" value={f.password} onChange={set("password")} required minLength={6} /></div></label>
+        </div>
+        <div className="modal-foot">
+          <button type="button" className="btn" onClick={onClose}>Hủy</button>
+          <button className="btn btn-primary" disabled={busy}>{busy ? "Đang tạo…" : "Tạo người dùng"}</button>
+        </div>
+      </form>
+    </Modal>
   );
 }
 
