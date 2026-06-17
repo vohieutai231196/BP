@@ -17,6 +17,10 @@ API tự: chạy schema (`db/init.sql`), seed admin và 24 đơn demo.
 - Health:    http://localhost:8080/health
 - Tài khoản: `maianh@gomdon.vn` / `demo1234`
 
+> **Prod:** đặt `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` trong `.env` trước khi deploy.
+> Sau deploy, đổi mật khẩu hoặc khóa tài khoản demo `maianh@gomdon.vn` (mật khẩu công khai trong tài liệu).
+> Nhân viên tự đăng ký ở màn đăng nhập → admin duyệt & gán role tại trang **Người dùng**.
+
 Dừng / xoá dữ liệu: `docker compose down` (giữ data) hoặc `down -v` (xoá DB).
 
 ## Chạy không Docker (chỉ DB trong Docker)

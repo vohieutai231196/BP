@@ -3,6 +3,7 @@ using GomDon.Api.Auth;
 using GomDon.Api.Startup;
 using GomDon.Infrastructure;
 using GomDon.Modules.Orders;
+using GomDon.Modules.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
@@ -41,6 +42,7 @@ try
     // ---------- DI ----------
     builder.Services.AddInfrastructure(connectionString);
     builder.Services.AddOrdersModule();
+    builder.Services.AddUsersModule();
     builder.Services.AddHttpClient<GomDon.Modules.Orders.Services.ITranslationService, GomDon.Api.Integrations.GeminiTranslationService>();
     builder.Services.AddHttpClient(); // IHttpClientFactory cho ImageProxyController
     builder.Services.AddScoped<AuthService>();
@@ -56,6 +58,12 @@ try
         o.AddFixedWindowLimiter("ingest", opt =>
         {
             opt.PermitLimit = 120;
+            opt.Window = TimeSpan.FromMinutes(1);
+            opt.QueueLimit = 0;
+        });
+        o.AddFixedWindowLimiter("auth", opt =>
+        {
+            opt.PermitLimit = 10;
             opt.Window = TimeSpan.FromMinutes(1);
             opt.QueueLimit = 0;
         });

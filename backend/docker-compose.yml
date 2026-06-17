@@ -11,9 +11,10 @@ services:
       POSTGRES_DB: gomdon
       POSTGRES_USER: gomdon
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gomdon}
-    # KHÔNG expose 5432 ra ngoài — API nói chuyện với DB qua mạng nội bộ Docker.
-    # Cần truy cập DB từ máy local? Bỏ comment dòng dưới (chỉ mở trên loopback):
-    #   - "127.0.0.1:5432:5432"
+    # API nói chuyện với DB qua mạng nội bộ Docker (expose).
+    # Mở thêm trên loopback để truy cập từ máy chủ / qua SSH tunnel:
+    ports:
+      - "127.0.0.1:5432:5432"
     expose:
       - "5432"
     volumes:
@@ -39,6 +40,9 @@ services:
       ConnectionStrings__Postgres: "Host=db;Port=5432;Database=gomdon;Username=gomdon;Password=${POSTGRES_PASSWORD:-gomdon}"
       Cors__Origins__0: "${CORS_ORIGIN:-http://localhost:5173}"
       Seed__DemoData: "false"
+      Seed__AdminEmail: "${SEED_ADMIN_EMAIL:-maianh@gomdon.vn}"
+      Seed__AdminPassword: "${SEED_ADMIN_PASSWORD:-demo1234}"
+      Seed__AdminName: "${SEED_ADMIN_NAME:-Quản trị viên}"
       # Secret nạp từ .env (không hardcode):
       Jwt__Key: "${JWT_KEY:?JWT_KEY chưa được đặt trong .env}"
       Ingest__Token: "${INGEST_TOKEN:?INGEST_TOKEN chưa được đặt trong .env}"

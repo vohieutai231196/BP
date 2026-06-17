@@ -61,12 +61,28 @@ function qs(obj) {
 
 export const api = {
   login: (email, password) => request("/v1/auth/login", { method: "POST", auth: false, body: { email, password } }),
+  register: (email, name, password) => request("/v1/auth/register", { method: "POST", auth: false, body: { email, name, password } }),
   me: () => request("/v1/auth/me"),
   dashboard: () => request("/v1/dashboard/summary"),
   orders: (query) => request("/v1/orders" + qs(query)),
   order: (id) => request(`/v1/orders/${id}`),
   changeStatus: (id, status, note) => request(`/v1/orders/${id}/status`, { method: "PATCH", body: { status, note } }),
   deleteOrder: (id) => request(`/v1/orders/${id}`, { method: "DELETE" }),
+
+  users: {
+    list: (query) => request("/v1/users" + qs(query)),
+    create: (body) => request("/v1/users", { method: "POST", body }),
+    update: (id, body) => request(`/v1/users/${id}`, { method: "PATCH", body }),
+    approve: (id, role) => request(`/v1/users/${id}/approve`, { method: "POST", body: { role } }),
+    reject: (id) => request(`/v1/users/${id}/reject`, { method: "POST" }),
+    disable: (id) => request(`/v1/users/${id}/disable`, { method: "POST" }),
+    enable: (id) => request(`/v1/users/${id}/enable`, { method: "POST" }),
+    resetPassword: (id, newPassword) => request(`/v1/users/${id}/reset-password`, { method: "POST", body: { newPassword } }),
+  },
+  account: {
+    changePassword: (currentPassword, newPassword) => request("/v1/account/password", { method: "PATCH", body: { currentPassword, newPassword } }),
+    updateProfile: (name) => request("/v1/account/profile", { method: "PATCH", body: { name } }),
+  },
 };
 
 export default api;

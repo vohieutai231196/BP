@@ -79,16 +79,19 @@ public sealed class DbBootstrapper
 
     private async Task SeedAdminAsync(CancellationToken ct)
     {
+        var email = _config["Seed:AdminEmail"] ?? "maianh@gomdon.vn";
+        var password = _config["Seed:AdminPassword"] ?? "demo1234";
+        var name = _config["Seed:AdminName"] ?? "Quản trị viên";
+
         using var conn = _factory.Create();
         var exists = await conn.ExecuteScalarAsync<bool>(
-            "SELECT EXISTS(SELECT 1 FROM users WHERE email = @email);",
-            new { email = "maianh@gomdon.vn" });
+            "SELECT EXISTS(SELECT 1 FROM users WHERE email = @email);", new { email });
         if (exists) return;
 
         await conn.ExecuteAsync(
-            "INSERT INTO users(email, password_hash, name, role) VALUES(@e, @h, @n, 'admin');",
-            new { e = "maianh@gomdon.vn", h = PasswordHasher.Hash("demo1234"), n = "Mai Anh" });
-        _log.LogInformation("Đã seed tài khoản admin: maianh@gomdon.vn / demo1234");
+            "INSERT INTO users(email, password_hash, name, role, status) VALUES(@e, @h, @n, 'admin', 'active');",
+            new { e = email, h = PasswordHasher.Hash(password), n = name });
+        _log.LogInformation("Đã seed tài khoản admin: {Email}", email);
     }
 
     private async Task SeedDemoAsync(CancellationToken ct)

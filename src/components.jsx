@@ -31,8 +31,9 @@ export function ProductThumb({ order, lg }) {
 }
 
 /* ---------- Sidebar ---------- */
-export function Sidebar({ route, onNav, collapsed, open, onCloseMobile, onLogout, counts }) {
+export function Sidebar({ route, onNav, collapsed, open, onCloseMobile, onLogout, counts, user, onOpenAccount }) {
   const c = counts || {};
+  const isAdmin = user?.role === "admin";
   const items = [
     { key: "dashboard", label: "Tổng quan", icon: "dashboard" },
     { key: "orders", label: "Đơn hàng", icon: "box", count: c.total },
@@ -63,6 +64,15 @@ export function Sidebar({ route, onNav, collapsed, open, onCloseMobile, onLogout
         {[items[0], items[1]].map(NavBtn)}
         <div className="sb-section-label"><span>Cần chú ý</span></div>
         {[items[2], items[3]].map(NavBtn)}
+        {isAdmin && (
+          <>
+            <div className="sb-section-label"><span>Hệ thống</span></div>
+            <button className={"sb-item" + (route === "users" ? " active" : "")}
+              onClick={() => { onNav("users"); onCloseMobile && onCloseMobile(); }}>
+              <Icon name="user" size={19} /><span>Người dùng</span>
+            </button>
+          </>
+        )}
         <div className="sb-section-label"><span>Công cụ</span></div>
         <a className="sb-item" href="extension.html" target="_blank" rel="noopener" onClick={onCloseMobile}>
           <Icon name="globe" size={19} /><span>Tiện ích thu thập</span>
@@ -70,10 +80,13 @@ export function Sidebar({ route, onNav, collapsed, open, onCloseMobile, onLogout
         </a>
       </nav>
       <div className="sb-footer">
-        <div className="sb-user" role="button" onClick={onLogout} title="Đăng xuất">
-          <div className="sb-avatar">MA</div>
-          <div className="sb-user-info"><b>Mai Anh</b><span>Quản trị viên</span></div>
-          <Icon name="logout" size={17} style={{ marginLeft: "auto", color: "var(--sidebar-muted)" }} />
+        <div className="sb-user" role="button" onClick={onOpenAccount} title="Tài khoản của tôi">
+          <div className="sb-avatar">{(user?.name || "?").trim().charAt(0).toUpperCase()}</div>
+          <div className="sb-user-info">
+            <b>{user?.name || "Người dùng"}</b>
+            <span>{user?.role === "admin" ? "Quản trị viên" : user?.role === "staff" ? "Nhân viên" : "Chỉ xem"}</span>
+          </div>
+          <button className="icon-btn" title="Đăng xuất" onClick={(e) => { e.stopPropagation(); onLogout(); }}><Icon name="external" size={16} /></button>
         </div>
       </div>
     </aside>

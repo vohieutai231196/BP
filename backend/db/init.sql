@@ -29,6 +29,10 @@ CREATE TABLE IF NOT EXISTS users (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- migration an toàn: thêm trạng thái tài khoản (pending|active|disabled).
+-- User cũ mặc định 'active' (đăng nhập bình thường). User tự đăng ký = 'pending'.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active';
+
 -- ---------- Đơn hàng (header) ----------
 -- Trạng thái vòng đời: cho_coc, dang_mua, ve_vn, kho_vn, da_tra,
 --                      khieu_nai, thanh_ly, huy

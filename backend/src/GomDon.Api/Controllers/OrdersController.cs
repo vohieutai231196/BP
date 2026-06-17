@@ -55,7 +55,7 @@ public sealed class OrdersController : ControllerBase
     }
 
     /// <summary>Đổi trạng thái đơn (ghi kèm lịch sử) — yêu cầu đăng nhập.</summary>
-    [Authorize]
+    [Authorize(Roles = "admin,staff")]
     [HttpPatch("{id:long}/status")]
     public async Task<ActionResult> ChangeStatus(long id, [FromBody] ChangeStatusRequest body, CancellationToken ct)
     {
@@ -66,7 +66,7 @@ public sealed class OrdersController : ControllerBase
     }
 
     /// <summary>Xoá đơn (và toàn bộ kiện/phí/lịch sử/thanh toán/sản phẩm) — yêu cầu đăng nhập.</summary>
-    [Authorize]
+    [Authorize(Roles = "admin")]
     [HttpDelete("{id:long}")]
     public async Task<ActionResult> Delete(long id, CancellationToken ct)
     {
