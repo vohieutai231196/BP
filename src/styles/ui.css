@@ -95,6 +95,10 @@
 .btn-ghost:hover{ background:var(--surface-3); color:var(--ink); }
 .btn-sm{ padding:7px 12px; font-size:13px; border-radius:9px; }
 
+/* ---------- Table ---------- */
+.tbl th{ text-align:left; padding:8px 10px; color:var(--faint); font-size:12px; border-bottom:1px solid var(--surface-3); }
+.tbl td{ padding:10px; border-bottom:1px solid var(--surface-3); }
+
 /* ---------- Segmented control ---------- */
 .seg{ display:inline-flex; background:var(--surface-3); border:1px solid var(--line); border-radius:10px; padding:3px; gap:2px; }
 .seg-item{ display:inline-flex; align-items:center; gap:7px; padding:7px 13px; border-radius:8px; font-size:13px; font-weight:600; color:var(--muted); background:none; border:none; transition:.15s var(--ease); }
