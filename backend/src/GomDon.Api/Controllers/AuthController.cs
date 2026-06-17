@@ -1,4 +1,5 @@
 using GomDon.Api.Auth;
+using GomDon.Modules.Users.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,10 +19,14 @@ public sealed class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult> Login([FromBody] LoginRequest req, CancellationToken ct)
     {
-        var result = await _auth.LoginAsync(req.Email, req.Password, ct);
-        return result is null
-            ? Unauthorized(new { message = "Email hoặc mật khẩu không đúng." })
-            : Ok(result);
+        var (outcome, result) = await _auth.LoginAsync(req.Email, req.Password, ct);
+        return outcome switch
+        {
+            AuthOutcome.Success => Ok(result),
+            AuthOutcome.Pending => StatusCode(StatusCodes.Status403Forbidden, new { message = "Tài khoản đang chờ duyệt." }),
+            AuthOutcome.Disabled => StatusCode(StatusCodes.Status403Forbidden, new { message = "Tài khoản đã bị khóa." }),
+            _ => Unauthorized(new { message = "Email hoặc mật khẩu không đúng." }),
+        };
     }
 
     /// <summary>Thông tin người dùng hiện tại (kiểm tra token).</summary>
