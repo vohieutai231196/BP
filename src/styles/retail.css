@@ -1,0 +1,72 @@
+/* ============================================================
+   GomĐơn — Bán lẻ (Retail): bổ sung nhỏ NGOÀI ui.css.
+   Tái dùng tối đa: .kpi-grid/.kpi, .card/.card-head/.card-pad,
+   .dg, .badge, .field/.input, .fee-row/.fee-total, .modal-*.
+   ============================================================ */
+
+/* layout 2 cột (máy tính giá / đơn bán) */
+.retail-2col{ display:grid; grid-template-columns:400px 1fr; gap:16px; align-items:start; }
+@media (max-width:900px){ .retail-2col{ grid-template-columns:1fr; } }
+
+/* ô nhập số gọn (trong bảng / form nhỏ) */
+.num-inp{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; text-align:right;
+  background:var(--surface-2); border:1px solid var(--line-2); border-radius:9px; padding:8px 10px;
+  color:var(--ink); outline:none; width:100%; }
+.num-inp:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+.num-inp:disabled{ opacity:.5; }
+
+/* select trông như .input (đặt bên trong .field .input) */
+.sel{ width:100%; border:none; background:none; outline:none; color:var(--ink); font-family:inherit; font-size:14.5px; }
+
+/* dòng chọn chi phí phát sinh (tick + tên + số tiền) */
+.cost-line{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); }
+.cost-line:last-child{ border-bottom:none; }
+.cost-line .nm{ flex:1; font-size:13.5px; color:var(--ink-2); }
+.cost-line.off .nm{ color:var(--faint); }
+.cost-chk{ width:30px; height:30px; border-radius:8px; border:1px solid var(--line-2); background:var(--surface-2);
+  display:grid; place-items:center; color:var(--muted); flex:none; cursor:pointer; transition:.15s var(--ease); }
+.cost-chk.on{ background:var(--st-green-bg); border-color:var(--st-green); color:var(--st-green); }
+
+/* thanh kéo mức lời */
+.range{ -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:6px;
+  background:var(--surface-3); outline:none; }
+.range::-webkit-slider-thumb{ -webkit-appearance:none; width:20px; height:20px; border-radius:50%;
+  background:#fff; border:none; box-shadow:0 2px 6px rgba(0,0,0,.35); cursor:pointer; }
+.range::-moz-range-thumb{ width:20px; height:20px; border-radius:50%; background:#fff; border:none; cursor:pointer; }
+.range-ticks{ display:flex; justify-content:space-between; margin-top:6px; color:var(--faint);
+  font-size:11px; font-family:var(--font-mono); }
+
+/* bảng quét: hàng nhấn mạnh + hàng không bấm được */
+table.dg tbody tr.hl{ background:var(--accent-soft); }
+table.dg tbody tr.norow{ cursor:default; }
+table.dg tbody tr.norow:hover{ background:none; }
+
+/* hộp lợi nhuận thực (xanh) */
+.profit-box{ display:flex; flex-direction:column; gap:3px; align-items:center; text-align:center;
+  padding:16px; border-radius:14px; background:var(--st-green-bg); border:1px solid var(--st-green); }
+.profit-box.neg{ background:var(--st-red-bg); border-color:var(--st-red); }
+.profit-box .pl{ font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--st-green); }
+.profit-box.neg .pl{ color:var(--st-red); }
+.profit-box .pv{ font-family:var(--font-mono); font-size:26px; font-weight:800; color:var(--st-green); }
+.profit-box.neg .pv{ color:var(--st-red); }
+.profit-box .ps{ font-size:12px; color:var(--st-green); opacity:.85; }
+.profit-box.neg .ps{ color:var(--st-red); }
+
+/* badge nhỏ (tặng / KM / combo) cạnh tên SP */
+.tag-mini{ display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700;
+  padding:2px 7px; border-radius:20px; margin-left:7px; vertical-align:middle; }
+
+/* 2 ô hero giá bán (markup / biên lãi) ở máy tính giá */
+.hero-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:4px 0 16px; }
+.hero-box{ background:var(--surface-2); border:1px solid var(--line); border-radius:14px; padding:14px; }
+.hero-box.pick{ background:var(--st-green-bg); border-color:var(--st-green); }
+.hero-box .hl{ font-size:11.5px; color:var(--muted); margin-bottom:6px; display:flex; justify-content:space-between; gap:8px; }
+.hero-box.pick .hl b{ color:var(--st-green); font-weight:700; }
+.hero-box .hv{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:23px; font-weight:800; letter-spacing:-.01em; }
+.hero-box .hp{ font-size:12px; color:var(--muted); margin-top:4px; }
+.hero-box .hp b{ color:var(--pos); }
+
+/* thanh tồn nhỏ trong bảng kho */
+.stockbar{ display:inline-block; width:54px; height:5px; border-radius:5px; background:var(--surface-3);
+  position:relative; margin-left:8px; vertical-align:middle; overflow:hidden; }
+.stockbar i{ position:absolute; left:0; top:0; bottom:0; border-radius:5px; background:var(--st-green); }

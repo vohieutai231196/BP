@@ -52,11 +52,11 @@ export function Sales({ onToast }) {
           <tbody>
             {list.map((s) => (
               <tr key={s.id}>
-                <td className="mono">{s.code}</td>
+                <td className="cell-id">{s.code}</td>
                 <td>{s.customerName || "—"}</td>
                 <td className="cell-sub">{s.channel || "—"}</td>
-                <td className="mono" style={{ textAlign: "right" }}>{fmt(s.revenue)}</td>
-                <td className="mono" style={{ textAlign: "right", color: s.profit >= 0 ? "var(--pos)" : "var(--neg)" }}>{(s.profit >= 0 ? "+" : "") + fmt(s.profit)}</td>
+                <td className="cell-money">{fmt(s.revenue)}</td>
+                <td className={"cell-money " + (s.profit >= 0 ? "pos" : "neg")}>{(s.profit >= 0 ? "+" : "") + fmt(s.profit)}</td>
                 <td className="cell-sub">{fmtDate(s.soldAt)}</td>
               </tr>
             ))}
@@ -140,12 +140,13 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
   return (
     <div className="overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 640, width: "92%" }}>
-        <div className="modal-head"><div className="mh-ic"><Icon name="plus" size={18} /></div><div><h3>Tạo đơn bán</h3></div></div>
+        <div className="modal-head"><div className="mh-ic"><Icon name="plus" size={18} /></div><div><h3>Tạo đơn bán</h3><div className="mh-sub">Chọn sản phẩm, combo & chi phí để tính lợi nhuận thực</div></div></div>
         <div className="modal-body">
+          {/* chọn sản phẩm + nút thao tác */}
           <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
             <label className="field" style={{ flex: 1 }}><span>Thêm sản phẩm</span>
               <div className="input"><Icon name="search" size={16} />
-                <select id="sale-prod-pick" defaultValue="" style={{ border: "none", background: "transparent", color: "inherit", width: "100%", outline: "none" }}>
+                <select id="sale-prod-pick" className="sel" defaultValue="">
                   <option value="">— Chọn SKU —</option>
                   {products.map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.name} (tồn {p.stock})</option>)}
                 </select></div></label>
@@ -154,13 +155,16 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
           </div>
 
           {items.map((x) => (
-            <div key={x.productId + "-" + x.lineType} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
+            <div key={x.productId + "-" + x.lineType} className="cost-line">
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="pn">{x.name} {x.lineType === "tang" && <span className="badge violet" style={{ fontSize: 10.5, padding: "2px 7px" }}>🎁 Tặng</span>}{x.promoName && <span className="badge green" style={{ fontSize: 10.5, padding: "2px 7px" }}>KM</span>}</div>
-                <div className="pm mono">{x.sku} · tồn {x.stock} · vốn {fmt(x.avgCost)}</div>
+                <div className="pn">{x.name}
+                  {x.lineType === "tang" && <span className="tag-mini" style={{ color: "var(--st-violet)", background: "var(--st-violet-bg)" }}>🎁 Tặng</span>}
+                  {x.promoName && <span className="tag-mini" style={{ color: "var(--st-green)", background: "var(--st-green-bg)" }}>KM</span>}
+                </div>
+                <div className="pm">{x.sku} · tồn {x.stock} · vốn {fmt(x.avgCost)}</div>
               </div>
-              <input type="number" min="1" value={x.qty} onChange={(e) => setItem2(x, "qty", e.target.value)} className="mono" style={{ width: 56, textAlign: "right", background: "var(--surface-2)", border: "1px solid var(--line-2)", borderRadius: 8, padding: "6px", color: "inherit" }} />
-              <input type="number" min="0" value={x.unitPrice} disabled={x.lineType === "tang"} onChange={(e) => setItem2(x, "unitPrice", e.target.value)} className="mono" style={{ width: 96, textAlign: "right", background: "var(--surface-2)", border: "1px solid var(--line-2)", borderRadius: 8, padding: "6px", color: "inherit", opacity: x.lineType === "tang" ? .5 : 1 }} />
+              <input type="number" min="1" value={x.qty} onChange={(e) => setItem2(x, "qty", e.target.value)} className="num-inp" style={{ width: 56 }} />
+              <input type="number" min="0" value={x.unitPrice} disabled={x.lineType === "tang"} onChange={(e) => setItem2(x, "unitPrice", e.target.value)} className="num-inp" style={{ width: 96 }} />
               <button className="icon-btn" onClick={() => removeItem2(x)}><Icon name="close" size={15} /></button>
             </div>
           ))}
@@ -169,29 +173,31 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
             <div style={{ marginTop: 8 }}>
               <label className="field"><span>Thêm combo</span>
                 <div className="input"><Icon name="box" size={16} />
-                  <select defaultValue="" onChange={(e) => { const c = combos.find((x) => String(x.id) === e.target.value); if (c) addCombo(c); e.target.value = ""; }}
-                    style={{ border: "none", background: "transparent", color: "inherit", width: "100%", outline: "none" }}>
+                  <select className="sel" defaultValue="" onChange={(e) => { const c = combos.find((x) => String(x.id) === e.target.value); if (c) addCombo(c); e.target.value = ""; }}>
                     <option value="">— Chọn combo —</option>
                     {combos.map((c) => <option key={c.id} value={c.id} disabled={c.availableQty <= 0}>{c.name} ({fmt(c.price)} · còn {c.availableQty})</option>)}
                   </select></div></label>
               {comboLines.map((x) => (
-                <div key={x.comboId} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: "1px solid var(--line)" }}>
-                  <div style={{ flex: 1 }}><div className="pn">🎁 {x.name}</div><div className="pm mono">{fmt(x.price)} · khả dụng {x.available}</div></div>
-                  <input type="number" min="1" max={x.available} value={x.qty} onChange={(e) => setComboQty(x.comboId, e.target.value)} className="mono" style={{ width: 56, textAlign: "right", background: "var(--surface-2)", border: "1px solid var(--line-2)", borderRadius: 8, padding: "6px", color: "inherit" }} />
+                <div key={x.comboId} className="cost-line">
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="pn">{x.name}<span className="tag-mini" style={{ color: "var(--st-blue)", background: "var(--st-blue-bg)" }}>🎁 Combo</span></div>
+                    <div className="pm">{fmt(x.price)} · khả dụng {x.available}</div>
+                  </div>
+                  <input type="number" min="1" max={x.available} value={x.qty} onChange={(e) => setComboQty(x.comboId, e.target.value)} className="num-inp" style={{ width: 56 }} />
                   <button className="icon-btn" onClick={() => removeCombo(x.comboId)}><Icon name="close" size={15} /></button>
                 </div>
               ))}
             </div>
           )}
 
-          {costTypes.length > 0 && <div style={{ marginTop: 12, fontSize: 12, color: "var(--faint)" }}>Chi phí phát sinh</div>}
+          {costTypes.length > 0 && <div className="cell-sub" style={{ marginTop: 12 }}>Chi phí phát sinh</div>}
           {costTypes.map((c) => {
             const on = picked[c.id] != null;
             return (
-              <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0" }}>
-                <button className="btn btn-sm btn-ghost" onClick={() => toggleCost(c)} style={{ minWidth: 32, justifyContent: "center" }}><Icon name={on ? "check" : "plus"} size={14} /></button>
-                <span style={{ flex: 1, color: on ? "var(--ink-2)" : "var(--faint)" }}>{c.name}{c.unit === "percent" ? " (%)" : ""}</span>
-                <input type="number" min="0" disabled={!on} value={on ? picked[c.id] : ""} onChange={(e) => setPicked((p) => ({ ...p, [c.id]: e.target.value }))} className="mono" style={{ width: 90, textAlign: "right", background: "var(--surface-2)", border: "1px solid var(--line-2)", borderRadius: 8, padding: "6px", color: "inherit" }} />
+              <div key={c.id} className={"cost-line" + (on ? "" : " off")}>
+                <button type="button" className={"cost-chk" + (on ? " on" : "")} onClick={() => toggleCost(c)}><Icon name={on ? "check" : "plus"} size={14} /></button>
+                <span className="nm">{c.name}{c.unit === "percent" ? " (%)" : ""}</span>
+                <input type="number" min="0" disabled={!on} value={on ? picked[c.id] : ""} onChange={(e) => setPicked((p) => ({ ...p, [c.id]: e.target.value }))} className="num-inp" style={{ width: 90 }} />
               </div>
             );
           })}
@@ -201,12 +207,16 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
             <label className="field"><span>Kênh (tùy chọn)</span><div className="input"><Icon name="globe" size={16} /><input value={info.channel} onChange={(e) => setInfo({ ...info, channel: e.target.value })} /></div></label>
           </div>
 
-          <div style={{ marginTop: 8, padding: 12, background: "var(--surface-2)", borderRadius: 10 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span>Doanh thu</span><b className="mono">{fmt(revenue)}</b></div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--muted)" }}><span>− Giá vốn</span><span className="mono">−{fmt(cogs)}</span></div>
-            {promoCost > 0 && <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--muted)" }}><span>− Chi phí khuyến mãi</span><span className="mono">−{fmt(promoCost)}</span></div>}
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--muted)" }}><span>− Chi phí phát sinh</span><span className="mono">−{fmt(extra)}</span></div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, paddingTop: 6, borderTop: "1px dashed var(--line-2)" }}><b>Lợi nhuận</b><b className="mono" style={{ color: profit >= 0 ? "var(--pos)" : "var(--neg)" }}>{(profit >= 0 ? "+" : "") + fmt(profit)}</b></div>
+          {/* tổng kết */}
+          <div style={{ marginTop: 12 }}>
+            <div className="fee-row"><span className="fl">Doanh thu</span><span className="fv">{fmt(revenue)}</span></div>
+            <div className="fee-row"><span className="fl">− Giá vốn</span><span className="fv">−{fmt(cogs)}</span></div>
+            {promoCost > 0 && <div className="fee-row"><span className="fl">− Chi phí khuyến mãi</span><span className="fv">−{fmt(promoCost)}</span></div>}
+            <div className="fee-row"><span className="fl">− Chi phí phát sinh</span><span className="fv">−{fmt(extra)}</span></div>
+            <div className={"profit-box" + (profit >= 0 ? "" : " neg")} style={{ marginTop: 12 }}>
+              <div className="pl">Lợi nhuận thực</div>
+              <div className="pv">{(profit >= 0 ? "+" : "") + fmt(profit)}</div>
+            </div>
           </div>
           {overStock && <div style={{ marginTop: 8, color: "var(--st-red)", fontSize: 12.5 }}>Vượt tồn: {overStock.sku} chỉ còn {overStock.stock}.</div>}
         </div>

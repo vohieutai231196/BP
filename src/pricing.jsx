@@ -18,6 +18,7 @@ export function Pricing({ onToast }) {
   const [products, setProducts] = React.useState([]);
   const [result, setResult] = React.useState(null);
   const [manualPrice, setManualPrice] = React.useState("");
+  const [level, setLevel] = React.useState(30);   // mức lời mục tiêu (thanh kéo)
 
   // nạp danh mục chi phí + sản phẩm (để chọn nhanh giá vốn)
   React.useEffect(() => {
@@ -54,90 +55,122 @@ export function Pricing({ onToast }) {
   const manualNum = manualPrice === "" ? null : Math.round(Number(manualPrice) || 0);
   const isLoss = manualNum != null && manualNum < costBase;
 
+  // hero theo mức lời đang chọn (tính client-side, làm tròn khớp backend)
+  const roundPretty = (v) => (roundTo <= 0 ? v : Math.ceil(v / roundTo) * roundTo);
+  const heroMarkup = costBase > 0 ? roundPretty(Math.round(costBase * (1 + level / 100))) : 0;
+  const heroMarkupProfit = heroMarkup - costBase;
+  const heroMargin = level < 100 && costBase > 0 ? roundPretty(Math.round(costBase / (1 - level / 100))) : null;
+  const heroMarginProfit = heroMargin == null ? null : heroMargin - costBase;
+
   return (
-    <div className="fade-in" style={{ display: "grid", gridTemplateColumns: "380px 1fr", gap: 18, alignItems: "start" }}>
+    <div className="fade-in retail-2col">
       {/* LEFT: inputs */}
-      <div>
-        <div className="card" style={{ padding: 18, marginBottom: 16 }}>
-          <h3 style={{ margin: "0 0 14px", fontSize: 13, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".06em" }}>Giá vốn</h3>
-          <label className="field"><span>Chọn nhanh từ sản phẩm (tùy chọn)</span>
-            <div className="input"><Icon name="box" size={16} />
-              <select onChange={pickProduct} defaultValue="" style={{ border: "none", background: "transparent", color: "inherit", width: "100%", outline: "none" }}>
-                <option value="">— Nhập tay —</option>
-                {products.map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.name}</option>)}
-              </select></div></label>
-          <label className="field"><span>Giá vốn / sản phẩm (₫)</span>
-            <div className="input"><Icon name="coins" size={16} /><input type="number" min="0" value={unitCost} onChange={(e) => setUnitCost(e.target.value)} /></div></label>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="card">
+          <div className="card-head"><Icon name="coins" size={18} style={{ color: "var(--muted)" }} /><h3>Giá vốn</h3></div>
+          <div className="card-pad" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <label className="field"><span>Chọn nhanh từ sản phẩm (tùy chọn)</span>
+              <div className="input"><Icon name="box" size={16} />
+                <select className="sel" onChange={pickProduct} defaultValue="">
+                  <option value="">— Nhập tay —</option>
+                  {products.map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.name}</option>)}
+                </select></div></label>
+            <label className="field"><span>Giá vốn / sản phẩm (₫)</span>
+              <div className="input"><Icon name="coins" size={16} /><input type="number" min="0" value={unitCost} onChange={(e) => setUnitCost(e.target.value)} /></div></label>
+          </div>
         </div>
 
-        <div className="card" style={{ padding: 18 }}>
-          <h3 style={{ margin: "0 0 12px", fontSize: 13, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".06em" }}>Chi phí phát sinh</h3>
-          {costTypes.length === 0 && <div className="cell-sub" style={{ marginBottom: 8 }}>Chưa có loại chi phí. Thêm ở trang Kho (hoặc qua API).</div>}
-          {costTypes.map((c) => {
-            const on = picked[c.id] != null;
-            return (
-              <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
-                <button type="button" className="btn btn-sm btn-ghost" onClick={() => toggleCost(c)} style={{ minWidth: 34, justifyContent: "center" }}>
-                  <Icon name={on ? "check" : "plus"} size={15} />
-                </button>
-                <span style={{ flex: 1, color: on ? "var(--ink-2)" : "var(--faint)" }}>{c.name}{c.unit === "percent" ? " (%)" : ""}</span>
-                <input type="number" min="0" disabled={!on} value={on ? picked[c.id] : ""} onChange={(e) => setCostAmt(c.id, e.target.value)}
-                  className="mono" style={{ width: 90, textAlign: "right", background: "var(--surface-2)", border: "1px solid var(--line-2)", borderRadius: 8, padding: "6px 8px", color: "inherit" }} />
+        <div className="card">
+          <div className="card-head"><Icon name="wallet" size={18} style={{ color: "var(--muted)" }} /><h3>Chi phí phát sinh</h3></div>
+          <div className="card-pad">
+            {costTypes.length === 0 && <div className="cell-sub" style={{ marginBottom: 8 }}>Chưa có loại chi phí. Thêm ở trang Kho (hoặc qua API).</div>}
+            {costTypes.map((c) => {
+              const on = picked[c.id] != null;
+              return (
+                <div key={c.id} className={"cost-line" + (on ? "" : " off")}>
+                  <button type="button" className={"cost-chk" + (on ? " on" : "")} onClick={() => toggleCost(c)}>
+                    <Icon name={on ? "check" : "plus"} size={15} />
+                  </button>
+                  <span className="nm">{c.name}{c.unit === "percent" ? " (%)" : ""}</span>
+                  <input type="number" min="0" disabled={!on} value={on ? picked[c.id] : ""} onChange={(e) => setCostAmt(c.id, e.target.value)}
+                    className="num-inp" style={{ width: 90 }} />
+                </div>
+              );
+            })}
+            <div className="fee-total" style={{ marginTop: 16 }}>
+              <span className="ft-l">Tổng vốn (vốn + chi phí)</span>
+              <span className="ft-v">{fmt(costBase)}₫</span>
+            </div>
+            <div style={{ marginTop: 16 }}>
+              <span className="cell-sub" style={{ display: "block", marginBottom: 8 }}>Làm tròn giá đẹp</span>
+              <div className="chips">
+                {ROUND_OPTS.map((o) => (
+                  <button key={o.v} className={"chip" + (roundTo === o.v ? " active" : "")} onClick={() => setRoundTo(o.v)}>{o.l}</button>
+                ))}
               </div>
-            );
-          })}
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 14, paddingTop: 14, borderTop: "1px dashed var(--line-2)" }}>
-            <span className="cell-sub">Tổng vốn (vốn + chi phí)</span>
-            <b className="mono" style={{ fontSize: 18 }}>{fmt(costBase)}₫</b>
-          </div>
-          <div style={{ marginTop: 14 }}>
-            <span className="cell-sub" style={{ display: "block", marginBottom: 6 }}>Làm tròn giá đẹp</span>
-            <div className="chips">
-              {ROUND_OPTS.map((o) => (
-                <button key={o.v} className={"chip" + (roundTo === o.v ? " active" : "")} onClick={() => setRoundTo(o.v)}>{o.l}</button>
-              ))}
             </div>
           </div>
         </div>
       </div>
 
       {/* RIGHT: scan table */}
-      <div className="card" style={{ padding: 18 }}>
-        <h3 style={{ margin: "0 0 14px", fontSize: 13, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".06em" }}>Bảng quét mức lời</h3>
-        <div className="grid-wrap"><table className="dg">
-          <thead><tr>
-            <th>Mức lời</th>
-            <th style={{ textAlign: "right" }}>Markup → giá bán</th>
-            <th style={{ textAlign: "right" }}>Lời</th>
-            <th style={{ textAlign: "right" }}>Biên lãi → giá bán</th>
-            <th style={{ textAlign: "right" }}>Lời</th>
-          </tr></thead>
-          <tbody>
-            {(result?.levelsResult || []).map((l) => (
-              <tr key={l.pct}>
-                <td><span className="chip" style={{ pointerEvents: "none" }}>{l.pct}%</span></td>
-                <td className="mono" style={{ textAlign: "right" }}>{fmt(l.priceMarkup)}</td>
-                <td className="mono" style={{ textAlign: "right", color: "var(--pos)" }}>+{fmt(l.profitMarkup)}</td>
-                <td className="mono" style={{ textAlign: "right", color: l.priceMargin == null ? "var(--faint)" : "inherit" }}>{l.priceMargin == null ? "—" : fmt(l.priceMargin)}</td>
-                <td className="mono" style={{ textAlign: "right", color: l.profitMargin == null ? "var(--faint)" : "var(--pos)" }}>{l.profitMargin == null ? "—" : "+" + fmt(l.profitMargin)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table></div>
+      <div className="card">
+        <div className="card-head"><Icon name="coins" size={18} style={{ color: "var(--muted)" }} /><h3>Mức lời mục tiêu</h3><span className="topbar-spacer" /><span className="tag-soft mono">+{level}%</span></div>
+        <div className="card-pad">
+          {/* thanh kéo mức lời */}
+          <input className="range" type="range" min="10" max="100" step="5" value={level} onChange={(e) => setLevel(Number(e.target.value))} />
+          <div className="range-ticks"><span>10%</span><span>30%</span><span>50%</span><span>70%</span><span>100%</span></div>
 
-        <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid var(--line)" }}>
-          <span className="cell-sub" style={{ display: "block", marginBottom: 6 }}>Kiểm tra giá bán tay (cảnh báo lỗ)</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div className="input" style={{ maxWidth: 200 }}><Icon name="wallet" size={16} />
-              <input type="number" min="0" placeholder="Nhập giá bán…" value={manualPrice} onChange={(e) => setManualPrice(e.target.value)} /></div>
-            {manualNum != null && (
-              isLoss
-                ? <span className="badge red"><span className="dot" /> Lỗ {fmt(costBase - manualNum)}₫</span>
-                : <span className="badge green"><span className="dot" /> Lời {fmt(manualNum - costBase)}₫</span>
-            )}
+          {/* 2 ô hero */}
+          <div className="hero-2">
+            <div className="hero-box pick">
+              <div className="hl">Giá bán (markup +{level}%) <b>★ chọn</b></div>
+              <div className="hv">{fmt(heroMarkup)}₫</div>
+              <div className="hp">Lời <b>+{fmt(heroMarkupProfit)}₫</b> / sp</div>
+            </div>
+            <div className="hero-box">
+              <div className="hl">Giá bán (biên lãi {level}%)</div>
+              <div className="hv">{heroMargin == null ? "—" : fmt(heroMargin) + "₫"}</div>
+              <div className="hp">{heroMargin == null ? "không xác định ở 100%" : <>Lời <b>+{fmt(heroMarginProfit)}₫</b> / sp</>}</div>
+            </div>
           </div>
-          <div className="cell-sub" style={{ marginTop: 10, fontSize: 11.5 }}>
-            Markup = vốn×(1+x). Biên lãi = vốn÷(1−x). Chi phí “%” tính theo % của giá vốn.
+
+          <span className="cell-sub" style={{ display: "block", margin: "4px 0 8px" }}>Quét nhiều mức lời</span>
+          <div className="grid-wrap"><table className="dg">
+            <thead><tr>
+              <th>Mức lời</th>
+              <th style={{ textAlign: "right" }}>Markup → giá bán</th>
+              <th style={{ textAlign: "right" }}>Lời</th>
+              <th style={{ textAlign: "right" }}>Biên lãi → giá bán</th>
+              <th style={{ textAlign: "right" }}>Lời</th>
+            </tr></thead>
+            <tbody>
+              {(result?.levelsResult || []).map((l) => (
+                <tr key={l.pct} className={"norow" + (l.pct === level ? " hl" : "")}>
+                  <td><span className="chip" style={{ pointerEvents: "none" }}>{l.pct}%</span></td>
+                  <td className="cell-money">{fmt(l.priceMarkup)}</td>
+                  <td className="cell-money pos">+{fmt(l.profitMarkup)}</td>
+                  <td className="cell-money" style={{ color: l.priceMargin == null ? "var(--faint)" : "inherit" }}>{l.priceMargin == null ? "—" : fmt(l.priceMargin)}</td>
+                  <td className={"cell-money" + (l.profitMargin == null ? "" : " pos")} style={l.profitMargin == null ? { color: "var(--faint)" } : undefined}>{l.profitMargin == null ? "—" : "+" + fmt(l.profitMargin)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table></div>
+
+          <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid var(--line)" }}>
+            <span className="cell-sub" style={{ display: "block", marginBottom: 8 }}>Kiểm tra giá bán tay (cảnh báo lỗ)</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div className="input" style={{ maxWidth: 200 }}><Icon name="wallet" size={16} />
+                <input type="number" min="0" placeholder="Nhập giá bán…" value={manualPrice} onChange={(e) => setManualPrice(e.target.value)} /></div>
+              {manualNum != null && (
+                isLoss
+                  ? <span className="badge red"><span className="dot" /> Lỗ {fmt(costBase - manualNum)}₫</span>
+                  : <span className="badge green"><span className="dot" /> Lời {fmt(manualNum - costBase)}₫</span>
+              )}
+            </div>
+            <div className="cell-sub" style={{ marginTop: 10, fontSize: 11.5 }}>
+              Markup = vốn×(1+x). Biên lãi = vốn÷(1−x). Chi phí “%” tính theo % của giá vốn.
+            </div>
           </div>
         </div>
       </div>

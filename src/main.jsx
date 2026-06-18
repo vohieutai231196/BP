@@ -9,6 +9,7 @@ import "./styles/theme.css";
 import "./styles/ui.css";
 import "./styles/login.css";
 import "./styles/tweaks.css";
+import "./styles/retail.css";
 
 import { Icon } from "./icons.jsx";
 import { Sidebar, TopBar } from "./components.jsx";

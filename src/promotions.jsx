@@ -30,7 +30,7 @@ export function Promotions({ onToast }) {
   return (
     <div className="fade-in">
       <div className="toolbar">
-        <div style={{ fontWeight: 600 }}>Đợt khuyến mãi</div>
+        <div className="section-title">Đợt khuyến mãi</div>
         <span className="spacer" />
         <button className="btn btn-sm btn-primary" onClick={() => setEditing({})}><Icon name="plus" size={15} /> Tạo KM</button>
       </div>
@@ -46,9 +46,9 @@ export function Promotions({ onToast }) {
                 <tr key={p.id}>
                   <td className="pn">{p.name}</td>
                   <td className="cell-sub">{p.type === "percent" ? "Giảm %" : "Giá cố định"}</td>
-                  <td className="mono" style={{ textAlign: "right" }}>{p.type === "percent" ? p.value + "%" : fmt(p.value) + "₫"}</td>
+                  <td className="cell-money">{p.type === "percent" ? p.value + "%" : fmt(p.value) + "₫"}</td>
                   <td className="cell-sub">{fmtDate(p.startAt)} → {fmtDate(p.endAt)}</td>
-                  <td className="mono" style={{ textAlign: "right" }}>{p.productCount}</td>
+                  <td className="cell-money">{p.productCount}</td>
                   <td><span className={"badge " + (p.active ? "green" : "slate")}><span className="dot" /> {p.active ? "Bật" : "Tắt"}</span></td>
                   <td><div className="u-actions">
                     <button className="btn btn-sm btn-ghost" onClick={() => setEditing(p)}><Icon name="settings" size={15} /> Sửa</button>
@@ -119,7 +119,7 @@ function PromoModal({ promo, onRun, onClose, onToast }) {
             <label className="field"><span>Tên đợt KM</span><div className="input"><Icon name="tag" size={16} /><input value={f.name} onChange={set("name")} autoFocus required /></div></label>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               <label className="field"><span>Kiểu</span><div className="input"><Icon name="filter" size={16} />
-                <select value={f.type} onChange={set("type")} style={{ border: "none", background: "transparent", color: "inherit", width: "100%", outline: "none" }}>
+                <select className="sel" value={f.type} onChange={set("type")}>
                   <option value="percent">Giảm %</option><option value="fixed">Giá cố định</option>
                 </select></div></label>
               <label className="field"><span>{f.type === "percent" ? "% giảm" : "Giá cố định (₫)"}</span><div className="input"><Icon name="coins" size={16} /><input type="number" min="0" value={f.value} onChange={set("value")} required /></div></label>
@@ -129,14 +129,17 @@ function PromoModal({ promo, onRun, onClose, onToast }) {
               <label className="field"><span>Kết thúc (tùy chọn)</span><div className="input"><Icon name="calendar" size={16} /><input type="date" value={f.endAt} onChange={set("endAt")} /></div></label>
             </div>
             <div className="field"><span style={{ marginBottom: 6 }}>Áp dụng cho SKU ({picked.size})</span>
-              <div style={{ maxHeight: 180, overflow: "auto", border: "1px solid var(--line)", borderRadius: 10 }}>
-                {products.map((p) => (
-                  <div key={p.id} onClick={() => toggle(p.id)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderBottom: "1px solid var(--line)", cursor: "pointer" }}>
-                    <Icon name={picked.has(p.id) ? "check" : "plus"} size={15} style={{ color: picked.has(p.id) ? "var(--pos)" : "var(--faint)" }} />
-                    <span style={{ flex: 1 }}>{p.name} <span className="pm mono">{p.sku}</span></span>
-                    <span className="mono cell-sub">{fmt(p.listPrice)}₫</span>
-                  </div>
-                ))}
+              <div style={{ maxHeight: 180, overflow: "auto", border: "1px solid var(--line)", borderRadius: 10, padding: "0 12px" }}>
+                {products.map((p) => {
+                  const on = picked.has(p.id);
+                  return (
+                    <div key={p.id} onClick={() => toggle(p.id)} className={"cost-line" + (on ? "" : " off")} style={{ cursor: "pointer" }}>
+                      <span className={"cost-chk" + (on ? " on" : "")}><Icon name={on ? "check" : "plus"} size={15} /></span>
+                      <span className="nm">{p.name} <span className="pm mono">{p.sku}</span></span>
+                      <span className="mono cell-sub">{fmt(p.listPrice)}₫</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

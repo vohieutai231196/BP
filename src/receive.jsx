@@ -65,7 +65,7 @@ export function ReceiveModal({ onClose, onDone, onToast }) {
                   onKeyDown={(e) => { if (e.key === "Enter") loadPreview(); }} /></div></label>
           ) : (
             lines.map((l, i) => (
-              <div key={i} style={{ padding: "10px 0", borderBottom: "1px solid var(--line)" }}>
+              <div key={i} className="cost-line" style={{ flexDirection: "column", alignItems: "stretch", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span className="mono pm">{l.linkCode}</span>
                   <span className="spacer" style={{ flex: 1 }} />
@@ -77,18 +77,18 @@ export function ReceiveModal({ onClose, onDone, onToast }) {
                   </label>
                 </div>
                 {l.mode === "new" ? (
-                  <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-                    <input value={l.newSku} onChange={(e) => setLine(i, "newSku", e.target.value)} placeholder="SKU" style={inp(120)} />
-                    <input value={l.newName} onChange={(e) => setLine(i, "newName", e.target.value)} placeholder="Tên" style={inp(0, true)} />
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <input className="num-inp" value={l.newSku} onChange={(e) => setLine(i, "newSku", e.target.value)} placeholder="SKU" style={{ width: 140, textAlign: "left" }} />
+                    <input className="num-inp" value={l.newName} onChange={(e) => setLine(i, "newName", e.target.value)} placeholder="Tên" style={{ flex: 1, textAlign: "left" }} />
                   </div>
                 ) : (
-                  <div className="pm" style={{ marginTop: 6 }}>SKU #{l.productId}</div>
+                  <div className="pm">SKU #{l.productId}</div>
                 )}
-                <div style={{ display: "flex", gap: 12, marginTop: 6, alignItems: "center" }}>
-                  <label style={{ fontSize: 12, color: "var(--muted)" }}>SL nhận
-                    <input type="number" min="1" value={l.qty} onChange={(e) => setLine(i, "qty", e.target.value)} className="mono" style={{ ...inp(64), marginLeft: 6 }} /></label>
-                  <label style={{ fontSize: 12, color: "var(--muted)" }}>Giá vốn/đv
-                    <input type="number" min="0" value={l.unitCost} onChange={(e) => setLine(i, "unitCost", e.target.value)} className="mono" style={{ ...inp(110), marginLeft: 6 }} /></label>
+                <div style={{ display: "flex", gap: 14, alignItems: "flex-end" }}>
+                  <label className="field" style={{ width: 90 }}><span>SL nhận</span>
+                    <input className="num-inp" type="number" min="1" value={l.qty} onChange={(e) => setLine(i, "qty", e.target.value)} /></label>
+                  <label className="field" style={{ width: 140 }}><span>Giá vốn/đv</span>
+                    <input className="num-inp" type="number" min="0" value={l.unitCost} onChange={(e) => setLine(i, "unitCost", e.target.value)} /></label>
                 </div>
               </div>
             ))
@@ -103,10 +103,6 @@ export function ReceiveModal({ onClose, onDone, onToast }) {
       </div>
     </div>
   );
-}
-
-function inp(w, grow) {
-  return { width: grow ? "auto" : w, flex: grow ? 1 : "none", background: "var(--surface-2)", border: "1px solid var(--line-2)", borderRadius: 8, padding: "6px 8px", color: "inherit" };
 }
 
 export default ReceiveModal;

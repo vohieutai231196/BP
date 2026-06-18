@@ -29,7 +29,7 @@ export function Combos({ onToast }) {
   return (
     <div className="fade-in">
       <div className="toolbar">
-        <div style={{ fontWeight: 600 }}>Combo</div>
+        <div className="section-title">Combo</div>
         <span className="spacer" />
         <button className="btn btn-sm btn-primary" onClick={() => setEditing({})}><Icon name="plus" size={15} /> Tạo combo</button>
       </div>
@@ -45,11 +45,16 @@ export function Combos({ onToast }) {
                 const profit = c.price - c.totalCost;
                 return (
                   <tr key={c.id}>
-                    <td><div className="pn">{c.name}</div><div className="pm mono">{c.code} · {c.itemCount} món</div></td>
-                    <td className="mono" style={{ textAlign: "right" }}>{fmt(c.price)}₫</td>
-                    <td className="mono" style={{ textAlign: "right" }}>{fmt(c.totalCost)}₫</td>
-                    <td className="mono" style={{ textAlign: "right", color: profit >= 0 ? "var(--pos)" : "var(--neg)" }}>{(profit >= 0 ? "+" : "") + fmt(profit)}₫</td>
-                    <td className="mono" style={{ textAlign: "right", color: c.availableQty <= 0 ? "var(--st-red)" : "inherit" }}>{c.availableQty <= 0 ? "Hết hàng" : fmt(c.availableQty)}</td>
+                    <td>
+                      <div className="cell-prod">
+                        <div className="thumb" style={{ background: "var(--accent)" }}><Icon name="box" size={19} stroke={1.7} /></div>
+                        <div><div className="pn">{c.name}</div><div className="pm mono">{c.code} · {c.itemCount} món</div></div>
+                      </div>
+                    </td>
+                    <td className="cell-money">{fmt(c.price)}₫</td>
+                    <td className="cell-money">{fmt(c.totalCost)}₫</td>
+                    <td className={"cell-money " + (profit >= 0 ? "pos" : "neg")}>{(profit >= 0 ? "+" : "") + fmt(profit)}₫</td>
+                    <td className="cell-money">{c.availableQty <= 0 ? <span className="neg">Hết hàng</span> : fmt(c.availableQty)}</td>
                     <td><span className={"badge " + (c.active ? "green" : "slate")}><span className="dot" /> {c.active ? "Bật" : "Tắt"}</span></td>
                     <td><div className="u-actions">
                       <button className="btn btn-sm btn-ghost" onClick={() => setEditing(c)}><Icon name="settings" size={15} /> Sửa</button>
@@ -124,17 +129,16 @@ function ComboModal({ combo, onRun, onClose, onToast }) {
 
             <div className="field"><span style={{ marginBottom: 6 }}>Thành phần</span>
               <div className="input"><Icon name="search" size={16} />
-                <select defaultValue="" onChange={(e) => { const p = products.find((x) => String(x.id) === e.target.value); if (p) addProduct(p); e.target.value = ""; }}
-                  style={{ border: "none", background: "transparent", color: "inherit", width: "100%", outline: "none" }}>
+                <select className="sel" defaultValue="" onChange={(e) => { const p = products.find((x) => String(x.id) === e.target.value); if (p) addProduct(p); e.target.value = ""; }}>
                   <option value="">— Thêm SKU —</option>
                   {products.map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.name} (tồn {p.stock})</option>)}
                 </select></div>
             </div>
             {items.map((x) => (
-              <div key={x.productId} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: "1px solid var(--line)" }}>
-                <div style={{ flex: 1, minWidth: 0 }}><div className="pn">{x.name}</div><div className="pm mono">{x.sku} · tồn {x.stock}</div></div>
-                <input type="number" min="1" value={x.qty} onChange={(e) => setItem(x.productId, "qty", e.target.value)} className="mono" style={{ width: 52, textAlign: "right", background: "var(--surface-2)", border: "1px solid var(--line-2)", borderRadius: 8, padding: "6px", color: "inherit" }} />
-                <select value={x.lineType} onChange={(e) => setItem(x.productId, "lineType", e.target.value)} style={{ background: "var(--surface-2)", border: "1px solid var(--line-2)", borderRadius: 8, padding: "6px", color: "inherit" }}>
+              <div key={x.productId} className="cost-line">
+                <div className="nm" style={{ minWidth: 0 }}><div className="pn">{x.name}</div><div className="pm mono">{x.sku} · tồn {x.stock}</div></div>
+                <input type="number" min="1" value={x.qty} onChange={(e) => setItem(x.productId, "qty", e.target.value)} className="num-inp" style={{ width: 64 }} />
+                <select className="sel" value={x.lineType} onChange={(e) => setItem(x.productId, "lineType", e.target.value)} style={{ width: 80, background: "var(--surface-2)", border: "1px solid var(--line-2)", borderRadius: 9, padding: "8px 10px" }}>
                   <option value="ban">Bán</option><option value="tang">Tặng</option>
                 </select>
                 <button type="button" className="icon-btn" onClick={() => removeItem(x.productId)}><Icon name="close" size={15} /></button>

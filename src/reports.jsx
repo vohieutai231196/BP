@@ -21,7 +21,7 @@ export function Reports({ onToast }) {
   return (
     <div className="fade-in">
       <div className="card" style={{ marginBottom: 16 }}>
-        <div style={{ padding: "14px 16px", fontWeight: 600, borderBottom: "1px solid var(--line)" }}>Lợi nhuận theo kênh</div>
+        <div className="card-head"><Icon name="globe" size={18} style={{ color: "var(--muted)" }} /><h3>Lợi nhuận theo kênh</h3></div>
         <div className="grid-wrap"><table className="dg">
           <thead><tr><th>Kênh</th><th style={{ textAlign: "right" }}>Số đơn</th><th style={{ textAlign: "right" }}>Doanh thu</th><th style={{ textAlign: "right" }}>Lợi nhuận</th></tr></thead>
           <tbody>
@@ -29,9 +29,9 @@ export function Reports({ onToast }) {
               : data.byChannel.map((c, i) => (
                 <tr key={i}>
                   <td>{c.channel}</td>
-                  <td className="mono" style={{ textAlign: "right" }}>{c.salesCount}</td>
-                  <td className="mono" style={{ textAlign: "right" }}>{fmt(c.revenue)}₫</td>
-                  <td className="mono" style={{ textAlign: "right", color: c.profit >= 0 ? "var(--pos)" : "var(--neg)" }}>{(c.profit >= 0 ? "+" : "") + fmt(c.profit)}₫</td>
+                  <td className="cell-money">{c.salesCount}</td>
+                  <td className="cell-money">{fmt(c.revenue)}₫</td>
+                  <td className={"cell-money " + (c.profit >= 0 ? "pos" : "neg")}>{(c.profit >= 0 ? "+" : "") + fmt(c.profit)}₫</td>
                 </tr>
               ))}
           </tbody>
@@ -39,7 +39,7 @@ export function Reports({ onToast }) {
       </div>
 
       <div className="card">
-        <div style={{ padding: "14px 16px", fontWeight: 600, borderBottom: "1px solid var(--line)" }}>Lời theo sản phẩm (gộp đơn) <span className="cell-sub" style={{ fontWeight: 400 }}>— margin = Σ SL×(giá bán − vốn)</span></div>
+        <div className="card-head"><Icon name="box" size={18} style={{ color: "var(--muted)" }} /><h3>Lời theo sản phẩm (gộp đơn)</h3><span className="topbar-spacer" /><span className="sub">margin = Σ SL×(giá bán − vốn)</span></div>
         <div className="grid-wrap"><table className="dg">
           <thead><tr><th>Sản phẩm</th><th style={{ textAlign: "right" }}>Đã bán</th><th style={{ textAlign: "right" }}>Doanh thu</th><th style={{ textAlign: "right" }}>Lời (margin)</th></tr></thead>
           <tbody>
@@ -47,9 +47,9 @@ export function Reports({ onToast }) {
               : data.bySku.map((s) => (
                 <tr key={s.productId}>
                   <td><div className="pn">{s.name}</div><div className="pm mono">{s.sku}</div></td>
-                  <td className="mono" style={{ textAlign: "right" }}>{fmt(s.qtySold)}</td>
-                  <td className="mono" style={{ textAlign: "right" }}>{fmt(s.revenue)}₫</td>
-                  <td className="mono" style={{ textAlign: "right", color: s.margin >= 0 ? "var(--pos)" : "var(--neg)" }}>{(s.margin >= 0 ? "+" : "") + fmt(s.margin)}₫</td>
+                  <td className="cell-money">{fmt(s.qtySold)}</td>
+                  <td className="cell-money">{fmt(s.revenue)}₫</td>
+                  <td className={"cell-money " + (s.margin >= 0 ? "pos" : "neg")}>{(s.margin >= 0 ? "+" : "") + fmt(s.margin)}₫</td>
                 </tr>
               ))}
           </tbody>
@@ -57,7 +57,7 @@ export function Reports({ onToast }) {
       </div>
 
       <div className="card" style={{ marginTop: 16 }}>
-        <div style={{ padding: "14px 16px", fontWeight: 600, borderBottom: "1px solid var(--line)" }}>Lời theo đợt khuyến mãi</div>
+        <div className="card-head"><Icon name="tag" size={18} style={{ color: "var(--muted)" }} /><h3>Lời theo đợt khuyến mãi</h3></div>
         <div className="grid-wrap"><table className="dg">
           <thead><tr><th>Đợt KM</th><th style={{ textAlign: "right" }}>SL bán</th><th style={{ textAlign: "right" }}>Doanh thu</th><th style={{ textAlign: "right" }}>Lời (margin)</th></tr></thead>
           <tbody>
@@ -65,9 +65,9 @@ export function Reports({ onToast }) {
               : data.byPromotion.map((p) => (
                 <tr key={p.promotionId}>
                   <td>{p.name}</td>
-                  <td className="mono" style={{ textAlign: "right" }}>{fmt(p.qtySold)}</td>
-                  <td className="mono" style={{ textAlign: "right" }}>{fmt(p.revenue)}₫</td>
-                  <td className="mono" style={{ textAlign: "right", color: p.margin >= 0 ? "var(--pos)" : "var(--neg)" }}>{(p.margin >= 0 ? "+" : "") + fmt(p.margin)}₫</td>
+                  <td className="cell-money">{fmt(p.qtySold)}</td>
+                  <td className="cell-money">{fmt(p.revenue)}₫</td>
+                  <td className={"cell-money " + (p.margin >= 0 ? "pos" : "neg")}>{(p.margin >= 0 ? "+" : "") + fmt(p.margin)}₫</td>
                 </tr>
               ))}
           </tbody>

@@ -65,11 +65,23 @@ export function Inventory({ onToast }) {
   return (
     <div className="fade-in">
       {summary && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 16 }}>
-          <div className="card" style={{ padding: 16 }}><div className="cell-sub">Tổng SKU</div><div className="mono" style={{ fontSize: 22, fontWeight: 700 }}>{summary.totalSkus}</div></div>
-          <div className="card" style={{ padding: 16 }}><div className="cell-sub">Tồn kho</div><div className="mono" style={{ fontSize: 22, fontWeight: 700 }}>{Number(summary.totalStock).toLocaleString("vi-VN")}</div></div>
-          <div className="card" style={{ padding: 16 }}><div className="cell-sub">Giá trị tồn</div><div className="mono" style={{ fontSize: 22, fontWeight: 700, color: "var(--pos)" }}>{Number(summary.stockValue).toLocaleString("vi-VN")}₫</div></div>
-          <div className="card" style={{ padding: 16 }}><div className="cell-sub">SKU sắp hết</div><div className="mono" style={{ fontSize: 22, fontWeight: 700, color: "var(--st-amber)" }}>{summary.lowStockCount}</div></div>
+        <div className="kpi-grid" style={{ marginBottom: 16 }}>
+          <div className="card kpi">
+            <div className="kpi-top"><div className="kpi-ic" style={{ background: "var(--st-blue-bg)", color: "var(--st-blue)" }}><Icon name="box" size={21} /></div></div>
+            <div><div className="kpi-label">Tổng SKU</div><div className="kpi-val" style={{ marginTop: 6 }}>{summary.totalSkus}</div></div>
+          </div>
+          <div className="card kpi">
+            <div className="kpi-top"><div className="kpi-ic" style={{ background: "var(--st-green-bg)", color: "var(--st-green)" }}><Icon name="warehouse" size={21} /></div></div>
+            <div><div className="kpi-label">Tồn kho</div><div className="kpi-val" style={{ marginTop: 6 }}>{Number(summary.totalStock).toLocaleString("vi-VN")}</div></div>
+          </div>
+          <div className="card kpi">
+            <div className="kpi-top"><div className="kpi-ic" style={{ background: "var(--st-violet-bg)", color: "var(--st-violet)" }}><Icon name="coins" size={21} /></div></div>
+            <div><div className="kpi-label">Giá trị tồn</div><div className="kpi-val" style={{ marginTop: 6 }}>{Number(summary.stockValue).toLocaleString("vi-VN")}<small>₫</small></div></div>
+          </div>
+          <div className="card kpi">
+            <div className="kpi-top"><div className="kpi-ic" style={{ background: "var(--st-amber-bg)", color: "var(--st-amber)" }}><Icon name="clock" size={21} /></div></div>
+            <div><div className="kpi-label">SKU sắp hết</div><div className="kpi-val" style={{ marginTop: 6 }}>{summary.lowStockCount}</div></div>
+          </div>
         </div>
       )}
       <div className="toolbar">
@@ -118,7 +130,7 @@ export function Inventory({ onToast }) {
                 <tr key={p.id}>
                   <td>
                     <div className="cell-prod">
-                      <div className="thumb" style={{ background: "var(--surface-3)" }}><Icon name="box" size={18} /></div>
+                      <div className="thumb" style={{ background: "var(--accent)" }}><Icon name="box" size={19} stroke={1.7} /></div>
                       <div style={{ minWidth: 0 }}>
                         <div className="pn">{p.name}</div>
                         <div className="pm mono">{p.sku}</div>
@@ -126,11 +138,14 @@ export function Inventory({ onToast }) {
                     </div>
                   </td>
                   <td className="cell-sub">{p.category}</td>
-                  <td className="mono" style={{ textAlign: "right", color: p.stock <= 10 ? "var(--st-amber)" : "inherit" }}>{Number(p.stock ?? 0).toLocaleString("vi-VN")}</td>
-                  <td className="mono" style={{ textAlign: "right" }}>{fmt(p.avgCost)}</td>
-                  <td className="mono" style={{ textAlign: "right" }}>{fmt(p.listPrice)}</td>
-                  <td className="mono" style={{ textAlign: "right", color: pf != null && pf >= 0 ? "var(--pos)" : "var(--neg)" }}>
-                    {pf == null ? "—" : (pf >= 0 ? "+" : "") + fmt(pf)}
+                  <td className="cell-money" style={{ color: p.stock <= 10 ? "var(--st-amber)" : "inherit" }}>
+                    {Number(p.stock ?? 0).toLocaleString("vi-VN")}
+                    <span className="stockbar"><i style={{ width: Math.min(100, (Number(p.stock ?? 0) / 120) * 100) + "%", background: p.stock <= 10 ? "var(--st-amber)" : "var(--st-green)" }} /></span>
+                  </td>
+                  <td className="cell-money">{fmt(p.avgCost)}</td>
+                  <td className="cell-money">{fmt(p.listPrice)}</td>
+                  <td className="cell-money">
+                    {pf == null ? "—" : <span className={pf >= 0 ? "pos" : "neg"}>{(pf >= 0 ? "+" : "") + fmt(pf)}</span>}
                   </td>
                   <td><span className={"badge " + st.color}><span className="dot" /> {st.label}</span></td>
                   <td>
@@ -206,7 +221,7 @@ function ProductModal({ product, onRun, onClose }) {
               <div className="input"><Icon name="tag" size={16} /><input value={f.name} onChange={set("name")} required /></div></label>
             <label className="field"><span>Danh mục</span>
               <div className="input"><Icon name="filter" size={16} />
-                <select value={f.category} onChange={set("category")} style={{ border: "none", background: "transparent", color: "inherit", width: "100%", outline: "none" }}>
+                <select className="sel" value={f.category} onChange={set("category")}>
                   {CATS.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select></div></label>
             <label className="field"><span>Giá vốn TB (₫)</span>
@@ -216,7 +231,7 @@ function ProductModal({ product, onRun, onClose }) {
             {isEdit && (
               <label className="field"><span>Trạng thái</span>
                 <div className="input"><Icon name="eye" size={16} />
-                  <select value={f.status} onChange={set("status")} style={{ border: "none", background: "transparent", color: "inherit", width: "100%", outline: "none" }}>
+                  <select className="sel" value={f.status} onChange={set("status")}>
                     <option value="active">Đang bán</option><option value="hidden">Ẩn</option>
                   </select></div></label>
             )}
