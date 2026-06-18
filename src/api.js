@@ -113,6 +113,7 @@ export const api = {
     receiveConfirm: (body) => request("/v1/retail/receive/confirm", { method: "POST", body }),
     sales: () => request("/v1/sales"),
     createSale: (body) => request("/v1/sales", { method: "POST", body }),
+    returnSale: (id) => request(`/v1/sales/${id}/return`, { method: "POST" }),
     promotions: () => request("/v1/promotions"),
     promotionProducts: (id) => request(`/v1/promotions/${id}/products`),
     activePromotions: () => request("/v1/promotions/active"),

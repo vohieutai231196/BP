@@ -25,7 +25,8 @@ public sealed class RetailSummaryRepository : IRetailSummaryRepository
               FROM s;", new { t = lowStockThreshold }, cancellationToken: ct));
 
         var sale = await conn.QueryFirstAsync<(long revenue, long profit, int cnt)>(new CommandDefinition(
-            @"SELECT COALESCE(SUM(revenue),0) AS revenue, COALESCE(SUM(profit),0) AS profit, COUNT(*) AS cnt FROM sales;",
+            @"SELECT COALESCE(SUM(revenue),0) AS revenue, COALESCE(SUM(profit),0) AS profit, COUNT(*) AS cnt
+              FROM sales WHERE status <> 'returned';",
             cancellationToken: ct));
 
         return new RetailSummary(prod.total_skus, prod.total_stock, prod.stock_value, prod.low_count,

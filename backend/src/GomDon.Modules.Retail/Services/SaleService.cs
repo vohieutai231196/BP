@@ -65,5 +65,11 @@ public sealed class SaleService : ISaleService
         return await _sales.CreateAsync(req, code, priced, totals, costRows, ct);
     }
 
+    public async Task ReturnAsync(long id, CancellationToken ct = default)
+    {
+        var ok = await _sales.ReturnAsync(id, ct);
+        if (!ok) throw new System.ComponentModel.DataAnnotations.ValidationException($"Không tìm thấy đơn bán #{id}.");
+    }
+
     private static string NewCode() => "BAN-" + DateTime.UtcNow.ToString("yyMMdd-HHmmss");
 }

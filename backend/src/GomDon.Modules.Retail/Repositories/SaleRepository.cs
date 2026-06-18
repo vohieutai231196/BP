@@ -16,7 +16,8 @@ public sealed class SaleRepository : ISaleRepository
         var items = await conn.QueryAsync<SaleListItem>(new CommandDefinition(
             @"SELECT s.id, s.code, s.customer_name AS CustomerName, s.channel, s.sold_at AS SoldAt,
                      s.revenue, s.cogs, s.promo_cost AS PromoCost, s.extra_cost AS ExtraCost, s.profit,
-                     COALESCE((SELECT COUNT(*) FROM sale_items i WHERE i.sale_id = s.id),0) AS ItemCount
+                     COALESCE((SELECT COUNT(*) FROM sale_items i WHERE i.sale_id = s.id),0) AS ItemCount,
+                     s.status, s.returned_at AS ReturnedAt
               FROM sales s ORDER BY s.sold_at DESC;", cancellationToken: ct));
         return items.ToList();
     }
@@ -65,5 +66,36 @@ public sealed class SaleRepository : ISaleRepository
 
         tx.Commit();
         return saleId;
+    }
+
+    public async Task<bool> ReturnAsync(long saleId, CancellationToken ct = default)
+    {
+        using var conn = _factory.Create();
+        if (conn is System.Data.Common.DbConnection dbc) await dbc.OpenAsync(ct);
+        else conn.Open();
+        using var tx = conn.BeginTransaction();
+
+        var status = await conn.ExecuteScalarAsync<string?>(new CommandDefinition(
+            "SELECT status FROM sales WHERE id=@saleId FOR UPDATE;", new { saleId }, tx, cancellationToken: ct));
+        if (status is null) { tx.Rollback(); return false; }
+        if (status == "returned")
+            throw new System.ComponentModel.DataAnnotations.ValidationException("Đơn này đã được trả trước đó.");
+
+        var code = await conn.ExecuteScalarAsync<string>(new CommandDefinition(
+            "SELECT code FROM sales WHERE id=@saleId;", new { saleId }, tx, cancellationToken: ct));
+
+        // cộng tồn lại cho từng dòng (kể cả hàng tặng) — không đổi avg_cost
+        await conn.ExecuteAsync(new CommandDefinition(
+            @"INSERT INTO stock_movements(product_id, type, qty, unit_cost, ref_type, ref_id, note)
+              SELECT product_id, 'return', qty, unit_cost, 'return', @saleId, @note
+              FROM sale_items WHERE sale_id=@saleId AND product_id IS NOT NULL;",
+            new { saleId, note = $"Trả đơn {code}" }, tx, cancellationToken: ct));
+
+        await conn.ExecuteAsync(new CommandDefinition(
+            "UPDATE sales SET status='returned', returned_at=now() WHERE id=@saleId;",
+            new { saleId }, tx, cancellationToken: ct));
+
+        tx.Commit();
+        return true;
     }
 }

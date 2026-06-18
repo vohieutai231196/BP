@@ -15,6 +15,7 @@ export function Sales({ onToast }) {
   const [err, setErr] = React.useState(null);
   const [reload, setReload] = React.useState(0);
   const [creating, setCreating] = React.useState(false);
+  const [returning, setReturning] = React.useState(null); // sale đang chờ xác nhận trả
 
   React.useEffect(() => {
     let alive = true; setLoading(true); setErr(null);
@@ -24,6 +25,17 @@ export function Sales({ onToast }) {
   }, [reload]);
 
   const refresh = () => setReload((r) => r + 1);
+
+  const doReturn = async (s) => {
+    try {
+      await api.retail.returnSale(s.id);
+      onToast && onToast(`Đã trả đơn ${s.code}`);
+      setReturning(null);
+      refresh();
+    } catch (e) {
+      onToast && onToast("Lỗi: " + e.message);
+    }
+  };
 
   return (
     <div className="fade-in">
@@ -47,7 +59,9 @@ export function Sales({ onToast }) {
             <th>Mã đơn</th><th>Khách</th><th>Kênh</th>
             <th style={{ textAlign: "right" }}>Doanh thu</th>
             <th style={{ textAlign: "right" }}>Lợi nhuận</th>
+            <th>Trạng thái</th>
             <th>Thời gian</th>
+            <th style={{ textAlign: "right" }}>Thao tác</th>
           </tr></thead>
           <tbody>
             {list.map((s) => (
@@ -57,7 +71,21 @@ export function Sales({ onToast }) {
                 <td className="cell-sub">{s.channel || "—"}</td>
                 <td className="cell-money">{fmt(s.revenue)}</td>
                 <td className={"cell-money " + (s.profit >= 0 ? "pos" : "neg")}>{(s.profit >= 0 ? "+" : "") + fmt(s.profit)}</td>
+                <td>
+                  {s.status === "returned"
+                    ? <span className="badge slate">Đã trả</span>
+                    : <span className="badge green">Hoàn tất</span>}
+                </td>
                 <td className="cell-sub">{fmtDate(s.soldAt)}</td>
+                <td style={{ textAlign: "right" }}>
+                  {s.status === "returned"
+                    ? <span className="cell-sub">{s.returnedAt ? fmtDate(s.returnedAt) : "—"}</span>
+                    : (
+                      <button className="btn btn-sm btn-ghost" onClick={() => setReturning(s)}>
+                        <Icon name="refresh" size={15} /> Trả hàng
+                      </button>
+                    )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -66,6 +94,39 @@ export function Sales({ onToast }) {
 
       {creating && <CreateSaleModal onClose={() => setCreating(false)}
         onDone={(msg) => { onToast && onToast(msg); setCreating(false); refresh(); }} onToast={onToast} />}
+
+      {returning && (
+        <ConfirmModal
+          title="Trả hàng"
+          confirm="Trả đơn"
+          message={<>Trả đơn <b>{returning.code}</b>? Tồn kho sẽ được cộng lại và đơn bị loại khỏi báo cáo.</>}
+          onClose={() => setReturning(null)}
+          onConfirm={() => doReturn(returning)} />
+      )}
+    </div>
+  );
+}
+
+/* ---------- Modal xác nhận (giống users.jsx) ---------- */
+function ConfirmModal({ title, message, confirm, onConfirm, onClose }) {
+  const [busy, setBusy] = React.useState(false);
+  const go = async () => { setBusy(true); await onConfirm(); setBusy(false); };
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          <div className="mh-ic"><Icon name="refresh" size={18} /></div>
+          <div><h3>{title}</h3></div>
+        </div>
+        <div className="modal-body"><div className="mb-text">{message}</div></div>
+        <div className="modal-foot">
+          <button className="btn" onClick={onClose}>Hủy</button>
+          <button className="btn btn-primary" disabled={busy} onClick={go}
+            style={{ background: "var(--st-red)", borderColor: "var(--st-red)", boxShadow: "none" }}>
+            {busy ? "Đang xử lý…" : confirm}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

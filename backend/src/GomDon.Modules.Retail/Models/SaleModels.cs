@@ -32,4 +32,6 @@ public sealed class SaleListItem
     public long ExtraCost { get; set; }
     public long Profit { get; set; }
     public int ItemCount { get; set; }
+    public string Status { get; set; } = "done";
+    public DateTime? ReturnedAt { get; set; }
 }

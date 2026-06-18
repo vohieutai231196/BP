@@ -29,6 +29,9 @@ public class SaleServiceTests
         public Task<long> CreateAsync(CreateSaleRequest req, string code, IReadOnlyList<PricedSaleItem> priced, SaleTotals totals,
             IReadOnlyList<(long? CostTypeId, string Name, long Amount)> costRows, CancellationToken ct = default)
         { Req = req; Totals = totals; Priced = priced.ToList(); return Task.FromResult(1L); }
+        public bool Returned; public long ReturnedId;
+        public Task<bool> ReturnAsync(long saleId, CancellationToken ct = default)
+        { Returned = true; ReturnedId = saleId; return Task.FromResult(true); }
     }
 
     private sealed class FakeCombosForSale : IComboRepository
@@ -127,5 +130,14 @@ public class SaleServiceTests
         var req = new CreateSaleRequest { Items = { new CreateSaleItemRequest(1, 1, 90_000, "ban", 5) } };
         await svc.CreateAsync(req);
         Assert.Equal(5, sales.Priced!.Single().PromoId);
+    }
+
+    [Fact]
+    public async Task Return_calls_repo()
+    {
+        var (svc, _, sales, _) = Make();
+        await svc.ReturnAsync(5);
+        Assert.True(sales.Returned);
+        Assert.Equal(5, sales.ReturnedId);
     }
 }

@@ -229,6 +229,8 @@ CREATE TABLE IF NOT EXISTS sales (
 );
 CREATE INDEX IF NOT EXISTS ix_sales_sold_at ON sales(sold_at DESC);
 
+ALTER TABLE sales ADD COLUMN IF NOT EXISTS returned_at TIMESTAMPTZ;
+
 -- ---------- Dòng hàng đơn bán ----------
 CREATE TABLE IF NOT EXISTS sale_items (
   id          BIGSERIAL PRIMARY KEY,

@@ -19,4 +19,8 @@ public sealed class SalesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult> Create([FromBody] CreateSaleRequest req, CancellationToken ct)
         => Ok(new { id = await _sales.CreateAsync(req, ct) });
+
+    [HttpPost("{id:long}/return")]
+    public async Task<ActionResult> Return(long id, CancellationToken ct)
+    { await _sales.ReturnAsync(id, ct); return NoContent(); }
 }
