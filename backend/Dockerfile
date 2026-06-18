@@ -8,6 +8,7 @@ COPY src/GomDon.Shared/GomDon.Shared.csproj               src/GomDon.Shared/
 COPY src/GomDon.Infrastructure/GomDon.Infrastructure.csproj src/GomDon.Infrastructure/
 COPY src/GomDon.Modules.Orders/GomDon.Modules.Orders.csproj src/GomDon.Modules.Orders/
 COPY src/GomDon.Modules.Users/GomDon.Modules.Users.csproj src/GomDon.Modules.Users/
+COPY src/GomDon.Modules.Retail/GomDon.Modules.Retail.csproj src/GomDon.Modules.Retail/
 RUN dotnet restore src/GomDon.Api/GomDon.Api.csproj
 
 # build + publish
