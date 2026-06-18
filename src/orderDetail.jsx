@@ -9,6 +9,28 @@ import DATA from "./data.js";
 import { StatusBadge, ProductThumb, PlatformTag } from "./components.jsx";
 import { imgUrl } from "./api.js";
 
+// Ghi text vào clipboard. navigator.clipboard chỉ có trong secure context (HTTPS/localhost);
+// fallback execCommand cho trường hợp app mở qua HTTP/IP thuần. Trả về true nếu thành công.
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch { /* rơi xuống fallback */ }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch { return false; }
+}
+
 export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete, role }) {
   const d = DATA, f = d.fmt, c = order.costs;
   const [busy, setBusy] = React.useState(false);
@@ -226,7 +248,10 @@ export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete,
         </div>
 
         <div className="drawer-foot">
-          <button className="btn" onClick={() => onToast("Đã sao chép mã đơn #" + order.id)}><Icon name="copy" size={16} />Sao chép mã</button>
+          <button className="btn" onClick={async () => {
+            const ok = await copyText(String(order.id));
+            onToast(ok ? "Đã sao chép mã đơn #" + order.id : "Lỗi: trình duyệt chặn sao chép (cần HTTPS).");
+          }}><Icon name="copy" size={16} />Sao chép mã</button>
           {role === "admin" && (
             <button className="btn" onClick={remove} disabled={deleting} style={{ color: "var(--neg)", borderColor: "var(--neg)" }}>
               <Icon name="close" size={16} />{deleting ? "Đang xoá…" : "Xoá đơn"}
