@@ -27,5 +27,5 @@ public sealed class ProductsController : ControllerBase
 
     [HttpDelete("{id:long}")]
     public async Task<ActionResult> Delete(long id, CancellationToken ct)
-    { await _products.DeleteAsync(id, ct); return NoContent(); }
+    { var removed = await _products.DeleteAsync(id, ct); return Ok(new { removed }); }
 }

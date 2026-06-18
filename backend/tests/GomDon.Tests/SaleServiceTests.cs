@@ -16,6 +16,9 @@ public class SaleServiceTests
         public Task<bool> SkuExistsAsync(string sku, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<long> InsertAsync(CreateProductRequest req, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<bool> UpdateAsync(long id, string n, string c, string? img, long avg, long? lp, string st, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task<bool> IsInUseAsync(long id, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task<bool> HasSalesHistoryAsync(long id, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task SoftDeleteAsync(long id, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<bool> DeleteAsync(long id, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<(long Stock, long AvgCost)> GetStockAndAvgAsync(long productId, CancellationToken ct = default)
         { var p = Db.First(x => x.Id == productId); return Task.FromResult(((long)0, p.AvgCost)); }

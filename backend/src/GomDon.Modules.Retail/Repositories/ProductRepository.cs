@@ -64,6 +64,34 @@ public sealed class ProductRepository : IProductRepository
             new { id, name, category, imageUrl, avgCost, listPrice, status }, cancellationToken: ct)) > 0;
     }
 
+    // Đang sử dụng: còn đơn bán CHƯA trả (sales.status <> 'returned'), hoặc đang nằm trong combo.
+    public async Task<bool> IsInUseAsync(long id, CancellationToken ct = default)
+    {
+        using var conn = _factory.Create();
+        return await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
+            @"SELECT EXISTS(SELECT 1 FROM sale_items si
+                              JOIN sales s ON s.id = si.sale_id
+                             WHERE si.product_id = @id AND s.status <> 'returned')
+                  OR EXISTS(SELECT 1 FROM combo_items WHERE product_id = @id);",
+            new { id }, cancellationToken: ct));
+    }
+
+    // Có lịch sử bán (kể cả đơn đã trả) → còn dòng sale_items tham chiếu, không thể hard delete.
+    public async Task<bool> HasSalesHistoryAsync(long id, CancellationToken ct = default)
+    {
+        using var conn = _factory.Create();
+        return await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
+            "SELECT EXISTS(SELECT 1 FROM sale_items WHERE product_id = @id);",
+            new { id }, cancellationToken: ct));
+    }
+
+    public async Task SoftDeleteAsync(long id, CancellationToken ct = default)
+    {
+        using var conn = _factory.Create();
+        await conn.ExecuteAsync(new CommandDefinition(
+            "UPDATE products SET status = 'hidden' WHERE id = @id;", new { id }, cancellationToken: ct));
+    }
+
     public async Task<bool> DeleteAsync(long id, CancellationToken ct = default)
     {
         using var conn = _factory.Create();

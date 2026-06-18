@@ -45,7 +45,11 @@ export function Inventory({ onToast }) {
 
   const refresh = () => setReload((r) => r + 1);
   const run = async (fn, okMsg) => {
-    try { await fn(); onToast && onToast(okMsg); setEditing(null); setConfirm(null); refresh(); }
+    try {
+      const r = await fn();
+      onToast && onToast(typeof okMsg === "function" ? okMsg(r) : okMsg);
+      setEditing(null); setConfirm(null); refresh();
+    }
     catch (e) { onToast && onToast("Lỗi: " + e.message); }
   };
 
@@ -168,9 +172,14 @@ export function Inventory({ onToast }) {
       {editing && <ProductModal product={editing.id ? editing : null} onRun={run} onClose={() => setEditing(null)} />}
       {confirm && (
         <ConfirmModal title="Xóa sản phẩm" confirm="Xóa"
-          message={<>Xóa <b>{confirm.name}</b> ({confirm.sku})? Không thể hoàn tác.</>}
+          message={<>Xóa <b>{confirm.name}</b> ({confirm.sku})?<br />
+            <small style={{ color: "var(--faint)" }}>Nếu sản phẩm đã từng bán, hệ thống sẽ <b>ẩn</b> để giữ lịch sử thay vì xóa hẳn.</small></>}
           onClose={() => setConfirm(null)}
-          onConfirm={() => run(() => api.retail.deleteProduct(confirm.id), "Đã xóa " + confirm.sku)} />
+          onConfirm={() => run(
+            () => api.retail.deleteProduct(confirm.id),
+            (r) => (r && r.removed === false)
+              ? "Đã ẩn " + confirm.sku + " (giữ lịch sử bán)"
+              : "Đã xóa " + confirm.sku)} />
       )}
       {receiving && <ReceiveModal onClose={() => setReceiving(false)}
         onDone={(msg) => { onToast && onToast(msg); setReceiving(false); refresh(); }} onToast={onToast} />}

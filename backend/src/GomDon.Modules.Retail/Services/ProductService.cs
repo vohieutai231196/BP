@@ -44,10 +44,20 @@ public sealed class ProductService : IProductService
         await _repo.UpdateAsync(id, name, category, image, avgCost, listPrice, status, ct);
     }
 
-    public async Task DeleteAsync(long id, CancellationToken ct = default)
+    public async Task<bool> DeleteAsync(long id, CancellationToken ct = default)
     {
         await Require(id, ct);
+        // Đang sử dụng (đơn chưa trả / nằm trong combo) → không cho xóa.
+        if (await _repo.IsInUseAsync(id, ct))
+            throw new ValidationException("Không thể xóa sản phẩm đang được sử dụng (còn đơn bán chưa trả hoặc nằm trong combo). Hãy xử lý các đơn/combo liên quan trước.");
+        // Chỉ còn lịch sử đơn đã trả → ẩn để giữ nguyên dữ liệu báo cáo (không thể hard delete vì FK).
+        if (await _repo.HasSalesHistoryAsync(id, ct))
+        {
+            await _repo.SoftDeleteAsync(id, ct);
+            return false;
+        }
         await _repo.DeleteAsync(id, ct);
+        return true;
     }
 
     private async Task<Product> Require(long id, CancellationToken ct)
