@@ -122,6 +122,7 @@ export function Inventory({ onToast }) {
             <th style={{ textAlign: "right" }}>Tồn</th>
             <th style={{ textAlign: "right" }}>Giá vốn TB</th>
             <th style={{ textAlign: "right" }}>Giá niêm yết</th>
+            <th>Phụ phí</th>
             <th style={{ textAlign: "right" }}>Lời/sp</th>
             <th>Trạng thái</th>
             <th style={{ textAlign: "right" }}>Thao tác</th>
@@ -148,6 +149,7 @@ export function Inventory({ onToast }) {
                   </td>
                   <td className="cell-money">{fmt(p.avgCost)}</td>
                   <td className="cell-money">{fmt(p.listPrice)}</td>
+                  <td className="cell-sub" style={{ color: p.costTypeSummary ? "inherit" : "var(--faint)" }}>{p.costTypeSummary || "—"}</td>
                   <td className="cell-money">
                     {pf == null ? "—" : <span className={pf >= 0 ? "pos" : "neg"}>{(pf >= 0 ? "+" : "") + fmt(pf)}</span>}
                   </td>
@@ -193,11 +195,53 @@ function ProductModal({ product, onRun, onClose }) {
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
   const num = (v) => (v === "" || v == null ? null : Math.max(0, Math.round(Number(v) || 0)));
 
+  // ----- Phụ phí áp dụng -----
+  const [costTypes, setCostTypes] = React.useState([]);        // danh mục active
+  const [picked, setPicked] = React.useState({});              // { [id]: amountStr } đã tick ("" = dùng default)
+  const [divOpen, setDivOpen] = React.useState({});            // { [id]: bool } mở helper ÷SL
+  const [divCalc, setDivCalc] = React.useState({});            // { [id]: { total, qty } }
+
+  React.useEffect(() => {
+    let alive = true;
+    api.retail.costTypes({ activeOnly: true }).then((d) => { if (alive) setCostTypes(d || []); }).catch(() => {});
+    if (isEdit) {
+      api.retail.productCostTypes(product.id)
+        .then((rows) => {
+          if (!alive) return;
+          const next = {};
+          (rows || []).forEach((r) => { next[r.costTypeId] = r.amount == null ? "" : String(r.amount); });
+          setPicked(next);
+        })
+        .catch(() => {});
+    }
+    return () => { alive = false; };
+  }, [isEdit, product]);
+
+  const toggleCost = (c) => setPicked((p) => {
+    const next = { ...p };
+    if (next[c.id] != null) delete next[c.id];
+    else next[c.id] = "";
+    return next;
+  });
+  const setCostAmt = (id, v) => setPicked((p) => ({ ...p, [id]: v }));
+  const toggleDiv = (id) => setDivOpen((d) => ({ ...d, [id]: !d[id] }));
+  const setDivField = (id, k, v) => setDivCalc((d) => {
+    const cur = { ...(d[id] || {}), [k]: v };
+    const total = Number(cur.total) || 0, qty = Number(cur.qty) || 0;
+    if (qty > 0 && total > 0) setCostAmt(id, String(Math.round(total / qty)));
+    return { ...d, [id]: cur };
+  });
+
+  const buildCostTypes = () => costTypes
+    .filter((c) => picked[c.id] != null)
+    .map((c) => ({ costTypeId: c.id, amount: num(picked[c.id]) }));
+
   const submit = async (e) => {
     e.preventDefault(); setBusy(true);
     const body = {
       name: f.name, category: f.category,
       avgCost: num(f.avgCost) ?? 0, listPrice: num(f.listPrice),
+      costTypes: buildCostTypes(),
     };
     if (isEdit) {
       await onRun(() => api.retail.updateProduct(product.id, { ...body, status: f.status }), "Đã lưu " + f.sku);
@@ -239,6 +283,52 @@ function ProductModal({ product, onRun, onClose }) {
                     <option value="active">Đang bán</option><option value="hidden">Ẩn</option>
                   </select></div></label>
             )}
+
+            {/* ---------- Phụ phí áp dụng ---------- */}
+            <div className="field">
+              <span>Phụ phí áp dụng <span className="tag-soft">đơn giá / sp</span></span>
+              {costTypes.length === 0 ? (
+                <div className="cell-sub" style={{ fontSize: 11.5 }}>Chưa có loại phụ phí. Thêm ở mục “Phụ phí” (sidebar Bán lẻ).</div>
+              ) : (
+                <div>
+                  {costTypes.map((c) => {
+                    const on = picked[c.id] != null;
+                    const dc = divCalc[c.id] || {};
+                    return (
+                      <React.Fragment key={c.id}>
+                        <div className={"cost-line" + (on ? "" : " off")}>
+                          <button type="button" className={"cost-chk" + (on ? " on" : "")} onClick={() => toggleCost(c)}>
+                            <Icon name={on ? "check" : "plus"} size={15} />
+                          </button>
+                          <span className="nm">{c.name}{c.unit === "percent" ? " (%)" : ""}</span>
+                          <input type="number" min="0" disabled={!on} value={on ? picked[c.id] : ""}
+                            onChange={(e) => setCostAmt(c.id, e.target.value)}
+                            placeholder={c.defaultAmount == null ? "default" : String(c.defaultAmount)}
+                            className="num-inp" style={{ width: 96 }} />
+                          <button type="button" disabled={!on}
+                            className={"btn btn-sm" + (divOpen[c.id] ? " btn-primary" : "")}
+                            style={{ flex: "none", opacity: on ? 1 : .4 }}
+                            onClick={() => toggleDiv(c.id)}>÷ SL</button>
+                        </div>
+                        {on && divOpen[c.id] && (
+                          <div className="divbox">
+                            <span>Tổng cả lô</span>
+                            <input type="number" min="0" className="num-inp" style={{ width: 96 }}
+                              value={dc.total ?? ""} onChange={(e) => setDivField(c.id, "total", e.target.value)} />
+                            <span>÷ Số lượng</span>
+                            <input type="number" min="0" className="num-inp" style={{ width: 72 }}
+                              value={dc.qty ?? ""} onChange={(e) => setDivField(c.id, "qty", e.target.value)} />
+                          </div>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                  <div className="cell-sub" style={{ fontSize: 11.5, marginTop: 8 }}>
+                    Để trống số tiền = dùng giá mặc định của loại. “÷ SL” = tổng mua cả lô ÷ số lượng → đơn giá/sp.
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           <div className="modal-foot">
             <button type="button" className="btn" onClick={onClose}>Hủy</button>

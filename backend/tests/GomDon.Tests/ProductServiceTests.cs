@@ -45,6 +45,13 @@ public class ProductServiceTests
         { var p = Db.First(x => x.Id == productId); return Task.FromResult(((long)0, p.AvgCost)); }
         public Task UpdateAvgCostAsync(long productId, long avgCost, CancellationToken ct = default)
         { Db.First(x => x.Id == productId).AvgCost = avgCost; return Task.CompletedTask; }
+
+        public readonly Dictionary<long, IReadOnlyList<ProductCostTypeInput>> SetCostTypes = new();
+        public (long ProductId, IReadOnlyList<ProductCostTypeInput> Items)? LastSet;
+        public Task<List<ProductCostTypeDto>> GetCostTypesAsync(long productId, CancellationToken ct = default)
+            => Task.FromResult(new List<ProductCostTypeDto>());
+        public Task SetCostTypesAsync(long productId, IReadOnlyList<ProductCostTypeInput> items, CancellationToken ct = default)
+        { SetCostTypes[productId] = items; LastSet = (productId, items); return Task.CompletedTask; }
     }
 
     private static ProductService Make(FakeRepo repo) => new(repo, new CreateProductRequestValidator());
@@ -56,6 +63,26 @@ public class ProductServiceTests
         var item = await svc.CreateAsync(new CreateProductRequest("SKU-1", "Giày", "shoe", null, 185_000, 274_000));
         Assert.Equal("SKU-1", item.Sku);
         Assert.Single(repo.Db);
+    }
+
+    [Fact]
+    public async Task Create_with_cost_types_calls_set_cost_types()
+    {
+        var repo = new FakeRepo(); var svc = Make(repo);
+        var costTypes = new List<ProductCostTypeInput> { new(10, 5_000), new(20, null) };
+        var item = await svc.CreateAsync(new CreateProductRequest("SKU-CT", "Giày", "shoe", null, 1, null, costTypes));
+        Assert.NotNull(repo.LastSet);
+        Assert.Equal(item.Id, repo.LastSet!.Value.ProductId);
+        Assert.Equal(2, repo.LastSet.Value.Items.Count);
+        Assert.True(repo.SetCostTypes.ContainsKey(item.Id));
+    }
+
+    [Fact]
+    public async Task Create_without_cost_types_does_not_call_set()
+    {
+        var repo = new FakeRepo(); var svc = Make(repo);
+        await svc.CreateAsync(new CreateProductRequest("SKU-1", "Giày", "shoe", null, 1, null));
+        Assert.Null(repo.LastSet);
     }
 
     [Fact]

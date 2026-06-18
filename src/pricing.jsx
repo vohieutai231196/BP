@@ -48,7 +48,16 @@ export function Pricing({ onToast }) {
 
   const pickProduct = (e) => {
     const p = products.find((x) => String(x.id) === e.target.value);
-    if (p) setUnitCost(p.avgCost);
+    if (!p) return;
+    setUnitCost(p.avgCost);
+    // auto-điền phụ phí mặc định của SKU (tick + fill số tiền)
+    api.retail.productCostTypes(p.id)
+      .then((rows) => {
+        const next = {};
+        (rows || []).forEach((r) => { next[r.costTypeId] = r.amount; });
+        setPicked(next);
+      })
+      .catch(() => {});
   };
 
   const costBase = result?.costBase ?? 0;

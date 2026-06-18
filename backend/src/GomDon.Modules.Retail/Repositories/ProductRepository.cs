@@ -23,6 +23,9 @@ public sealed class ProductRepository : IProductRepository
             $@"SELECT p.id, p.sku, p.name, p.category, p.image_url AS ImageUrl, p.status, p.avg_cost AS AvgCost,
                       p.list_price AS ListPrice, p.created_at AS CreatedAt,
                       COALESCE((SELECT SUM(qty) FROM stock_movements m WHERE m.product_id = p.id), 0) AS Stock
+                    , (SELECT string_agg(ct.name, ', ' ORDER BY ct.name)
+                         FROM product_cost_types pct JOIN cost_types ct ON ct.id = pct.cost_type_id
+                        WHERE pct.product_id = p.id) AS CostTypeSummary
                FROM products p {clause} ORDER BY p.created_at DESC;", args, cancellationToken: ct));
         return items.ToList();
     }
@@ -114,5 +117,32 @@ public sealed class ProductRepository : IProductRepository
         using var conn = _factory.Create();
         await conn.ExecuteAsync(new CommandDefinition(
             "UPDATE products SET avg_cost = @avgCost WHERE id = @productId;", new { productId, avgCost }, cancellationToken: ct));
+    }
+
+    public async Task<List<ProductCostTypeDto>> GetCostTypesAsync(long productId, CancellationToken ct = default)
+    {
+        using var conn = _factory.Create();
+        var rows = await conn.QueryAsync<ProductCostTypeDto>(new CommandDefinition(
+            @"SELECT pct.cost_type_id AS CostTypeId, ct.name AS Name, ct.unit AS Unit,
+                     COALESCE(pct.amount, ct.default_amount, 0) AS Amount
+              FROM product_cost_types pct JOIN cost_types ct ON ct.id = pct.cost_type_id
+              WHERE pct.product_id = @productId ORDER BY ct.name;",
+            new { productId }, cancellationToken: ct));
+        return rows.ToList();
+    }
+
+    public async Task SetCostTypesAsync(long productId, IReadOnlyList<ProductCostTypeInput> items, CancellationToken ct = default)
+    {
+        using var conn = _factory.Create();
+        if (conn is System.Data.Common.DbConnection dbc) await dbc.OpenAsync(ct);
+        else conn.Open();
+        using var tx = conn.BeginTransaction();
+        await conn.ExecuteAsync(new CommandDefinition(
+            "DELETE FROM product_cost_types WHERE product_id=@productId;", new { productId }, tx, cancellationToken: ct));
+        foreach (var it in items.GroupBy(i => i.CostTypeId).Select(g => g.First()))
+            await conn.ExecuteAsync(new CommandDefinition(
+                @"INSERT INTO product_cost_types(product_id, cost_type_id, amount) VALUES(@productId, @CostTypeId, @Amount);",
+                new { productId, it.CostTypeId, it.Amount }, tx, cancellationToken: ct));
+        tx.Commit();
     }
 }

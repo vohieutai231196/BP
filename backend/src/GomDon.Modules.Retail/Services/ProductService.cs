@@ -26,6 +26,8 @@ public sealed class ProductService : IProductService
             throw new ValidationException($"SKU '{req.Sku}' đã tồn tại.");
         var clean = req with { Sku = req.Sku.Trim(), Name = req.Name.Trim() };
         var id = await _repo.InsertAsync(clean, ct);
+        if (req.CostTypes is not null)
+            await _repo.SetCostTypesAsync(id, req.CostTypes, ct);
         var p = await Require(id, ct);
         return ToItem(p);
     }
@@ -42,6 +44,8 @@ public sealed class ProductService : IProductService
         if (status is not ("active" or "hidden")) throw new ValidationException("Trạng thái không hợp lệ.");
         if (avgCost < 0) throw new ValidationException("Giá vốn không hợp lệ.");
         await _repo.UpdateAsync(id, name, category, image, avgCost, listPrice, status, ct);
+        if (req.CostTypes is not null)
+            await _repo.SetCostTypesAsync(id, req.CostTypes, ct);
     }
 
     public async Task<bool> DeleteAsync(long id, CancellationToken ct = default)
@@ -59,6 +63,8 @@ public sealed class ProductService : IProductService
         await _repo.DeleteAsync(id, ct);
         return true;
     }
+
+    public Task<List<ProductCostTypeDto>> GetCostTypesAsync(long id, CancellationToken ct = default) => _repo.GetCostTypesAsync(id, ct);
 
     private async Task<Product> Require(long id, CancellationToken ct)
         => await _repo.GetByIdAsync(id, ct) ?? throw new ValidationException($"Không tìm thấy sản phẩm #{id}.");

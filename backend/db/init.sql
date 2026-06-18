@@ -193,6 +193,15 @@ CREATE TABLE IF NOT EXISTS cost_types (
   active          BOOLEAN NOT NULL DEFAULT true
 );
 
+-- ---------- Phụ phí mặc định theo SKU ----------
+CREATE TABLE IF NOT EXISTS product_cost_types (
+  product_id   BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  cost_type_id BIGINT NOT NULL REFERENCES cost_types(id) ON DELETE CASCADE,
+  amount       BIGINT,                       -- đơn giá/sp; NULL = dùng default của loại
+  PRIMARY KEY (product_id, cost_type_id)
+);
+CREATE INDEX IF NOT EXISTS ix_pct_product ON product_cost_types(product_id);
+
 -- ---------- Sổ xuất–nhập kho (GĐ2 ghi tự động; GĐ1 chỉ tạo bảng) ----------
 CREATE TABLE IF NOT EXISTS stock_movements (
   id          BIGSERIAL PRIMARY KEY,

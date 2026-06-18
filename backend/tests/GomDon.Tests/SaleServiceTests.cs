@@ -23,6 +23,8 @@ public class SaleServiceTests
         public Task<(long Stock, long AvgCost)> GetStockAndAvgAsync(long productId, CancellationToken ct = default)
         { var p = Db.First(x => x.Id == productId); return Task.FromResult(((long)0, p.AvgCost)); }
         public Task UpdateAvgCostAsync(long productId, long avgCost, CancellationToken ct = default) => Task.CompletedTask;
+        public Task<List<ProductCostTypeDto>> GetCostTypesAsync(long productId, CancellationToken ct = default) => Task.FromResult(new List<ProductCostTypeDto>());
+        public Task SetCostTypesAsync(long productId, IReadOnlyList<ProductCostTypeInput> items, CancellationToken ct = default) => Task.CompletedTask;
     }
 
     private sealed class FakeSales : ISaleRepository

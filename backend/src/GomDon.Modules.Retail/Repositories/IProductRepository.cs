@@ -15,4 +15,6 @@ public interface IProductRepository
     Task<bool> DeleteAsync(long id, CancellationToken ct = default);
     Task<(long Stock, long AvgCost)> GetStockAndAvgAsync(long productId, CancellationToken ct = default);
     Task UpdateAvgCostAsync(long productId, long avgCost, CancellationToken ct = default);
+    Task<List<ProductCostTypeDto>> GetCostTypesAsync(long productId, CancellationToken ct = default);
+    Task SetCostTypesAsync(long productId, IReadOnlyList<ProductCostTypeInput> items, CancellationToken ct = default);
 }

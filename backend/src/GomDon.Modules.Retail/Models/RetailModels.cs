@@ -17,13 +17,19 @@ public sealed class Product
 // ---------- DTO / request ----------
 public sealed record ProductListItem(
     long Id, string Sku, string Name, string Category,
-    string? ImageUrl, string Status, long AvgCost, long? ListPrice, DateTime CreatedAt, long Stock);
+    string? ImageUrl, string Status, long AvgCost, long? ListPrice, DateTime CreatedAt, long Stock,
+    string? CostTypeSummary = null);   // "Fee ship, Bao bì" (string_agg)
+
+public sealed record ProductCostTypeInput(long CostTypeId, long? Amount);
+public sealed record ProductCostTypeDto(long CostTypeId, string Name, string Unit, long Amount); // Amount đã resolve
 
 public sealed record CreateProductRequest(
-    string Sku, string Name, string? Category, string? ImageUrl, long AvgCost, long? ListPrice);
+    string Sku, string Name, string? Category, string? ImageUrl, long AvgCost, long? ListPrice,
+    List<ProductCostTypeInput>? CostTypes = null);
 
 public sealed record UpdateProductRequest(
-    string? Name, string? Category, string? ImageUrl, long? AvgCost, long? ListPrice, string? Status);
+    string? Name, string? Category, string? ImageUrl, long? AvgCost, long? ListPrice, string? Status,
+    List<ProductCostTypeInput>? CostTypes = null);
 
 public sealed class CostType
 {

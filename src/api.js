@@ -103,6 +103,7 @@ export const api = {
     createProduct: (body) => request("/v1/products", { method: "POST", body }),
     updateProduct: (id, body) => request(`/v1/products/${id}`, { method: "PATCH", body }),
     deleteProduct: (id) => request(`/v1/products/${id}`, { method: "DELETE" }),
+    productCostTypes: (id) => request(`/v1/products/${id}/cost-types`),
     costTypes: (query) => request("/v1/cost-types" + qs(query)),
     createCostType: (body) => request("/v1/cost-types", { method: "POST", body }),
     updateCostType: (id, body) => request(`/v1/cost-types/${id}`, { method: "PATCH", body }),
