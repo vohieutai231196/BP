@@ -14,6 +14,13 @@
 .input:focus-within{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
 .input input{ border:none; outline:none; background:none; font-size:14.5px; color:var(--ink); width:100%; font-family:inherit; }
 
+/* ẩn nút tăng/giảm (spinner) mặc định của input number — tránh hộp vỡ layout */
+.input input[type="number"]::-webkit-outer-spin-button,
+.input input[type="number"]::-webkit-inner-spin-button,
+.num-inp::-webkit-outer-spin-button,
+.num-inp::-webkit-inner-spin-button{ -webkit-appearance:none; appearance:none; margin:0; }
+.input input[type="number"], .num-inp{ -moz-appearance:textfield; appearance:textfield; }
+
 /* ô nhập số gọn (trong bảng / form nhỏ) */
 .num-inp{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; text-align:right;
   background:var(--surface-2); border:1px solid var(--line-2); border-radius:9px; padding:8px 10px;
