@@ -37,7 +37,7 @@ public sealed class SaleService : ISaleService
                 ?? throw new ValidationException($"Không tìm thấy sản phẩm #{i.ProductId}.");
             var lineType = i.LineType == "tang" ? "tang" : "ban";
             var price = lineType == "tang" ? 0 : i.UnitPrice;
-            priced.Add(new PricedSaleItem(p.Id, i.Qty, price, p.AvgCost, lineType));
+            priced.Add(new PricedSaleItem(p.Id, i.Qty, price, p.AvgCost, lineType, lineType == "tang" ? null : i.PromoId));
         }
 
         // 2) dòng combo → giãn thành phần
@@ -47,7 +47,7 @@ public sealed class SaleService : ISaleService
                 ?? throw new ValidationException($"Không tìm thấy combo #{cl.ComboId}.");
             var comps = await _combos.GetComponentsAsync(cl.ComboId, ct);
             if (comps.Count == 0) throw new ValidationException($"Combo #{cl.ComboId} không có thành phần.");
-            priced.AddRange(ComboAllocator.Expand(comps, combo.Price, cl.Qty <= 0 ? 1 : cl.Qty));
+            priced.AddRange(ComboAllocator.Expand(comps, combo.Price, cl.Qty <= 0 ? 1 : cl.Qty, combo.PromotionId));
         }
 
         if (priced.Count == 0) throw new ValidationException("Đơn bán không có sản phẩm.");

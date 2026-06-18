@@ -1,7 +1,7 @@
 namespace GomDon.Modules.Retail.Models;
 
 // ----- request tạo đơn bán -----
-public sealed record CreateSaleItemRequest(long ProductId, int Qty, long UnitPrice, string? LineType = null); // ban|tang
+public sealed record CreateSaleItemRequest(long ProductId, int Qty, long UnitPrice, string? LineType = null, long? PromoId = null); // ban|tang
 public sealed record CreateSaleCostRequest(long? CostTypeId, string Name, long Amount, string Unit); // Unit: vnd|percent
 public sealed class CreateSaleRequest
 {
@@ -13,7 +13,7 @@ public sealed class CreateSaleRequest
 }
 
 // ----- dòng đã chốt giá vốn (service điền unit_cost từ avg_cost) -----
-public sealed record PricedSaleItem(long ProductId, int Qty, long UnitPrice, long UnitCost, string LineType);
+public sealed record PricedSaleItem(long ProductId, int Qty, long UnitPrice, long UnitCost, string LineType, long? PromoId = null);
 
 // ----- kết quả tính toán đơn -----
 public sealed record SaleTotals(long Revenue, long Cogs, long PromoCost, long ExtraCost, long Profit);

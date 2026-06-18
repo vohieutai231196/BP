@@ -118,4 +118,14 @@ public class SaleServiceTests
         Assert.Equal(90_000, sales.Totals!.Cogs);       // 60k + 30k
         Assert.Equal(60_000, sales.Totals!.Profit);
     }
+
+    [Fact]
+    public async Task Loose_item_carries_promo_id()
+    {
+        var (svc, prods, sales, _) = Make();
+        prods.Db.Add(new Product { Id = 1, AvgCost = 60_000 });
+        var req = new CreateSaleRequest { Items = { new CreateSaleItemRequest(1, 1, 90_000, "ban", 5) } };
+        await svc.CreateAsync(req);
+        Assert.Equal(5, sales.Priced!.Single().PromoId);
+    }
 }

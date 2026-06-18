@@ -117,7 +117,7 @@ Hàng tặng/KM vẫn xuất kho, giá vốn trừ vào lợi nhuận (tách dò
    Kho/Sản phẩm + Máy tính + sidebar.
 2. **Tồn kho & đơn bán** ✅ (xong) — nhận đơn vào kho (phân bổ giá vốn); `sales`/`sale_items`/
    `sale_costs` (trừ tồn, lợi nhuận thực); tổng quan bán lẻ doanh thu/lợi nhuận/giá trị tồn.
-3. **Khuyến mãi & combo** ✅ (xong) — KM giảm giá + hàng tặng (3A); combo + báo cáo lời theo SKU/kênh (3B). Ghi chú: báo cáo theo đợt KM cần lưu promo_id ở sale_items (follow-up).
+3. **Khuyến mãi & combo** ✅ (xong) — KM + hàng tặng + combo + báo cáo lời theo SKU/kênh/đợt KM.
 
 ## Quyết định đã chốt
 

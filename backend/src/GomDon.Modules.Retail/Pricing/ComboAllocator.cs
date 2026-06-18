@@ -9,7 +9,7 @@ namespace GomDon.Modules.Retail.Pricing;
 /// </summary>
 public static class ComboAllocator
 {
-    public static IEnumerable<PricedSaleItem> Expand(IReadOnlyList<ComboComponent> components, long comboPrice, int comboQty)
+    public static IEnumerable<PricedSaleItem> Expand(IReadOnlyList<ComboComponent> components, long comboPrice, int comboQty, long? promoId = null)
     {
         if (comboQty <= 0) comboQty = 1;
         long totalRevenue = comboPrice * comboQty;
@@ -34,7 +34,9 @@ public static class ComboAllocator
                     lineTotal = 0;
                 unitPrice = (long)Math.Round(lineTotal / (decimal)lineQty, MidpointRounding.AwayFromZero);
             }
-            result.Add(new PricedSaleItem(c.ProductId, lineQty, unitPrice, c.AvgCost, c.LineType == "tang" ? "tang" : "ban"));
+            result.Add(new PricedSaleItem(c.ProductId, lineQty, unitPrice, c.AvgCost,
+                c.LineType == "tang" ? "tang" : "ban",
+                c.LineType == "tang" ? null : promoId));
         }
         return result;
     }

@@ -9,5 +9,5 @@ public sealed class ReportService : IReportService
     public ReportService(IReportRepository repo) => _repo = repo;
 
     public async Task<ReportBundle> GetAsync(CancellationToken ct = default)
-        => new(await _repo.ByChannelAsync(ct), await _repo.BySkuAsync(ct));
+        => new(await _repo.ByChannelAsync(ct), await _repo.BySkuAsync(ct), await _repo.ByPromotionAsync(ct));
 }

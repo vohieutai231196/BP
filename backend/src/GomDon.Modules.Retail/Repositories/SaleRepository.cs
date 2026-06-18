@@ -48,9 +48,9 @@ public sealed class SaleRepository : ISaleRepository
         foreach (var it in pricedItems)
         {
             await conn.ExecuteAsync(new CommandDefinition(
-                @"INSERT INTO sale_items(sale_id, product_id, qty, unit_price, unit_cost, line_type)
-                  VALUES(@saleId, @ProductId, @Qty, @UnitPrice, @UnitCost, @LineType);",
-                new { saleId, it.ProductId, it.Qty, it.UnitPrice, it.UnitCost, it.LineType }, tx, cancellationToken: ct));
+                @"INSERT INTO sale_items(sale_id, product_id, qty, unit_price, unit_cost, line_type, promo_id)
+                  VALUES(@saleId, @ProductId, @Qty, @UnitPrice, @UnitCost, @LineType, @PromoId);",
+                new { saleId, it.ProductId, it.Qty, it.UnitPrice, it.UnitCost, it.LineType, it.PromoId }, tx, cancellationToken: ct));
             await conn.ExecuteAsync(new CommandDefinition(
                 @"INSERT INTO stock_movements(product_id, type, qty, unit_cost, ref_type, ref_id, note)
                   VALUES(@ProductId, 'out', @neg, @UnitCost, 'sale', @saleId, @note);",

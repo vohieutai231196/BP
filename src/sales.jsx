@@ -104,6 +104,7 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
         productId: p.id, sku: p.sku, name: p.name, stock: p.stock, avgCost: p.avgCost, qty: 1, lineType,
         unitPrice: lineType === "tang" ? 0 : (promos[p.id]?.price ?? p.listPrice ?? p.avgCost),
         promoName: lineType === "ban" ? (promos[p.id]?.name || null) : null,
+        promoId: lineType === "ban" ? (promos[p.id]?.promotionId ?? null) : null,
       }]);
   const setItem2 = (it, k, v) => setItems((xs) => xs.map((x) => (x.productId === it.productId && x.lineType === it.lineType) ? { ...x, [k]: v } : x));
   const removeItem2 = (it) => setItems((xs) => xs.filter((x) => !(x.productId === it.productId && x.lineType === it.lineType)));
@@ -124,7 +125,7 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
     setBusy(true);
     const body = {
       customerName: info.customerName || null, channel: info.channel || null,
-      items: items.map((x) => ({ productId: x.productId, qty: Math.max(1, Math.round(Number(x.qty) || 0)), unitPrice: Math.max(0, Math.round(Number(x.unitPrice) || 0)), lineType: x.lineType })),
+      items: items.map((x) => ({ productId: x.productId, qty: Math.max(1, Math.round(Number(x.qty) || 0)), unitPrice: Math.max(0, Math.round(Number(x.unitPrice) || 0)), lineType: x.lineType, promoId: x.promoId ?? null })),
       combos: comboLines.map((x) => ({ comboId: x.comboId, qty: Math.max(1, Math.round(Number(x.qty) || 0)) })),
       costs: costTypes.filter((c) => picked[c.id] != null && picked[c.id] !== "")
         .map((c) => ({ costTypeId: c.id, name: c.name, amount: Math.max(0, Math.round(Number(picked[c.id]) || 0)), unit: c.unit })),

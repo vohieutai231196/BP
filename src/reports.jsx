@@ -55,6 +55,24 @@ export function Reports({ onToast }) {
           </tbody>
         </table></div>
       </div>
+
+      <div className="card" style={{ marginTop: 16 }}>
+        <div style={{ padding: "14px 16px", fontWeight: 600, borderBottom: "1px solid var(--line)" }}>Lời theo đợt khuyến mãi</div>
+        <div className="grid-wrap"><table className="dg">
+          <thead><tr><th>Đợt KM</th><th style={{ textAlign: "right" }}>SL bán</th><th style={{ textAlign: "right" }}>Doanh thu</th><th style={{ textAlign: "right" }}>Lời (margin)</th></tr></thead>
+          <tbody>
+            {(!data.byPromotion || data.byPromotion.length === 0) ? <tr><td colSpan={4} className="cell-sub" style={{ textAlign: "center", padding: 20 }}>Chưa có dữ liệu</td></tr>
+              : data.byPromotion.map((p) => (
+                <tr key={p.promotionId}>
+                  <td>{p.name}</td>
+                  <td className="mono" style={{ textAlign: "right" }}>{fmt(p.qtySold)}</td>
+                  <td className="mono" style={{ textAlign: "right" }}>{fmt(p.revenue)}₫</td>
+                  <td className="mono" style={{ textAlign: "right", color: p.margin >= 0 ? "var(--pos)" : "var(--neg)" }}>{(p.margin >= 0 ? "+" : "") + fmt(p.margin)}₫</td>
+                </tr>
+              ))}
+          </tbody>
+        </table></div>
+      </div>
     </div>
   );
 }

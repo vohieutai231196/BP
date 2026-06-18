@@ -53,4 +53,17 @@ public class ComboAllocatorTests
         Assert.Equal(50_000, res.Single(x => x.ProductId == 1).UnitPrice);
         Assert.Equal(50_000, res.Single(x => x.ProductId == 2).UnitPrice);
     }
+
+    [Fact]
+    public void Combo_promo_id_applied_to_ban_components_only()
+    {
+        var comps = new[]
+        {
+            new ComboComponent(1, 1, "ban", 100_000, 60_000, 10),
+            new ComboComponent(3, 1, "tang", 12_000, 12_000, 10),
+        };
+        var res = ComboAllocator.Expand(comps, 120_000, 1, promoId: 7).ToList();
+        Assert.Equal(7, res.Single(x => x.ProductId == 1).PromoId);
+        Assert.Null(res.Single(x => x.ProductId == 3).PromoId);
+    }
 }

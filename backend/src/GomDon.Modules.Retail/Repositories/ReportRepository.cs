@@ -33,4 +33,17 @@ public sealed class ReportRepository : IReportRepository
               ORDER BY Margin DESC;", cancellationToken: ct));
         return rows.ToList();
     }
+
+    public async Task<List<PromotionProfit>> ByPromotionAsync(CancellationToken ct = default)
+    {
+        using var conn = _factory.Create();
+        var rows = await conn.QueryAsync<PromotionProfit>(new CommandDefinition(
+            @"SELECT pr.id AS PromotionId, pr.name AS Name,
+                     COALESCE(SUM(si.qty),0) AS QtySold,
+                     COALESCE(SUM(si.qty*si.unit_price),0) AS Revenue,
+                     COALESCE(SUM(si.qty*(si.unit_price - si.unit_cost)),0) AS Margin
+              FROM sale_items si JOIN promotions pr ON pr.id = si.promo_id
+              GROUP BY pr.id, pr.name ORDER BY Margin DESC;", cancellationToken: ct));
+        return rows.ToList();
+    }
 }
