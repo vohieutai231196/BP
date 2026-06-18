@@ -41,7 +41,7 @@ public sealed class ReceiveRepository : IReceiveRepository
                 if (string.IsNullOrWhiteSpace(line.NewSku))
                     throw new ValidationException("Dòng nhập thiếu SKU cho sản phẩm mới.");
                 var exists = await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
-                    "SELECT EXISTS(SELECT 1 FROM products WHERE lower(sku)=lower(@s));",
+                    "SELECT EXISTS(SELECT 1 FROM products WHERE lower(sku)=lower(@s) AND deleted_at IS NULL);",
                     new { s = line.NewSku }, tx, cancellationToken: ct));
                 if (exists) throw new ValidationException($"SKU '{line.NewSku}' đã tồn tại.");
                 productId = await conn.ExecuteScalarAsync<long>(new CommandDefinition(

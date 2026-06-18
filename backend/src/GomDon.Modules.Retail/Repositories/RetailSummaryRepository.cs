@@ -17,7 +17,7 @@ public sealed class RetailSummaryRepository : IRetailSummaryRepository
             @"WITH s AS (
                 SELECT p.id, p.avg_cost,
                        COALESCE((SELECT SUM(qty) FROM stock_movements m WHERE m.product_id=p.id),0) AS stock
-                FROM products p WHERE p.status='active')
+                FROM products p WHERE p.status='active' AND p.deleted_at IS NULL)
               SELECT COUNT(*) AS total_skus,
                      COALESCE(SUM(stock),0) AS total_stock,
                      COALESCE(SUM(stock*avg_cost),0) AS stock_value,

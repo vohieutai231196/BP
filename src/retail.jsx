@@ -172,14 +172,9 @@ export function Inventory({ onToast }) {
       {editing && <ProductModal product={editing.id ? editing : null} onRun={run} onClose={() => setEditing(null)} />}
       {confirm && (
         <ConfirmModal title="Xóa sản phẩm" confirm="Xóa"
-          message={<>Xóa <b>{confirm.name}</b> ({confirm.sku})?<br />
-            <small style={{ color: "var(--faint)" }}>Nếu sản phẩm đã từng bán, hệ thống sẽ <b>ẩn</b> để giữ lịch sử thay vì xóa hẳn.</small></>}
+          message={<>Xóa <b>{confirm.name}</b> ({confirm.sku})? Không thể hoàn tác.</>}
           onClose={() => setConfirm(null)}
-          onConfirm={() => run(
-            () => api.retail.deleteProduct(confirm.id),
-            (r) => (r && r.removed === false)
-              ? "Đã ẩn " + confirm.sku + " (giữ lịch sử bán)"
-              : "Đã xóa " + confirm.sku)} />
+          onConfirm={() => run(() => api.retail.deleteProduct(confirm.id), "Đã xóa " + confirm.sku)} />
       )}
       {receiving && <ReceiveModal onClose={() => setReceiving(false)}
         onDone={(msg) => { onToast && onToast(msg); setReceiving(false); refresh(); }} onToast={onToast} />}

@@ -86,7 +86,7 @@ public sealed class PromotionRepository : IPromotionRepository
             @"SELECT pp.product_id, COALESCE(pr.list_price,0) AS list_price, p.id AS promotion_id, p.name, p.type, p.value
               FROM promotions p
               JOIN promotion_products pp ON pp.promotion_id = p.id
-              JOIN products pr ON pr.id = pp.product_id
+              JOIN products pr ON pr.id = pp.product_id AND pr.deleted_at IS NULL
               WHERE p.active = true
                 AND (p.start_at IS NULL OR p.start_at <= @now)
                 AND (p.end_at   IS NULL OR p.end_at   >= @now);",

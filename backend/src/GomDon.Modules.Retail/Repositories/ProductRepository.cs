@@ -14,10 +14,10 @@ public sealed class ProductRepository : IProductRepository
     public async Task<List<ProductListItem>> ListAsync(string? status, string? search, CancellationToken ct = default)
     {
         using var conn = _factory.Create();
-        var where = new List<string>();
+        var where = new List<string> { "p.deleted_at IS NULL" };
         if (!string.IsNullOrWhiteSpace(status)) where.Add("p.status = @status");
         if (!string.IsNullOrWhiteSpace(search)) where.Add("(p.name ILIKE @q OR p.sku ILIKE @q)");
-        var clause = where.Count > 0 ? "WHERE " + string.Join(" AND ", where) : "";
+        var clause = "WHERE " + string.Join(" AND ", where);
         var args = new { status, q = $"%{search}%" };
         var items = await conn.QueryAsync<ProductListItem>(new CommandDefinition(
             $@"SELECT p.id, p.sku, p.name, p.category, p.image_url AS ImageUrl, p.status, p.avg_cost AS AvgCost,
@@ -31,14 +31,14 @@ public sealed class ProductRepository : IProductRepository
     {
         using var conn = _factory.Create();
         return await conn.QueryFirstOrDefaultAsync<Product>(new CommandDefinition(
-            $"SELECT {Cols} FROM products WHERE id = @id;", new { id }, cancellationToken: ct));
+            $"SELECT {Cols} FROM products WHERE id = @id AND deleted_at IS NULL;", new { id }, cancellationToken: ct));
     }
 
     public async Task<bool> SkuExistsAsync(string sku, CancellationToken ct = default)
     {
         using var conn = _factory.Create();
         return await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
-            "SELECT EXISTS(SELECT 1 FROM products WHERE lower(sku) = lower(@sku));", new { sku }, cancellationToken: ct));
+            "SELECT EXISTS(SELECT 1 FROM products WHERE lower(sku) = lower(@sku) AND deleted_at IS NULL);", new { sku }, cancellationToken: ct));
     }
 
     public async Task<long> InsertAsync(CreateProductRequest req, CancellationToken ct = default)
@@ -85,11 +85,12 @@ public sealed class ProductRepository : IProductRepository
             new { id }, cancellationToken: ct));
     }
 
+    // Soft-delete: đánh dấu đã xóa (giữ row cho FK/báo cáo), ẩn khỏi mọi danh sách và giải phóng SKU.
     public async Task SoftDeleteAsync(long id, CancellationToken ct = default)
     {
         using var conn = _factory.Create();
         await conn.ExecuteAsync(new CommandDefinition(
-            "UPDATE products SET status = 'hidden' WHERE id = @id;", new { id }, cancellationToken: ct));
+            "UPDATE products SET deleted_at = now() WHERE id = @id;", new { id }, cancellationToken: ct));
     }
 
     public async Task<bool> DeleteAsync(long id, CancellationToken ct = default)

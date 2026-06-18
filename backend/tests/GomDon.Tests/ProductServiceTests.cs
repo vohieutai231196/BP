@@ -14,15 +14,16 @@ public class ProductServiceTests
         public readonly List<Product> Db = new();
         public readonly HashSet<long> InUse = new();
         public readonly HashSet<long> SalesHistory = new();
+        public readonly HashSet<long> Deleted = new();   // soft-deleted (deleted_at IS NOT NULL)
         private long _seq = 1;
 
         public Task<List<ProductListItem>> ListAsync(string? status, string? search, CancellationToken ct = default)
-            => Task.FromResult(Db.Where(p => status == null || p.Status == status)
+            => Task.FromResult(Db.Where(p => !Deleted.Contains(p.Id) && (status == null || p.Status == status))
                 .Select(p => new ProductListItem(p.Id, p.Sku, p.Name, p.Category, p.ImageUrl, p.Status, p.AvgCost, p.ListPrice, p.CreatedAt, 0)).ToList());
         public Task<Product?> GetByIdAsync(long id, CancellationToken ct = default)
-            => Task.FromResult(Db.FirstOrDefault(p => p.Id == id));
+            => Task.FromResult(Db.FirstOrDefault(p => p.Id == id && !Deleted.Contains(p.Id)));
         public Task<bool> SkuExistsAsync(string sku, CancellationToken ct = default)
-            => Task.FromResult(Db.Any(p => p.Sku.Equals(sku, StringComparison.OrdinalIgnoreCase)));
+            => Task.FromResult(Db.Any(p => !Deleted.Contains(p.Id) && p.Sku.Equals(sku, StringComparison.OrdinalIgnoreCase)));
         public Task<long> InsertAsync(CreateProductRequest req, CancellationToken ct = default)
         {
             var p = new Product { Id = _seq++, Sku = req.Sku, Name = req.Name,
@@ -37,7 +38,7 @@ public class ProductServiceTests
         public Task<bool> HasSalesHistoryAsync(long id, CancellationToken ct = default)
             => Task.FromResult(SalesHistory.Contains(id));
         public Task SoftDeleteAsync(long id, CancellationToken ct = default)
-        { var p = Db.First(x => x.Id == id); p.Status = "hidden"; return Task.CompletedTask; }
+        { Deleted.Add(id); return Task.CompletedTask; }
         public Task<bool> DeleteAsync(long id, CancellationToken ct = default)
             => Task.FromResult(Db.RemoveAll(x => x.Id == id) > 0);
         public Task<(long Stock, long AvgCost)> GetStockAndAvgAsync(long productId, CancellationToken ct = default)
@@ -110,9 +111,22 @@ public class ProductServiceTests
         var created = await svc.CreateAsync(new CreateProductRequest("SKU-1", "Giày", "shoe", null, 1, null));
         repo.SalesHistory.Add(created.Id);   // chỉ còn đơn đã trả
         var removed = await svc.DeleteAsync(created.Id);
-        Assert.False(removed);               // không xóa thật, chỉ ẩn
-        Assert.Single(repo.Db);
-        Assert.Equal("hidden", repo.Db[0].Status);
+        Assert.False(removed);               // không xóa thật, chỉ soft-delete
+        Assert.Single(repo.Db);              // row vẫn được giữ cho FK/báo cáo
+        Assert.Contains(created.Id, repo.Deleted);
+        Assert.Empty(await svc.ListAsync(null, null));   // biến mất khỏi mọi danh sách
+    }
+
+    [Fact]
+    public async Task Can_recreate_same_sku_after_soft_delete()
+    {
+        var repo = new FakeRepo(); var svc = Make(repo);
+        var created = await svc.CreateAsync(new CreateProductRequest("SKU-1", "Giày", "shoe", null, 1, null));
+        repo.SalesHistory.Add(created.Id);
+        await svc.DeleteAsync(created.Id);                // soft-delete → giải phóng SKU
+        var again = await svc.CreateAsync(new CreateProductRequest("SKU-1", "Giày mới", "shoe", null, 1, null));
+        Assert.NotEqual(created.Id, again.Id);            // là sản phẩm mới, không "dồn" vào cái cũ
+        Assert.Single(await svc.ListAsync(null, null));   // danh sách chỉ thấy sản phẩm mới
     }
 
     [Fact]

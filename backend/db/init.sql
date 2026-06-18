@@ -178,6 +178,12 @@ CREATE TABLE IF NOT EXISTS products (
 );
 CREATE INDEX IF NOT EXISTS ix_products_status ON products(status);
 
+-- Soft-delete: sản phẩm đã xóa được giữ lại cho ràng buộc FK / báo cáo nhưng ẩn khỏi mọi danh sách.
+ALTER TABLE products ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+-- SKU chỉ unique giữa các sản phẩm CHƯA xóa → cho phép thêm lại cùng SKU sau khi đã xóa.
+ALTER TABLE products DROP CONSTRAINT IF EXISTS products_sku_key;
+CREATE UNIQUE INDEX IF NOT EXISTS ux_products_sku_active ON products(lower(sku)) WHERE deleted_at IS NULL;
+
 -- ---------- Danh mục loại chi phí phát sinh ----------
 CREATE TABLE IF NOT EXISTS cost_types (
   id              BIGSERIAL PRIMARY KEY,
