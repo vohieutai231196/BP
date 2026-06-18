@@ -5,6 +5,7 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
+import { MoneyInput } from "./components.jsx";
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
 
@@ -125,7 +126,7 @@ function ComboModal({ combo, onRun, onClose, onToast }) {
           <div className="modal-body">
             {!isEdit && <label className="field"><span>Mã combo</span><div className="input"><Icon name="box" size={16} /><input value={f.code} onChange={(e) => setF({ ...f, code: e.target.value })} autoFocus required /></div></label>}
             <label className="field"><span>Tên combo</span><div className="input"><Icon name="tag" size={16} /><input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} required /></div></label>
-            <label className="field"><span>Giá bán combo (₫)</span><div className="input"><Icon name="wallet" size={16} /><input type="number" min="0" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} required /></div></label>
+            <label className="field"><span>Giá bán combo (₫)</span><div className="input"><Icon name="wallet" size={16} /><MoneyInput value={f.price} onChange={(v) => setF({ ...f, price: v })} required /></div></label>
 
             <div className="field"><span style={{ marginBottom: 6 }}>Thành phần</span>
               <div className="input"><Icon name="search" size={16} />

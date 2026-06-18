@@ -6,6 +6,7 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
+import { MoneyInput, costUnitPrice, resolveCostAmount } from "./components.jsx";
 
 const fmt = (n) => (n == null ? "—" : Number(n).toLocaleString("vi-VN"));
 const ROUND_OPTS = [{ v: 0, l: "Không" }, { v: 1000, l: "1.000₫" }, { v: 5000, l: "5.000₫" }];
@@ -30,7 +31,9 @@ export function Pricing({ onToast }) {
   React.useEffect(() => {
     const costs = costTypes
       .filter((c) => picked[c.id] != null && picked[c.id] !== "")
-      .map((c) => ({ name: c.name, amount: Math.max(0, Math.round(Number(picked[c.id]) || 0)), unit: c.unit }));
+      .map((c) => (c.unit === "pack"
+        ? { name: c.name, amount: Math.max(0, resolveCostAmount(c, picked[c.id], unitCost)), unit: "vnd" }
+        : { name: c.name, amount: Math.max(0, Math.round(Number(picked[c.id]) || 0)), unit: c.unit }));
     const body = { unitCost: Math.max(0, Math.round(Number(unitCost) || 0)), costs, roundTo };
     const id = setTimeout(() => {
       api.retail.calcPrice(body).then(setResult).catch((e) => onToast && onToast("Lỗi tính giá: " + e.message));
@@ -85,7 +88,7 @@ export function Pricing({ onToast }) {
                   {products.map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.name}</option>)}
                 </select></div></label>
             <label className="field"><span>Giá vốn / sản phẩm (₫)</span>
-              <div className="input"><Icon name="coins" size={16} /><input type="number" min="0" value={unitCost} onChange={(e) => setUnitCost(e.target.value)} /></div></label>
+              <div className="input"><Icon name="coins" size={16} /><MoneyInput value={unitCost} onChange={setUnitCost} /></div></label>
           </div>
         </div>
 
@@ -100,9 +103,20 @@ export function Pricing({ onToast }) {
                   <button type="button" className={"cost-chk" + (on ? " on" : "")} onClick={() => toggleCost(c)}>
                     <Icon name={on ? "check" : "plus"} size={15} />
                   </button>
-                  <span className="nm">{c.name}{c.unit === "percent" ? " (%)" : ""}</span>
-                  <input type="number" min="0" disabled={!on} value={on ? picked[c.id] : ""} onChange={(e) => setCostAmt(c.id, e.target.value)}
-                    className="num-inp" style={{ width: 90 }} />
+                  <span className="nm">{c.name}{c.unit === "percent" ? " (%)" : c.unit === "pack" ? " (lô)" : ""}</span>
+                  {c.unit === "pack" ? (
+                    <>
+                      <input type="number" min="0" inputMode="numeric" disabled={!on}
+                        value={on ? picked[c.id] : ""} onChange={(e) => setCostAmt(c.id, e.target.value)}
+                        className="num-inp" style={{ width: 60 }} />
+                      <span className="cell-sub" style={{ fontSize: 11.5, whiteSpace: "nowrap" }}>
+                        × {fmt(costUnitPrice(c))}₫ = {fmt(costUnitPrice(c) * (Number(on ? picked[c.id] : 0) || 0))}₫
+                      </span>
+                    </>
+                  ) : (
+                    <MoneyInput disabled={!on} value={on ? picked[c.id] : ""} onChange={(v) => setCostAmt(c.id, v)}
+                      className="num-inp" style={{ width: 90 }} />
+                  )}
                 </div>
               );
             })}
@@ -170,7 +184,7 @@ export function Pricing({ onToast }) {
             <span className="cell-sub" style={{ display: "block", marginBottom: 8 }}>Kiểm tra giá bán tay (cảnh báo lỗ)</span>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div className="input" style={{ width: 220, flex: "none" }}><Icon name="wallet" size={16} />
-                <input type="number" min="0" placeholder="Nhập giá bán…" value={manualPrice} onChange={(e) => setManualPrice(e.target.value)} /></div>
+                <MoneyInput placeholder="Nhập giá bán…" value={manualPrice} onChange={setManualPrice} /></div>
               {manualNum != null && (
                 isLoss
                   ? <span className="badge red"><span className="dot" /> Lỗ {fmt(costBase - manualNum)}₫</span>

@@ -5,6 +5,7 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
+import { MoneyInput } from "./components.jsx";
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
 
@@ -88,7 +89,7 @@ export function ReceiveModal({ onClose, onDone, onToast }) {
                   <label className="field" style={{ width: 90 }}><span>SL nhận</span>
                     <input className="num-inp" type="number" min="1" value={l.qty} onChange={(e) => setLine(i, "qty", e.target.value)} /></label>
                   <label className="field" style={{ width: 140 }}><span>Giá vốn/đv</span>
-                    <input className="num-inp" type="number" min="0" value={l.unitCost} onChange={(e) => setLine(i, "unitCost", e.target.value)} /></label>
+                    <MoneyInput className="num-inp" value={l.unitCost} onChange={(v) => setLine(i, "unitCost", v)} /></label>
                 </div>
               </div>
             ))

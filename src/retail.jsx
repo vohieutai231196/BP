@@ -7,6 +7,7 @@ import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
 import { ReceiveModal } from "./receive.jsx";
+import { MoneyInput, costUnitPrice } from "./components.jsx";
 
 const STATUS = {
   active: { label: "Đang bán", color: "green" },
@@ -273,9 +274,9 @@ function ProductModal({ product, onRun, onClose }) {
                   {CATS.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select></div></label>
             <label className="field"><span>Giá vốn TB (₫)</span>
-              <div className="input"><Icon name="coins" size={16} /><input type="number" min="0" value={f.avgCost} onChange={set("avgCost")} required /></div></label>
+              <div className="input"><Icon name="coins" size={16} /><MoneyInput value={f.avgCost} onChange={(v) => setF({ ...f, avgCost: v })} required /></div></label>
             <label className="field"><span>Giá niêm yết (₫) — để trống nếu chưa đặt</span>
-              <div className="input"><Icon name="wallet" size={16} /><input type="number" min="0" value={f.listPrice} onChange={set("listPrice")} /></div></label>
+              <div className="input"><Icon name="wallet" size={16} /><MoneyInput value={f.listPrice} onChange={(v) => setF({ ...f, listPrice: v })} /></div></label>
             {isEdit && (
               <label className="field"><span>Trạng thái</span>
                 <div className="input"><Icon name="eye" size={16} />
@@ -300,21 +301,35 @@ function ProductModal({ product, onRun, onClose }) {
                           <button type="button" className={"cost-chk" + (on ? " on" : "")} onClick={() => toggleCost(c)}>
                             <Icon name={on ? "check" : "plus"} size={15} />
                           </button>
-                          <span className="nm">{c.name}{c.unit === "percent" ? " (%)" : ""}</span>
-                          <input type="number" min="0" disabled={!on} value={on ? picked[c.id] : ""}
-                            onChange={(e) => setCostAmt(c.id, e.target.value)}
-                            placeholder={c.defaultAmount == null ? "default" : String(c.defaultAmount)}
-                            className="num-inp" style={{ width: 96 }} />
-                          <button type="button" disabled={!on}
-                            className={"btn btn-sm" + (divOpen[c.id] ? " btn-primary" : "")}
-                            style={{ flex: "none", opacity: on ? 1 : .4 }}
-                            onClick={() => toggleDiv(c.id)}>÷ SL</button>
+                          <span className="nm">{c.name}{c.unit === "percent" ? " (%)" : c.unit === "pack" ? " (lô)" : ""}</span>
+                          {c.unit === "pack" ? (
+                            <>
+                              <input type="number" min="0" inputMode="numeric" disabled={!on}
+                                value={on ? picked[c.id] : ""} onChange={(e) => setCostAmt(c.id, e.target.value)}
+                                placeholder={c.defaultAmount == null ? "SL" : String(c.defaultAmount)}
+                                className="num-inp" style={{ width: 60 }} />
+                              <span className="cell-sub" style={{ fontSize: 11.5, whiteSpace: "nowrap" }}>
+                                × {Number(costUnitPrice(c)).toLocaleString("vi-VN")}₫
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <MoneyInput disabled={!on} value={on ? picked[c.id] : ""}
+                                onChange={(v) => setCostAmt(c.id, v)}
+                                placeholder={c.defaultAmount == null ? "default" : String(c.defaultAmount)}
+                                className="num-inp" style={{ width: 96 }} />
+                              <button type="button" disabled={!on}
+                                className={"btn btn-sm" + (divOpen[c.id] ? " btn-primary" : "")}
+                                style={{ flex: "none", opacity: on ? 1 : .4 }}
+                                onClick={() => toggleDiv(c.id)}>÷ SL</button>
+                            </>
+                          )}
                         </div>
                         {on && divOpen[c.id] && (
                           <div className="divbox">
                             <span>Tổng cả lô</span>
-                            <input type="number" min="0" className="num-inp" style={{ width: 96 }}
-                              value={dc.total ?? ""} onChange={(e) => setDivField(c.id, "total", e.target.value)} />
+                            <MoneyInput className="num-inp" style={{ width: 96 }}
+                              value={dc.total ?? ""} onChange={(v) => setDivField(c.id, "total", v)} />
                             <span>÷ Số lượng</span>
                             <input type="number" min="0" className="num-inp" style={{ width: 72 }}
                               value={dc.qty ?? ""} onChange={(e) => setDivField(c.id, "qty", e.target.value)} />

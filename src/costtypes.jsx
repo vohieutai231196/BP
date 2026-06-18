@@ -6,9 +6,10 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
+import { MoneyInput, costUnitPrice } from "./components.jsx";
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
-const unitLabel = (u) => (u === "percent" ? "% theo giá" : "₫ cố định");
+const unitLabel = (u) => (u === "percent" ? "% theo giá" : u === "pack" ? "Theo lô" : "₫ cố định");
 
 export function CostTypes({ onToast }) {
   const [all, setAll] = React.useState([]);
@@ -68,7 +69,9 @@ export function CostTypes({ onToast }) {
                   </div>
                 </td>
                 <td className="cell-money">
-                  {c.defaultAmount == null ? "—" : (c.unit === "percent" ? c.defaultAmount + "%" : fmt(c.defaultAmount) + "₫")}
+                  {c.unit === "pack"
+                    ? fmt(costUnitPrice(c)) + "₫/đv" + (c.defaultAmount == null ? "" : " × " + c.defaultAmount)
+                    : c.defaultAmount == null ? "—" : (c.unit === "percent" ? c.defaultAmount + "%" : fmt(c.defaultAmount) + "₫")}
                 </td>
                 <td className="cell-sub">{unitLabel(c.unit)}</td>
                 <td><span className={"badge " + (c.active ? "green" : "slate")}><span className="dot" /> {c.active ? "Đang dùng" : "Tắt"}</span></td>
@@ -108,6 +111,8 @@ function CostTypeModal({ costType, onRun, onClose }) {
     name: costType?.name || "",
     defaultAmount: costType?.defaultAmount ?? "",
     unit: costType?.unit || "vnd",
+    packPrice: costType?.packPrice ?? "",
+    packSize: costType?.packSize ?? "",
     active: costType?.active ?? true,
   });
   const [busy, setBusy] = React.useState(false);
@@ -117,6 +122,10 @@ function CostTypeModal({ costType, onRun, onClose }) {
   const submit = async (e) => {
     e.preventDefault(); setBusy(true);
     const body = { name: f.name, defaultAmount: num(f.defaultAmount), unit: f.unit };
+    if (f.unit === "pack") {
+      body.packPrice = num(f.packPrice) ?? 0;
+      body.packSize = Math.max(1, num(f.packSize) ?? 1);
+    }
     if (isEdit) await onRun(() => api.retail.updateCostType(costType.id, { ...body, active: f.active }), "Đã lưu phụ phí");
     else await onRun(() => api.retail.createCostType(body), "Đã thêm phụ phí");
     setBusy(false);
@@ -135,15 +144,33 @@ function CostTypeModal({ costType, onRun, onClose }) {
             <label className="field"><span>Tên phụ phí</span>
               <div className="input"><Icon name="wallet" size={16} /><input value={f.name} onChange={set("name")} autoFocus required placeholder="VD: Fee ship, Bao bì…" /></div></label>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              <label className="field"><span>{f.unit === "percent" ? "% mặc định" : "Giá mặc định (₫)"}</span>
-                <div className="input"><Icon name="coins" size={16} /><input type="number" min="0" value={f.defaultAmount} onChange={set("defaultAmount")} placeholder="tùy chọn" /></div></label>
+              <label className="field"><span>{f.unit === "percent" ? "% mặc định" : f.unit === "pack" ? "Số lượng mặc định" : "Giá mặc định (₫)"}</span>
+                {f.unit === "pack" ? (
+                  <div className="input"><Icon name="coins" size={16} /><input type="number" min="0" inputMode="numeric" className="num-inp" style={{ width: "100%" }} value={f.defaultAmount} onChange={set("defaultAmount")} placeholder="tùy chọn" /></div>
+                ) : (
+                  <div className="input"><Icon name="coins" size={16} /><MoneyInput value={f.defaultAmount} onChange={(v) => setF({ ...f, defaultAmount: v })} placeholder="tùy chọn" /></div>
+                )}</label>
               <label className="field"><span>Đơn vị</span>
                 <div className="input"><Icon name="filter" size={16} />
                   <select className="sel" value={f.unit} onChange={set("unit")}>
                     <option value="vnd">₫ cố định</option>
                     <option value="percent">% theo giá</option>
+                    <option value="pack">Theo lô (giá lô ÷ quy cách)</option>
                   </select></div></label>
             </div>
+            {f.unit === "pack" && (
+              <>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  <label className="field"><span>Giá lô (₫)</span>
+                    <div className="input"><Icon name="coins" size={16} /><MoneyInput value={f.packPrice} onChange={(v) => setF({ ...f, packPrice: v })} placeholder="VD: 50.000" /></div></label>
+                  <label className="field"><span>Số đơn vị/lô</span>
+                    <div className="input"><Icon name="box" size={16} /><input className="num-inp" inputMode="numeric" style={{ width: "100%" }} value={f.packSize} onChange={(e) => setF({ ...f, packSize: e.target.value.replace(/\D/g, "") })} placeholder="VD: 100" /></div></label>
+                </div>
+                <div className="cell-sub" style={{ fontSize: 12, padding: "8px 10px", border: "1px solid var(--line)", borderRadius: 8 }}>
+                  Đơn giá = {Number(f.packPrice || 0).toLocaleString("vi-VN")} ÷ {Number(f.packSize || 0).toLocaleString("vi-VN")} = <b>{costUnitPrice({ unit: "pack", packPrice: Number(f.packPrice) || 0, packSize: Number(f.packSize) || 0 }).toLocaleString("vi-VN")}₫</b>/đơn vị
+                </div>
+              </>
+            )}
             {isEdit && (
               <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13.5 }}>
                 <input type="checkbox" checked={f.active} onChange={(e) => setF({ ...f, active: e.target.checked })} /> Đang dùng (hiện trong danh sách chọn)

@@ -17,10 +17,10 @@ public class CostTypeServiceTests
             => Task.FromResult(Db.Where(c => !activeOnly || c.Active).ToList());
         public Task<CostType?> GetByIdAsync(long id, CancellationToken ct = default)
             => Task.FromResult(Db.FirstOrDefault(c => c.Id == id));
-        public Task<long> InsertAsync(string name, long? defaultAmount, string unit, CancellationToken ct = default)
-        { var c = new CostType { Id = _seq++, Name = name, DefaultAmount = defaultAmount, Unit = unit, Active = true }; Db.Add(c); return Task.FromResult(c.Id); }
-        public Task<bool> UpdateAsync(long id, string name, long? defaultAmount, string unit, bool active, CancellationToken ct = default)
-        { var c = Db.First(x => x.Id == id); c.Name = name; c.DefaultAmount = defaultAmount; c.Unit = unit; c.Active = active; return Task.FromResult(true); }
+        public Task<long> InsertAsync(string name, long? defaultAmount, string unit, long? packPrice, int? packSize, CancellationToken ct = default)
+        { var c = new CostType { Id = _seq++, Name = name, DefaultAmount = defaultAmount, Unit = unit, Active = true, PackPrice = packPrice, PackSize = packSize }; Db.Add(c); return Task.FromResult(c.Id); }
+        public Task<bool> UpdateAsync(long id, string name, long? defaultAmount, string unit, bool active, long? packPrice, int? packSize, CancellationToken ct = default)
+        { var c = Db.First(x => x.Id == id); c.Name = name; c.DefaultAmount = defaultAmount; c.Unit = unit; c.Active = active; c.PackPrice = packPrice; c.PackSize = packSize; return Task.FromResult(true); }
         public Task<bool> DeleteAsync(long id, CancellationToken ct = default)
             => Task.FromResult(Db.RemoveAll(x => x.Id == id) > 0);
     }

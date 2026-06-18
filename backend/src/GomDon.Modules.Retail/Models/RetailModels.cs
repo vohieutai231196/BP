@@ -36,9 +36,11 @@ public sealed class CostType
     public long Id { get; set; }
     public string Name { get; set; } = "";
     public long? DefaultAmount { get; set; }
-    public string Unit { get; set; } = "vnd";   // vnd | percent
+    public string Unit { get; set; } = "vnd";   // vnd | percent | pack
     public bool Active { get; set; } = true;
+    public long? PackPrice { get; set; }         // giá lô (₫) khi unit='pack'
+    public int? PackSize { get; set; }           // số đơn vị/lô khi unit='pack'
 }
 
-public sealed record CreateCostTypeRequest(string Name, long? DefaultAmount, string? Unit);
-public sealed record UpdateCostTypeRequest(string? Name, long? DefaultAmount, string? Unit, bool? Active);
+public sealed record CreateCostTypeRequest(string Name, long? DefaultAmount, string? Unit, long? PackPrice = null, int? PackSize = null);
+public sealed record UpdateCostTypeRequest(string? Name, long? DefaultAmount, string? Unit, bool? Active, long? PackPrice = null, int? PackSize = null);

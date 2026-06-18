@@ -2,6 +2,36 @@ import React from "react";
 import { Icon } from "./icons.jsx";
 import DATA from "./data.js";
 
+/* ---------- Money input ----------
+   Ô nhập tiền: hiển thị phân tách hàng nghìn (14.759) cho dễ đọc, nhưng emit
+   chuỗi chữ số thuần ("14759") qua onChange — khớp cách các form lưu state rồi
+   parse bằng Number(...) khi submit. Dùng type=text + inputMode=numeric vì
+   input[type=number] không cho hiển thị dấu phân cách. */
+const groupThousands = (digits) => digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+export function MoneyInput({ value, onChange, className, style, disabled, placeholder, autoFocus, required }) {
+  const digits = value === 0 || value ? String(value).replace(/\D/g, "") : "";
+  return (
+    <input
+      type="text" inputMode="numeric"
+      className={className} style={style} disabled={disabled}
+      placeholder={placeholder} autoFocus={autoFocus} required={required}
+      value={digits === "" ? "" : groupThousands(digits)}
+      onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
+    />
+  );
+}
+
+/* ---------- Phụ phí "theo lô" (pack) ---------- */
+/* Đơn giá 1 đơn vị của phụ phí "theo lô" (0 nếu không phải pack hoặc thiếu quy cách) */
+export const costUnitPrice = (c) => (c && c.unit === "pack" && c.packSize > 0 ? Math.round((c.packPrice || 0) / c.packSize) : 0);
+/* Chi phí thực của 1 dòng phụ phí đã chọn. val = số người dùng nhập; base = giá vốn (Máy tính giá) hoặc doanh thu (Đơn bán) để tính %. */
+export const resolveCostAmount = (c, val, base) => {
+  const v = Number(val) || 0;
+  if (c.unit === "percent") return Math.round((base || 0) * v / 100);
+  if (c.unit === "pack") return costUnitPrice(c) * v;
+  return Math.round(v);
+};
+
 /* ---------- Status badge ---------- */
 export function StatusBadge({ status, size }) {
   const s = DATA.STATUS[status];

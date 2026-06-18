@@ -193,6 +193,10 @@ CREATE TABLE IF NOT EXISTS cost_types (
   active          BOOLEAN NOT NULL DEFAULT true
 );
 
+-- Phụ phí "theo lô": giá lô + quy cách → đơn giá (đơn giá = pack_price / pack_size, tính ở FE).
+ALTER TABLE cost_types ADD COLUMN IF NOT EXISTS pack_price BIGINT;
+ALTER TABLE cost_types ADD COLUMN IF NOT EXISTS pack_size  INT;
+
 -- ---------- Phụ phí mặc định theo SKU ----------
 CREATE TABLE IF NOT EXISTS product_cost_types (
   product_id   BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,

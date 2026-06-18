@@ -5,8 +5,10 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
+import { MoneyInput, costUnitPrice, resolveCostAmount } from "./components.jsx";
 
 const fmt = (n) => (n == null ? "—" : Number(n).toLocaleString("vi-VN") + "₫");
+const fmtN = (n) => Number(n || 0).toLocaleString("vi-VN");
 const fmtDate = (d) => { try { return new Date(d).toLocaleString("vi-VN"); } catch { return "—"; } };
 
 export function Sales({ onToast }) {
@@ -175,7 +177,7 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
   const cogs = items.filter((x) => x.lineType !== "tang").reduce((a, x) => a + (Number(x.qty) || 0) * (Number(x.avgCost) || 0), 0);
   const promoCost = items.filter((x) => x.lineType === "tang").reduce((a, x) => a + (Number(x.qty) || 0) * (Number(x.avgCost) || 0), 0);
   const extra = costTypes.filter((c) => picked[c.id] != null && picked[c.id] !== "")
-    .reduce((a, c) => a + (c.unit === "percent" ? Math.round(revenue * (Number(picked[c.id]) || 0) / 100) : (Number(picked[c.id]) || 0)), 0);
+    .reduce((a, c) => a + resolveCostAmount(c, picked[c.id], revenue), 0);
   const profit = revenue - cogs - promoCost - extra;
 
   const overStock = items.find((x) => (Number(x.qty) || 0) > x.stock);
@@ -189,7 +191,9 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
       items: items.map((x) => ({ productId: x.productId, qty: Math.max(1, Math.round(Number(x.qty) || 0)), unitPrice: Math.max(0, Math.round(Number(x.unitPrice) || 0)), lineType: x.lineType, promoId: x.promoId ?? null })),
       combos: comboLines.map((x) => ({ comboId: x.comboId, qty: Math.max(1, Math.round(Number(x.qty) || 0)) })),
       costs: costTypes.filter((c) => picked[c.id] != null && picked[c.id] !== "")
-        .map((c) => ({ costTypeId: c.id, name: c.name, amount: Math.max(0, Math.round(Number(picked[c.id]) || 0)), unit: c.unit })),
+        .map((c) => (c.unit === "pack"
+          ? { costTypeId: c.id, name: c.name, amount: Math.max(0, resolveCostAmount(c, picked[c.id], revenue)), unit: "vnd" }
+          : { costTypeId: c.id, name: c.name, amount: Math.max(0, Math.round(Number(picked[c.id]) || 0)), unit: c.unit })),
     };
     try { await api.retail.createSale(body); onDone("Đã tạo đơn bán"); }
     catch (e) { onToast && onToast("Lỗi: " + e.message); }
@@ -225,7 +229,7 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
                 <div className="pm">{x.sku} · tồn {x.stock} · vốn {fmt(x.avgCost)}</div>
               </div>
               <input type="number" min="1" value={x.qty} onChange={(e) => setItem2(x, "qty", e.target.value)} className="num-inp" style={{ width: 56 }} />
-              <input type="number" min="0" value={x.unitPrice} disabled={x.lineType === "tang"} onChange={(e) => setItem2(x, "unitPrice", e.target.value)} className="num-inp" style={{ width: 96 }} />
+              <MoneyInput value={x.unitPrice} disabled={x.lineType === "tang"} onChange={(v) => setItem2(x, "unitPrice", v)} className="num-inp" style={{ width: 96 }} />
               <button className="icon-btn" onClick={() => removeItem2(x)}><Icon name="close" size={15} /></button>
             </div>
           ))}
@@ -257,8 +261,19 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
             return (
               <div key={c.id} className={"cost-line" + (on ? "" : " off")}>
                 <button type="button" className={"cost-chk" + (on ? " on" : "")} onClick={() => toggleCost(c)}><Icon name={on ? "check" : "plus"} size={14} /></button>
-                <span className="nm">{c.name}{c.unit === "percent" ? " (%)" : ""}</span>
-                <input type="number" min="0" disabled={!on} value={on ? picked[c.id] : ""} onChange={(e) => setPicked((p) => ({ ...p, [c.id]: e.target.value }))} className="num-inp" style={{ width: 90 }} />
+                <span className="nm">{c.name}{c.unit === "percent" ? " (%)" : c.unit === "pack" ? " (lô)" : ""}</span>
+                {c.unit === "pack" ? (
+                  <>
+                    <input type="number" min="0" inputMode="numeric" disabled={!on}
+                      value={on ? picked[c.id] : ""} onChange={(e) => setPicked((p) => ({ ...p, [c.id]: e.target.value }))}
+                      className="num-inp" style={{ width: 60 }} />
+                    <span className="cell-sub" style={{ fontSize: 11.5, whiteSpace: "nowrap" }}>
+                      × {fmtN(costUnitPrice(c))}₫ = {fmtN(costUnitPrice(c) * (Number(on ? picked[c.id] : 0) || 0))}₫
+                    </span>
+                  </>
+                ) : (
+                  <MoneyInput disabled={!on} value={on ? picked[c.id] : ""} onChange={(v) => setPicked((p) => ({ ...p, [c.id]: v }))} className="num-inp" style={{ width: 90 }} />
+                )}
               </div>
             );
           })}

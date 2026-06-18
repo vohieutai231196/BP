@@ -19,9 +19,14 @@ public sealed class CreateCostTypeRequestValidator : AbstractValidator<CreateCos
     public CreateCostTypeRequestValidator()
     {
         RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.Unit).Must(u => u is null or "vnd" or "percent")
-            .WithMessage("Đơn vị chỉ nhận 'vnd' hoặc 'percent'.");
+        RuleFor(x => x.Unit).Must(u => u is null or "vnd" or "percent" or "pack")
+            .WithMessage("Đơn vị chỉ nhận 'vnd', 'percent' hoặc 'pack'.");
         RuleFor(x => x.DefaultAmount).GreaterThanOrEqualTo(0).When(x => x.DefaultAmount.HasValue);
+        RuleFor(x => x.PackSize).NotNull().GreaterThan(0)
+            .WithMessage("Phụ phí theo lô cần số đơn vị/lô > 0.")
+            .When(x => x.Unit == "pack");
+        RuleFor(x => x.PackPrice).GreaterThanOrEqualTo(0)
+            .When(x => x.Unit == "pack" && x.PackPrice.HasValue);
     }
 }
 

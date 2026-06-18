@@ -5,6 +5,7 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
+import { MoneyInput } from "./components.jsx";
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
 const fmtDate = (d) => { if (!d) return "—"; try { return new Date(d).toLocaleDateString("vi-VN"); } catch { return "—"; } };
@@ -122,7 +123,7 @@ function PromoModal({ promo, onRun, onClose, onToast }) {
                 <select className="sel" value={f.type} onChange={set("type")}>
                   <option value="percent">Giảm %</option><option value="fixed">Giá cố định</option>
                 </select></div></label>
-              <label className="field"><span>{f.type === "percent" ? "% giảm" : "Giá cố định (₫)"}</span><div className="input"><Icon name="coins" size={16} /><input type="number" min="0" value={f.value} onChange={set("value")} required /></div></label>
+              <label className="field"><span>{f.type === "percent" ? "% giảm" : "Giá cố định (₫)"}</span><div className="input"><Icon name="coins" size={16} /><MoneyInput value={f.value} onChange={(v) => setF({ ...f, value: v })} required /></div></label>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               <label className="field"><span>Bắt đầu (tùy chọn)</span><div className="input"><Icon name="calendar" size={16} /><input type="date" value={f.startAt} onChange={set("startAt")} /></div></label>
