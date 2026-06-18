@@ -63,7 +63,7 @@ export function CostTypes({ onToast }) {
               <tr key={c.id}>
                 <td>
                   <div className="cell-prod">
-                    <div className="thumb" style={{ background: "var(--st-violet)" }}><Icon name="wallet" size={18} stroke={1.7} /></div>
+                    <div className="thumb" style={{ background: c.active ? "var(--st-violet)" : "var(--surface-3)", color: c.active ? "#fff" : "var(--muted)" }}><Icon name="wallet" size={18} stroke={1.7} /></div>
                     <div className="pn">{c.name}</div>
                   </div>
                 </td>
