@@ -119,6 +119,12 @@ export const api = {
     createPromotion: (body) => request("/v1/promotions", { method: "POST", body }),
     updatePromotion: (id, body) => request(`/v1/promotions/${id}`, { method: "PATCH", body }),
     deletePromotion: (id) => request(`/v1/promotions/${id}`, { method: "DELETE" }),
+    combos: () => request("/v1/combos"),
+    comboComponents: (id) => request(`/v1/combos/${id}/components`),
+    createCombo: (body) => request("/v1/combos", { method: "POST", body }),
+    updateCombo: (id, body) => request(`/v1/combos/${id}`, { method: "PATCH", body }),
+    deleteCombo: (id) => request(`/v1/combos/${id}`, { method: "DELETE" }),
+    reports: () => request("/v1/retail/reports"),
   },
 };
 

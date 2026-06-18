@@ -10,12 +10,15 @@ public sealed class SaleService : ISaleService
 {
     private readonly ISaleRepository _sales;
     private readonly IProductRepository _products;
+    private readonly IComboRepository _combos;
     private readonly IValidator<CreateSaleRequest> _validator;
 
-    public SaleService(ISaleRepository sales, IProductRepository products, IValidator<CreateSaleRequest> validator)
+    public SaleService(ISaleRepository sales, IProductRepository products, IComboRepository combos,
+        IValidator<CreateSaleRequest> validator)
     {
         _sales = sales;
         _products = products;
+        _combos = combos;
         _validator = validator;
     }
 
@@ -26,6 +29,8 @@ public sealed class SaleService : ISaleService
         await _validator.ValidateAndThrowAsync(req, ct);
 
         var priced = new List<PricedSaleItem>();
+
+        // 1) item lẻ
         foreach (var i in req.Items)
         {
             var p = await _products.GetByIdAsync(i.ProductId, ct)
@@ -34,6 +39,18 @@ public sealed class SaleService : ISaleService
             var price = lineType == "tang" ? 0 : i.UnitPrice;
             priced.Add(new PricedSaleItem(p.Id, i.Qty, price, p.AvgCost, lineType));
         }
+
+        // 2) dòng combo → giãn thành phần
+        foreach (var cl in req.Combos)
+        {
+            var combo = await _combos.GetByIdAsync(cl.ComboId, ct)
+                ?? throw new ValidationException($"Không tìm thấy combo #{cl.ComboId}.");
+            var comps = await _combos.GetComponentsAsync(cl.ComboId, ct);
+            if (comps.Count == 0) throw new ValidationException($"Combo #{cl.ComboId} không có thành phần.");
+            priced.AddRange(ComboAllocator.Expand(comps, combo.Price, cl.Qty <= 0 ? 1 : cl.Qty));
+        }
+
+        if (priced.Count == 0) throw new ValidationException("Đơn bán không có sản phẩm.");
 
         var totals = SaleCalculator.Compute(priced, req.Costs);
         var costRows = req.Costs.Select(c =>
@@ -48,6 +65,5 @@ public sealed class SaleService : ISaleService
         return await _sales.CreateAsync(req, code, priced, totals, costRows, ct);
     }
 
-    private static string NewCode()
-        => "BAN-" + DateTime.UtcNow.ToString("yyMMdd-HHmmss");
+    private static string NewCode() => "BAN-" + DateTime.UtcNow.ToString("yyMMdd-HHmmss");
 }

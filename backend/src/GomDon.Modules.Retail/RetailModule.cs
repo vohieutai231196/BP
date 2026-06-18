@@ -33,6 +33,13 @@ public static class RetailModule
         services.AddScoped<IPromotionRepository, PromotionRepository>();
         services.AddScoped<IPromotionService, PromotionService>();
         services.AddScoped<IValidator<CreatePromotionRequest>, CreatePromotionRequestValidator>();
+
+        services.AddScoped<IComboRepository, ComboRepository>();
+        services.AddScoped<IComboService, ComboService>();
+        services.AddScoped<IValidator<CreateComboRequest>, CreateComboRequestValidator>();
+
+        services.AddScoped<IReportRepository, ReportRepository>();
+        services.AddScoped<IReportService, ReportService>();
         return services;
     }
 }

@@ -21,6 +21,8 @@ import { Inventory } from "./retail.jsx";
 import { Pricing } from "./pricing.jsx";
 import { Sales } from "./sales.jsx";
 import { Promotions } from "./promotions.jsx";
+import { Combos } from "./combos.jsx";
+import { Reports } from "./reports.jsx";
 import { AccountModal } from "./account.jsx";
 import { useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor } from "./tweaks.jsx";
 import { api, getToken, setToken, setOnUnauthorized } from "./api.js";
@@ -168,6 +170,8 @@ function App() {
     pricing: { t: "Máy tính giá", s: "Tính giá bán & lợi nhuận theo mức lời" },
     sales: { t: "Đơn bán", s: "Tạo đơn bán & theo dõi lợi nhuận" },
     promotions: { t: "Khuyến mãi", s: "Đợt giảm giá theo sản phẩm" },
+    combos: { t: "Combo", s: "Gói bán ghép nhiều sản phẩm" },
+    reports: { t: "Báo cáo", s: "Lợi nhuận theo kênh & sản phẩm" },
   };
 
   return (
@@ -205,6 +209,8 @@ function App() {
           {route === "pricing" && <Pricing onToast={showToast} />}
           {route === "sales" && <Sales onToast={showToast} />}
           {route === "promotions" && <Promotions onToast={showToast} />}
+          {route === "combos" && <Combos onToast={showToast} />}
+          {route === "reports" && <Reports onToast={showToast} />}
         </div>
       </div>
 

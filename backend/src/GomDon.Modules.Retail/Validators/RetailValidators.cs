@@ -29,12 +29,22 @@ public sealed class CreateSaleRequestValidator : AbstractValidator<CreateSaleReq
 {
     public CreateSaleRequestValidator()
     {
-        RuleFor(x => x.Items).NotEmpty().WithMessage("Đơn bán cần ít nhất 1 sản phẩm.");
         RuleForEach(x => x.Items).ChildRules(i =>
         {
             i.RuleFor(x => x.Qty).GreaterThan(0);
             i.RuleFor(x => x.UnitPrice).GreaterThanOrEqualTo(0);
         });
+    }
+}
+
+public sealed class CreateComboRequestValidator : AbstractValidator<CreateComboRequest>
+{
+    public CreateComboRequestValidator()
+    {
+        RuleFor(x => x.Code).NotEmpty().MaximumLength(64);
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Price).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.Items).NotEmpty().WithMessage("Combo cần ít nhất 1 sản phẩm.");
     }
 }
 

@@ -81,6 +81,14 @@ export function Sidebar({ route, onNav, collapsed, open, onCloseMobile, onLogout
           onClick={() => { onNav("promotions"); onCloseMobile && onCloseMobile(); }}>
           <Icon name="tag" size={19} /><span>Khuyến mãi</span>
         </button>
+        <button className={"sb-item" + (route === "combos" ? " active" : "")}
+          onClick={() => { onNav("combos"); onCloseMobile && onCloseMobile(); }}>
+          <Icon name="box" size={19} /><span>Combo</span>
+        </button>
+        <button className={"sb-item" + (route === "reports" ? " active" : "")}
+          onClick={() => { onNav("reports"); onCloseMobile && onCloseMobile(); }}>
+          <Icon name="dashboard" size={19} /><span>Báo cáo</span>
+        </button>
         {isAdmin && (
           <>
             <div className="sb-section-label"><span>Hệ thống</span></div>

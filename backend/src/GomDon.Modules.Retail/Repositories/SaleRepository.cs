@@ -28,14 +28,15 @@ public sealed class SaleRepository : ISaleRepository
         else conn.Open();
         using var tx = conn.BeginTransaction();
 
-        // chặn quá tồn (đọc trong tx)
-        foreach (var it in pricedItems)
+        // chặn quá tồn (gộp nhu cầu theo product_id — item lẻ + thành phần combo)
+        foreach (var grp in pricedItems.GroupBy(i => i.ProductId))
         {
+            int need = grp.Sum(i => i.Qty);
             var stock = await conn.ExecuteScalarAsync<long>(new CommandDefinition(
                 "SELECT COALESCE(SUM(qty),0) FROM stock_movements WHERE product_id=@pid;",
-                new { pid = it.ProductId }, tx, cancellationToken: ct));
-            if (stock < it.Qty)
-                throw new ValidationException($"Sản phẩm #{it.ProductId} không đủ tồn (còn {stock}, cần {it.Qty}).");
+                new { pid = grp.Key }, tx, cancellationToken: ct));
+            if (stock < need)
+                throw new ValidationException($"Sản phẩm #{grp.Key} không đủ tồn (còn {stock}, cần {need}).");
         }
 
         var saleId = await conn.ExecuteScalarAsync<long>(new CommandDefinition(

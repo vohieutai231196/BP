@@ -91,6 +91,14 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
     }).catch(() => {});
   }, []);
 
+  const [combos, setCombos] = React.useState([]);
+  const [comboLines, setComboLines] = React.useState([]); // {comboId, name, price, qty, available}
+  React.useEffect(() => { api.retail.combos().then((d) => setCombos((d || []).filter((c) => c.active))).catch(() => {}); }, []);
+  const addCombo = (c) => setComboLines((xs) => xs.some((x) => x.comboId === c.id) ? xs
+    : [...xs, { comboId: c.id, name: c.name, price: c.price, qty: 1, available: c.availableQty }]);
+  const setComboQty = (id, v) => setComboLines((xs) => xs.map((x) => x.comboId === id ? { ...x, qty: v } : x));
+  const removeCombo = (id) => setComboLines((xs) => xs.filter((x) => x.comboId !== id));
+
   const addItem = (p, lineType = "ban") => setItems((xs) => xs.some((x) => x.productId === p.id && x.lineType === lineType) ? xs
     : [...xs, {
         productId: p.id, sku: p.sku, name: p.name, stock: p.stock, avgCost: p.avgCost, qty: 1, lineType,
@@ -100,7 +108,8 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
   const setItem2 = (it, k, v) => setItems((xs) => xs.map((x) => (x.productId === it.productId && x.lineType === it.lineType) ? { ...x, [k]: v } : x));
   const removeItem2 = (it) => setItems((xs) => xs.filter((x) => !(x.productId === it.productId && x.lineType === it.lineType)));
 
-  const revenue = items.reduce((a, x) => a + (Number(x.qty) || 0) * (Number(x.unitPrice) || 0), 0);
+  const comboRevenue = comboLines.reduce((a, x) => a + (Number(x.qty) || 0) * (Number(x.price) || 0), 0);
+  const revenue = items.reduce((a, x) => a + (Number(x.qty) || 0) * (Number(x.unitPrice) || 0), 0) + comboRevenue;
   const cogs = items.filter((x) => x.lineType !== "tang").reduce((a, x) => a + (Number(x.qty) || 0) * (Number(x.avgCost) || 0), 0);
   const promoCost = items.filter((x) => x.lineType === "tang").reduce((a, x) => a + (Number(x.qty) || 0) * (Number(x.avgCost) || 0), 0);
   const extra = costTypes.filter((c) => picked[c.id] != null && picked[c.id] !== "")
@@ -110,12 +119,13 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
   const overStock = items.find((x) => (Number(x.qty) || 0) > x.stock);
 
   const submit = async () => {
-    if (items.length === 0) { onToast && onToast("Chọn ít nhất 1 sản phẩm."); return; }
+    if (items.length === 0 && comboLines.length === 0) { onToast && onToast("Chọn ít nhất 1 sản phẩm."); return; }
     if (overStock) { onToast && onToast(`Vượt tồn: ${overStock.sku} còn ${overStock.stock}.`); return; }
     setBusy(true);
     const body = {
       customerName: info.customerName || null, channel: info.channel || null,
       items: items.map((x) => ({ productId: x.productId, qty: Math.max(1, Math.round(Number(x.qty) || 0)), unitPrice: Math.max(0, Math.round(Number(x.unitPrice) || 0)), lineType: x.lineType })),
+      combos: comboLines.map((x) => ({ comboId: x.comboId, qty: Math.max(1, Math.round(Number(x.qty) || 0)) })),
       costs: costTypes.filter((c) => picked[c.id] != null && picked[c.id] !== "")
         .map((c) => ({ costTypeId: c.id, name: c.name, amount: Math.max(0, Math.round(Number(picked[c.id]) || 0)), unit: c.unit })),
     };
@@ -154,6 +164,25 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
             </div>
           ))}
 
+          {combos.length > 0 && (
+            <div style={{ marginTop: 8 }}>
+              <label className="field"><span>Thêm combo</span>
+                <div className="input"><Icon name="box" size={16} />
+                  <select defaultValue="" onChange={(e) => { const c = combos.find((x) => String(x.id) === e.target.value); if (c) addCombo(c); e.target.value = ""; }}
+                    style={{ border: "none", background: "transparent", color: "inherit", width: "100%", outline: "none" }}>
+                    <option value="">— Chọn combo —</option>
+                    {combos.map((c) => <option key={c.id} value={c.id} disabled={c.availableQty <= 0}>{c.name} ({fmt(c.price)} · còn {c.availableQty})</option>)}
+                  </select></div></label>
+              {comboLines.map((x) => (
+                <div key={x.comboId} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: "1px solid var(--line)" }}>
+                  <div style={{ flex: 1 }}><div className="pn">🎁 {x.name}</div><div className="pm mono">{fmt(x.price)} · khả dụng {x.available}</div></div>
+                  <input type="number" min="1" max={x.available} value={x.qty} onChange={(e) => setComboQty(x.comboId, e.target.value)} className="mono" style={{ width: 56, textAlign: "right", background: "var(--surface-2)", border: "1px solid var(--line-2)", borderRadius: 8, padding: "6px", color: "inherit" }} />
+                  <button className="icon-btn" onClick={() => removeCombo(x.comboId)}><Icon name="close" size={15} /></button>
+                </div>
+              ))}
+            </div>
+          )}
+
           {costTypes.length > 0 && <div style={{ marginTop: 12, fontSize: 12, color: "var(--faint)" }}>Chi phí phát sinh</div>}
           {costTypes.map((c) => {
             const on = picked[c.id] != null;
@@ -182,7 +211,7 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
         </div>
         <div className="modal-foot">
           <button className="btn" onClick={onClose}>Hủy</button>
-          <button className="btn btn-primary" disabled={busy || items.length === 0 || !!overStock} onClick={submit}>{busy ? "Đang lưu…" : "Lưu đơn & trừ tồn"}</button>
+          <button className="btn btn-primary" disabled={busy || (items.length === 0 && comboLines.length === 0) || !!overStock} onClick={submit}>{busy ? "Đang lưu…" : "Lưu đơn & trừ tồn"}</button>
         </div>
       </div>
     </div>

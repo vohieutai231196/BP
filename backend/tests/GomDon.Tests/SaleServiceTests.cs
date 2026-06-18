@@ -31,16 +31,27 @@ public class SaleServiceTests
         { Req = req; Totals = totals; Priced = priced.ToList(); return Task.FromResult(1L); }
     }
 
-    private static (SaleService svc, FakeProducts prods, FakeSales sales) Make()
+    private sealed class FakeCombosForSale : IComboRepository
     {
-        var prods = new FakeProducts(); var sales = new FakeSales();
-        return (new SaleService(sales, prods, new CreateSaleRequestValidator()), prods, sales);
+        public Combo? Combo; public List<ComboComponent> Components = new();
+        public Task<List<ComboListItem>> ListAsync(CancellationToken ct = default) => Task.FromResult(new List<ComboListItem>());
+        public Task<Combo?> GetByIdAsync(long id, CancellationToken ct = default) => Task.FromResult(Combo);
+        public Task<List<ComboComponent>> GetComponentsAsync(long comboId, CancellationToken ct = default) => Task.FromResult(Components);
+        public Task<long> InsertAsync(CreateComboRequest req, CancellationToken ct = default) => Task.FromResult(1L);
+        public Task UpdateAsync(long id, string n, string? img, long p, bool a, IReadOnlyList<CreateComboItemRequest>? items, CancellationToken ct = default) => Task.CompletedTask;
+        public Task<bool> DeleteAsync(long id, CancellationToken ct = default) => Task.FromResult(true);
+    }
+
+    private static (SaleService svc, FakeProducts prods, FakeSales sales, FakeCombosForSale combos) Make()
+    {
+        var prods = new FakeProducts(); var sales = new FakeSales(); var combos = new FakeCombosForSale();
+        return (new SaleService(sales, prods, combos, new CreateSaleRequestValidator()), prods, sales, combos);
     }
 
     [Fact]
     public async Task Create_prices_items_with_avg_cost_and_totals()
     {
-        var (svc, prods, sales) = Make();
+        var (svc, prods, sales, _) = Make();
         prods.Db.Add(new Product { Id = 1, AvgCost = 185_000 });
         var req = new CreateSaleRequest { Items = { new CreateSaleItemRequest(1, 2, 274_000) } };
         await svc.CreateAsync(req);
@@ -53,7 +64,7 @@ public class SaleServiceTests
     [Fact]
     public async Task Gift_item_priced_zero_and_goes_to_promo_cost()
     {
-        var (svc, prods, sales) = Make();
+        var (svc, prods, sales, _) = Make();
         prods.Db.Add(new Product { Id = 1, AvgCost = 185_000 });
         prods.Db.Add(new Product { Id = 2, AvgCost = 12_000 });
         var req = new CreateSaleRequest
@@ -74,17 +85,37 @@ public class SaleServiceTests
     }
 
     [Fact]
-    public async Task Create_empty_items_throws_validation()
+    public async Task Create_empty_sale_throws()
     {
-        var (svc, _, _) = Make();
-        await Assert.ThrowsAsync<FluentValidation.ValidationException>(() => svc.CreateAsync(new CreateSaleRequest()));
+        var (svc, _, _, _) = Make();
+        await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(() => svc.CreateAsync(new CreateSaleRequest()));
     }
 
     [Fact]
     public async Task Create_unknown_product_throws()
     {
-        var (svc, _, _) = Make();
+        var (svc, _, _, _) = Make();
         var req = new CreateSaleRequest { Items = { new CreateSaleItemRequest(99, 1, 1000) } };
         await Assert.ThrowsAsync<System.ComponentModel.DataAnnotations.ValidationException>(() => svc.CreateAsync(req));
+    }
+
+    [Fact]
+    public async Task Sell_combo_expands_components()
+    {
+        var (svc, prods, sales, combos) = Make();
+        prods.Db.Add(new Product { Id = 1, AvgCost = 60_000 });
+        prods.Db.Add(new Product { Id = 2, AvgCost = 30_000 });
+        combos.Combo = new Combo { Id = 9, Price = 150_000 };
+        combos.Components = new()
+        {
+            new ComboComponent(1, 1, "ban", 100_000, 60_000, 50),
+            new ComboComponent(2, 1, "ban", 50_000, 30_000, 50),
+        };
+        var req = new CreateSaleRequest { Combos = { new CreateSaleComboLine(9, 1) } };
+        await svc.CreateAsync(req);
+        Assert.Equal(2, sales.Priced!.Count);
+        Assert.Equal(150_000, sales.Totals!.Revenue);   // 100k + 50k
+        Assert.Equal(90_000, sales.Totals!.Cogs);       // 60k + 30k
+        Assert.Equal(60_000, sales.Totals!.Profit);
     }
 }

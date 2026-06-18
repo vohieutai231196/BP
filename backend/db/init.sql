@@ -271,6 +271,26 @@ CREATE TABLE IF NOT EXISTS promotion_products (
 );
 CREATE INDEX IF NOT EXISTS ix_promo_products_product ON promotion_products(product_id);
 
+-- ---------- Combo (gói bán ghép) ----------
+CREATE TABLE IF NOT EXISTS combos (
+  id            BIGSERIAL PRIMARY KEY,
+  code          TEXT NOT NULL,
+  name          TEXT NOT NULL,
+  image_url     TEXT,
+  price         BIGINT NOT NULL DEFAULT 0,
+  active        BOOLEAN NOT NULL DEFAULT true,
+  promotion_id  BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS combo_items (
+  id          BIGSERIAL PRIMARY KEY,
+  combo_id    BIGINT NOT NULL REFERENCES combos(id) ON DELETE CASCADE,
+  product_id  BIGINT NOT NULL REFERENCES products(id),
+  qty         INT NOT NULL DEFAULT 1,
+  line_type   TEXT NOT NULL DEFAULT 'ban'   -- ban | tang
+);
+CREATE INDEX IF NOT EXISTS ix_combo_items_combo ON combo_items(combo_id);
+
 -- ---------- Seed lookup ----------
 INSERT INTO platforms (key, label, tint) VALUES
   ('taobao',  'Taobao',    '#ff6a00'),

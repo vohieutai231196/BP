@@ -8,6 +8,7 @@ public sealed class CreateSaleRequest
     public string? CustomerName { get; set; }
     public string? Channel { get; set; }
     public List<CreateSaleItemRequest> Items { get; set; } = new();
+    public List<CreateSaleComboLine> Combos { get; set; } = new();
     public List<CreateSaleCostRequest> Costs { get; set; } = new();
 }
 
