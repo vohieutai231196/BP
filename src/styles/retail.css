@@ -8,6 +8,12 @@
 .retail-2col{ display:grid; grid-template-columns:400px 1fr; gap:16px; align-items:start; }
 @media (max-width:900px){ .retail-2col{ grid-template-columns:1fr; } }
 
+/* login.css chỉ style `.field .input`; cho phép `.input` dùng độc lập (ngoài .field) */
+.input{ display:flex; align-items:center; gap:10px; padding:12px 14px; border:1px solid var(--line-2);
+  border-radius:11px; background:var(--surface); color:var(--muted); transition:.15s var(--ease); }
+.input:focus-within{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+.input input{ border:none; outline:none; background:none; font-size:14.5px; color:var(--ink); width:100%; font-family:inherit; }
+
 /* ô nhập số gọn (trong bảng / form nhỏ) */
 .num-inp{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; text-align:right;
   background:var(--surface-2); border:1px solid var(--line-2); border-radius:9px; padding:8px 10px;
@@ -16,7 +22,9 @@
 .num-inp:disabled{ opacity:.5; }
 
 /* select trông như .input (đặt bên trong .field .input) */
-.sel{ width:100%; border:none; background:none; outline:none; color:var(--ink); font-family:inherit; font-size:14.5px; }
+.sel{ width:100%; border:none; background:none; outline:none; color:var(--ink); font-family:inherit; font-size:14.5px; cursor:pointer; }
+/* popup native <option> đọc được trong dark theme (nếu không sẽ là chữ sáng trên nền trắng) */
+.sel option, .sel optgroup{ background:var(--surface); color:var(--ink); }
 
 /* dòng chọn chi phí phát sinh (tick + tên + số tiền) */
 .cost-line{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); }

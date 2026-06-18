@@ -160,7 +160,7 @@ export function Pricing({ onToast }) {
           <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid var(--line)" }}>
             <span className="cell-sub" style={{ display: "block", marginBottom: 8 }}>Kiểm tra giá bán tay (cảnh báo lỗ)</span>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div className="input" style={{ maxWidth: 200 }}><Icon name="wallet" size={16} />
+              <div className="input" style={{ width: 220, flex: "none" }}><Icon name="wallet" size={16} />
                 <input type="number" min="0" placeholder="Nhập giá bán…" value={manualPrice} onChange={(e) => setManualPrice(e.target.value)} /></div>
               {manualNum != null && (
                 isLoss
