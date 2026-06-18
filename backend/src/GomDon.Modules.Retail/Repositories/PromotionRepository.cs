@@ -13,8 +13,8 @@ public sealed class PromotionRepository : IPromotionRepository
     {
         using var conn = _factory.Create();
         var items = await conn.QueryAsync<PromotionListItem>(new CommandDefinition(
-            @"SELECT p.id, p.name, p.type, p.value, p.start_at, p.end_at, p.active,
-                     COALESCE((SELECT COUNT(*) FROM promotion_products pp WHERE pp.promotion_id=p.id),0) AS product_count
+            @"SELECT p.id, p.name, p.type, p.value, p.start_at AS StartAt, p.end_at AS EndAt, p.active,
+                     COALESCE((SELECT COUNT(*) FROM promotion_products pp WHERE pp.promotion_id=p.id),0) AS ProductCount
               FROM promotions p ORDER BY p.id DESC;", cancellationToken: ct));
         return items.ToList();
     }

@@ -20,8 +20,9 @@ public sealed class ProductRepository : IProductRepository
         var clause = where.Count > 0 ? "WHERE " + string.Join(" AND ", where) : "";
         var args = new { status, q = $"%{search}%" };
         var items = await conn.QueryAsync<ProductListItem>(new CommandDefinition(
-            $@"SELECT p.id, p.sku, p.name, p.category, p.image_url, p.status, p.avg_cost, p.list_price, p.created_at,
-                      COALESCE((SELECT SUM(qty) FROM stock_movements m WHERE m.product_id = p.id), 0) AS stock
+            $@"SELECT p.id, p.sku, p.name, p.category, p.image_url AS ImageUrl, p.status, p.avg_cost AS AvgCost,
+                      p.list_price AS ListPrice, p.created_at AS CreatedAt,
+                      COALESCE((SELECT SUM(qty) FROM stock_movements m WHERE m.product_id = p.id), 0) AS Stock
                FROM products p {clause} ORDER BY p.created_at DESC;", args, cancellationToken: ct));
         return items.ToList();
     }

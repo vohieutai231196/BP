@@ -18,7 +18,18 @@ public sealed record PricedSaleItem(long ProductId, int Qty, long UnitPrice, lon
 // ----- kết quả tính toán đơn -----
 public sealed record SaleTotals(long Revenue, long Cogs, long PromoCost, long ExtraCost, long Profit);
 
-// ----- đọc đơn bán -----
-public sealed record SaleListItem(
-    long Id, string Code, string? CustomerName, string? Channel, DateTime SoldAt,
-    long Revenue, long Cogs, long PromoCost, long ExtraCost, long Profit, int ItemCount);
+// ----- đọc đơn bán (qua Dapper → class get/set để tự ép kiểu/khớp cột) -----
+public sealed class SaleListItem
+{
+    public long Id { get; set; }
+    public string Code { get; set; } = "";
+    public string? CustomerName { get; set; }
+    public string? Channel { get; set; }
+    public DateTime SoldAt { get; set; }
+    public long Revenue { get; set; }
+    public long Cogs { get; set; }
+    public long PromoCost { get; set; }
+    public long ExtraCost { get; set; }
+    public long Profit { get; set; }
+    public int ItemCount { get; set; }
+}

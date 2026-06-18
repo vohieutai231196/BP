@@ -11,8 +11,18 @@ public sealed class Promotion
     public bool Active { get; set; } = true;
 }
 
-public sealed record PromotionListItem(
-    long Id, string Name, string Type, long Value, DateTime? StartAt, DateTime? EndAt, bool Active, int ProductCount);
+// đọc qua Dapper → class get/set (tự ép kiểu COUNT bigint→int, khớp snake_case).
+public sealed class PromotionListItem
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = "";
+    public string Type { get; set; } = "";
+    public long Value { get; set; }
+    public DateTime? StartAt { get; set; }
+    public DateTime? EndAt { get; set; }
+    public bool Active { get; set; }
+    public int ProductCount { get; set; }
+}
 
 public sealed record CreatePromotionRequest(
     string Name, string? Type, long Value, DateTime? StartAt, DateTime? EndAt, List<long>? ProductIds);

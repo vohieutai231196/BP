@@ -14,8 +14,9 @@ public sealed class SaleRepository : ISaleRepository
     {
         using var conn = _factory.Create();
         var items = await conn.QueryAsync<SaleListItem>(new CommandDefinition(
-            @"SELECT s.id, s.code, s.customer_name, s.channel, s.sold_at, s.revenue, s.cogs, s.promo_cost, s.extra_cost, s.profit,
-                     COALESCE((SELECT COUNT(*) FROM sale_items i WHERE i.sale_id = s.id),0) AS item_count
+            @"SELECT s.id, s.code, s.customer_name AS CustomerName, s.channel, s.sold_at AS SoldAt,
+                     s.revenue, s.cogs, s.promo_cost AS PromoCost, s.extra_cost AS ExtraCost, s.profit,
+                     COALESCE((SELECT COUNT(*) FROM sale_items i WHERE i.sale_id = s.id),0) AS ItemCount
               FROM sales s ORDER BY s.sold_at DESC;", cancellationToken: ct));
         return items.ToList();
     }
