@@ -73,6 +73,10 @@ export function Sidebar({ route, onNav, collapsed, open, onCloseMobile, onLogout
           onClick={() => { onNav("pricing"); onCloseMobile && onCloseMobile(); }}>
           <Icon name="coins" size={19} /><span>Máy tính giá</span>
         </button>
+        <button className={"sb-item" + (route === "costtypes" ? " active" : "")}
+          onClick={() => { onNav("costtypes"); onCloseMobile && onCloseMobile(); }}>
+          <Icon name="filter" size={19} /><span>Phụ phí</span>
+        </button>
         <button className={"sb-item" + (route === "sales" ? " active" : "")}
           onClick={() => { onNav("sales"); onCloseMobile && onCloseMobile(); }}>
           <Icon name="wallet" size={19} /><span>Đơn bán</span>

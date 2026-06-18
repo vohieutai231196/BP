@@ -20,6 +20,7 @@ import { Login } from "./login.jsx";
 import { Users } from "./users.jsx";
 import { Inventory } from "./retail.jsx";
 import { Pricing } from "./pricing.jsx";
+import { CostTypes } from "./costtypes.jsx";
 import { Sales } from "./sales.jsx";
 import { Promotions } from "./promotions.jsx";
 import { Combos } from "./combos.jsx";
@@ -169,6 +170,7 @@ function App() {
     users: { t: "Người dùng", s: "Quản lý tài khoản & phân quyền" },
     inventory: { t: "Kho & Sản phẩm", s: "Quản lý sản phẩm bán lẻ & tồn kho" },
     pricing: { t: "Máy tính giá", s: "Tính giá bán & lợi nhuận theo mức lời" },
+    costtypes: { t: "Phụ phí", s: "Danh mục chi phí phát sinh (ship, bao bì, in đơn…)" },
     sales: { t: "Đơn bán", s: "Tạo đơn bán & theo dõi lợi nhuận" },
     promotions: { t: "Khuyến mãi", s: "Đợt giảm giá theo sản phẩm" },
     combos: { t: "Combo", s: "Gói bán ghép nhiều sản phẩm" },
@@ -208,6 +210,7 @@ function App() {
 
           {route === "inventory" && <Inventory onToast={showToast} />}
           {route === "pricing" && <Pricing onToast={showToast} />}
+          {route === "costtypes" && <CostTypes onToast={showToast} />}
           {route === "sales" && <Sales onToast={showToast} />}
           {route === "promotions" && <Promotions onToast={showToast} />}
           {route === "combos" && <Combos onToast={showToast} />}

@@ -83,7 +83,7 @@ export function Pricing({ onToast }) {
         <div className="card">
           <div className="card-head"><Icon name="wallet" size={18} style={{ color: "var(--muted)" }} /><h3>Chi phí phát sinh</h3></div>
           <div className="card-pad">
-            {costTypes.length === 0 && <div className="cell-sub" style={{ marginBottom: 8 }}>Chưa có loại chi phí. Thêm ở trang Kho (hoặc qua API).</div>}
+            {costTypes.length === 0 && <div className="cell-sub" style={{ marginBottom: 8 }}>Chưa có loại chi phí. Thêm ở mục “Phụ phí” (sidebar Bán lẻ).</div>}
             {costTypes.map((c) => {
               const on = picked[c.id] != null;
               return (
