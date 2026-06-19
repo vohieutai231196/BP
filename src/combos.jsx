@@ -94,15 +94,33 @@ function ComboModal({ combo, onRun, onClose, onToast }) {
   const [items, setItems] = React.useState([]); // {productId, sku, name, stock, qty, lineType}
   const [busy, setBusy] = React.useState(false);
 
+  const prodById = React.useMemo(() => {
+    const m = {}; products.forEach((p) => { m[p.id] = p; }); return m;
+  }, [products]);
+  const disp = (x) => {
+    const p = prodById[x.productId] || {};
+    return { name: p.name || ("SKU #" + x.productId), sku: p.sku || "", cost: Number(p.avgCost) || 0, stock: p.stock ?? x.stock ?? 0 };
+  };
+
+  const [marginPct, setMarginPct] = React.useState(10);
+  const [roundTo, setRoundTo] = React.useState(1000);
+  const roundUp = (v, step) => (step > 0 ? Math.ceil(v / step) * step : v);
+  const totalCost = items.reduce((a, x) => a + (Number(x.qty) || 0) * (Number(prodById[x.productId]?.avgCost) || 0), 0);
+  const profit = (Number(f.price) || 0) - totalCost;
+  const applyMargin = () => {
+    const pct = Number(marginPct) || 0;
+    setF((prev) => ({ ...prev, price: roundUp(Math.round(totalCost * (1 + pct / 100)), Number(roundTo) || 0) }));
+  };
+
   React.useEffect(() => {
     api.retail.products({ status: "active" }).then((d) => setProducts(d || [])).catch(() => {});
     if (isEdit) api.retail.comboComponents(combo.id).then((cs) => setItems((cs || []).map((x) => ({
-      productId: x.productId, sku: "", name: "SKU #" + x.productId, stock: x.stock, qty: x.qty, lineType: x.lineType,
-    }))).catch(() => {}));
+      productId: x.productId, qty: x.qty, lineType: x.lineType, stock: x.stock,
+    })))).catch(() => {});
   }, []);
 
   const addProduct = (p) => setItems((xs) => xs.some((x) => x.productId === p.id) ? xs
-    : [...xs, { productId: p.id, sku: p.sku, name: p.name, stock: p.stock, qty: 1, lineType: "ban" }]);
+    : [...xs, { productId: p.id, qty: 1, lineType: "ban", stock: p.stock }]);
   const setItem = (id, k, v) => setItems((xs) => xs.map((x) => x.productId === id ? { ...x, [k]: v } : x));
   const removeItem = (id) => setItems((xs) => xs.filter((x) => x.productId !== id));
 
@@ -133,16 +151,52 @@ function ComboModal({ combo, onRun, onClose, onToast }) {
               <Select icon="search" value="" onChange={(id) => { const p = products.find((x) => String(x.id) === id); if (p) addProduct(p); }} placeholder="— Thêm SKU —"
                 options={products.map((p) => ({ value: p.id, label: `${p.sku} · ${p.name} (tồn ${p.stock})` }))} />
             </div>
-            {items.map((x) => (
-              <div key={x.productId} className="cost-line">
-                <div className="nm" style={{ minWidth: 0 }}><div className="pn">{x.name}</div><div className="pm mono">{x.sku} · tồn {x.stock}</div></div>
-                <input type="number" min="1" value={x.qty} onChange={(e) => setItem(x.productId, "qty", e.target.value)} className="num-inp" style={{ width: 64 }} />
-                <Select value={x.lineType} onChange={(v) => setItem(x.productId, "lineType", v)} className="sel-compact" style={{ width: 96 }}
-                  options={[{ value: "ban", label: "Bán" }, { value: "tang", label: "Tặng" }]} />
-                <button type="button" className="icon-btn" onClick={() => removeItem(x.productId)}><Icon name="close" size={15} /></button>
+            {items.map((x) => {
+              const d = disp(x);
+              return (
+                <div key={x.productId} className="cost-line">
+                  <div className="nm" style={{ minWidth: 0 }}>
+                    <div className="pn">{d.name}</div>
+                    <div className="pm mono">{d.sku ? d.sku + " · " : ""}tồn {d.stock} · vốn {fmt(d.cost)}₫</div>
+                  </div>
+                  <input type="number" min="1" value={x.qty} onChange={(e) => setItem(x.productId, "qty", e.target.value)} className="num-inp" style={{ width: 64 }} />
+                  <Select value={x.lineType} onChange={(v) => setItem(x.productId, "lineType", v)} className="sel-compact" style={{ width: 96 }}
+                    options={[{ value: "ban", label: "Bán" }, { value: "tang", label: "Tặng" }]} />
+                  <button type="button" className="icon-btn" onClick={() => removeItem(x.productId)}><Icon name="close" size={15} /></button>
+                </div>
+              );
+            })}
+            {items.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <div className="fee-row"><span className="fl">Tổng vốn</span><span className="fv">{fmt(totalCost)}₫</span></div>
+                <div className="fee-row"><span className="fl">Lời (theo giá đang nhập)</span>
+                  <span className={"fv " + (profit >= 0 ? "pos" : "neg")}>{(profit >= 0 ? "+" : "") + fmt(profit)}₫</span></div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                  <span className="cell-sub" style={{ fontSize: 12.5 }}>Gợi ý giá:</span>
+                  <input type="number" min="0" inputMode="numeric" className="num-inp" style={{ width: 64 }}
+                    value={marginPct} onChange={(e) => setMarginPct(e.target.value)} />
+                  <span className="cell-sub" style={{ fontSize: 12.5 }}>% lời trên vốn</span>
+                  <span className="cell-sub" style={{ fontSize: 12.5, marginLeft: 4 }}>Làm tròn</span>
+                  <Select className="sel-compact" style={{ width: 130 }} value={String(roundTo)}
+                    onChange={(v) => setRoundTo(Number(v))}
+                    options={[
+                      { value: "0", label: "Không tròn" },
+                      { value: "1000", label: "1.000₫" },
+                      { value: "5000", label: "5.000₫" },
+                    ]} />
+                  <button type="button" className="btn btn-sm" onClick={applyMargin}>Áp dụng</button>
+                </div>
               </div>
-            ))}
-            {isEdit && <label style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 10, fontSize: 13 }}><input type="checkbox" checked={f.active} onChange={(e) => setF({ ...f, active: e.target.checked })} /> Đang bật</label>}
+            )}
+            {isEdit && (
+              <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 12 }}>
+                <button type="button" role="switch" aria-checked={f.active}
+                  className={"switch" + (f.active ? " on" : "")} onClick={() => setF({ ...f, active: !f.active })}>
+                  <span className="switch-knob" />
+                </button>
+                <span style={{ fontSize: 13.5 }}>{f.active ? "Đang bật" : "Đang tắt"}</span>
+              </div>
+            )}
           </div>
           <div className="modal-foot">
             <button type="button" className="btn" onClick={onClose}>Hủy</button>
