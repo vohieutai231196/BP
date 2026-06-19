@@ -118,6 +118,12 @@ table.dg tbody tr.row-sel{ background:var(--accent-soft); }
 .btn.btn-danger{ background:var(--st-red); border-color:var(--st-red); color:#fff; box-shadow:none; }
 .btn.btn-danger:hover{ filter:brightness(.94); }
 
+/* Bảng kho: ghì cột tên dài để bảng không tràn, giữ cụm nút Sửa/Xóa trên 1 hàng */
+.prod-grid .cell-prod{ max-width:360px; }
+.prod-grid .cell-prod .pn{ overflow-wrap:anywhere; }
+.prod-grid td:last-child, .prod-grid th:last-child{ white-space:nowrap; }
+.prod-grid .u-actions{ flex-wrap:nowrap; }
+
 .filter-banner{ display:flex; align-items:center; gap:10px; margin-bottom:14px; padding:10px 14px;
   background:var(--accent-soft); border:1px solid var(--accent); border-radius:var(--r-md); font-size:13px; color:var(--ink-2); }
 .filter-banner .spacer{ flex:1; }

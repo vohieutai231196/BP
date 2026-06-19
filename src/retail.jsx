@@ -181,7 +181,7 @@ export function Inventory({ onToast, onOpenOrder }) {
               </button>
             </div>
           )}
-          <div className="grid-wrap"><table className="dg">
+          <div className="grid-wrap"><table className="dg prod-grid">
           <thead><tr>
             <th className="chk-col"><input type="checkbox" className="dg-chk" checked={allSelected} ref={(el) => { if (el) el.indeterminate = selRows.length > 0 && !allSelected; }} onChange={toggleAll} aria-label="Chọn tất cả" /></th>
             <th>Sản phẩm</th><th>Danh mục</th><th>Nguồn</th>
