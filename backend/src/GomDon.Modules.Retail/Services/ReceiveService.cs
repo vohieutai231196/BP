@@ -37,9 +37,12 @@ public sealed class ReceiveService : IReceiveService
         {
             var a = alloc[l.Idx];
             var suggested = await _repo.FindProductByLinkCodeAsync(l.LinkCode, ct);
-            var nameGuess = string.IsNullOrWhiteSpace(l.SpecVi)
-                ? (string.IsNullOrWhiteSpace(l.Spec) ? $"SP {l.LinkCode}" : l.Spec!)
-                : l.SpecVi!;
+            // Tên gợi ý: ƯU TIÊN tên sản phẩm thật (đã dịch); chỉ rơi về đặc điểm khi chưa có tên.
+            var nameGuess =
+                !string.IsNullOrWhiteSpace(l.Name) ? l.Name!
+                : !string.IsNullOrWhiteSpace(l.SpecVi) ? l.SpecVi!
+                : !string.IsNullOrWhiteSpace(l.Spec) ? l.Spec!
+                : $"SP {l.LinkCode}";
             preview.Lines.Add(new ReceiveLinePreview
             {
                 OrderLinkId = l.Idx, LinkCode = l.LinkCode, Spec = l.Spec, SpecVi = l.SpecVi,
