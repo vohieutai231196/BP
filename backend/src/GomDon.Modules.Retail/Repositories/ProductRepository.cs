@@ -1,6 +1,7 @@
 using Dapper;
 using GomDon.Infrastructure.Database;
 using GomDon.Modules.Retail.Models;
+using System.Text.Json;
 
 namespace GomDon.Modules.Retail.Repositories;
 
@@ -11,23 +12,58 @@ public sealed class ProductRepository : IProductRepository
 
     private const string Cols = "id, sku, name, category, image_url, status, avg_cost, list_price, created_at";
 
-    public async Task<List<ProductListItem>> ListAsync(string? status, string? search, CancellationToken ct = default)
+    private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
+
+    private sealed class ProductListRow
+    {
+        public long Id { get; set; }
+        public string Sku { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Category { get; set; } = "";
+        public string? ImageUrl { get; set; }
+        public string Status { get; set; } = "";
+        public long AvgCost { get; set; }
+        public long? ListPrice { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public long Stock { get; set; }
+        public string? CostTypeSummary { get; set; }
+        public string? SourceOrdersJson { get; set; }
+    }
+
+    public async Task<List<ProductListItem>> ListAsync(string? status, string? search, long? orderId = null, CancellationToken ct = default)
     {
         using var conn = _factory.Create();
         var where = new List<string> { "p.deleted_at IS NULL" };
         if (!string.IsNullOrWhiteSpace(status)) where.Add("p.status = @status");
         if (!string.IsNullOrWhiteSpace(search)) where.Add("(p.name ILIKE @q OR p.sku ILIKE @q)");
+        if (orderId is not null)
+            where.Add(@"EXISTS (SELECT 1 FROM stock_movements m
+                                 WHERE m.product_id = p.id AND m.ref_type = 'import_order' AND m.ref_id = @orderId)");
         var clause = "WHERE " + string.Join(" AND ", where);
-        var args = new { status, q = $"%{search}%" };
-        var items = await conn.QueryAsync<ProductListItem>(new CommandDefinition(
+        var args = new { status, q = $"%{search}%", orderId };
+
+        var rows = await conn.QueryAsync<ProductListRow>(new CommandDefinition(
             $@"SELECT p.id, p.sku, p.name, p.category, p.image_url AS ImageUrl, p.status, p.avg_cost AS AvgCost,
                       p.list_price AS ListPrice, p.created_at AS CreatedAt,
-                      COALESCE((SELECT SUM(qty) FROM stock_movements m WHERE m.product_id = p.id), 0) AS Stock
-                    , (SELECT string_agg(ct.name, ', ' ORDER BY ct.name)
+                      COALESCE((SELECT SUM(qty) FROM stock_movements m WHERE m.product_id = p.id), 0) AS Stock,
+                      (SELECT string_agg(ct.name, ', ' ORDER BY ct.name)
                          FROM product_cost_types pct JOIN cost_types ct ON ct.id = pct.cost_type_id
-                        WHERE pct.product_id = p.id) AS CostTypeSummary
+                        WHERE pct.product_id = p.id) AS CostTypeSummary,
+                      COALESCE((
+                        SELECT json_agg(json_build_object('orderId', s.order_id, 'qty', s.qty) ORDER BY s.last_at DESC)
+                        FROM (SELECT m.ref_id AS order_id, SUM(m.qty) AS qty, MAX(m.at) AS last_at
+                                FROM stock_movements m
+                               WHERE m.product_id = p.id AND m.ref_type = 'import_order' AND m.ref_id IS NOT NULL
+                               GROUP BY m.ref_id) s), '[]') AS SourceOrdersJson
                FROM products p {clause} ORDER BY p.created_at DESC;", args, cancellationToken: ct));
-        return items.ToList();
+
+        return rows.Select(r => new ProductListItem(
+            r.Id, r.Sku, r.Name, r.Category, r.ImageUrl, r.Status, r.AvgCost, r.ListPrice, r.CreatedAt, r.Stock,
+            r.CostTypeSummary,
+            string.IsNullOrWhiteSpace(r.SourceOrdersJson)
+                ? new List<ProductSourceRef>()
+                : JsonSerializer.Deserialize<List<ProductSourceRef>>(r.SourceOrdersJson!, JsonOpts) ?? new List<ProductSourceRef>()
+        )).ToList();
     }
 
     public async Task<Product?> GetByIdAsync(long id, CancellationToken ct = default)

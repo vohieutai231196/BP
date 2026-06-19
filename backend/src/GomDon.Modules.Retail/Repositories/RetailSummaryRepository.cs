@@ -32,4 +32,20 @@ public sealed class RetailSummaryRepository : IRetailSummaryRepository
         return new RetailSummary(prod.total_skus, prod.total_stock, prod.stock_value, prod.low_count,
             sale.revenue, sale.profit, sale.cnt);
     }
+
+    public async Task<List<ImportBatch>> ListImportsAsync(CancellationToken ct = default)
+    {
+        using var conn = _factory.Create();
+        var rows = await conn.QueryAsync<ImportBatch>(new CommandDefinition(
+            @"SELECT m.ref_id AS OrderId,
+                     MAX(m.at) AS ReceivedAt,
+                     COUNT(DISTINCT m.product_id)::int AS SkuCount,
+                     COALESCE(SUM(m.qty), 0)::bigint AS TotalQty,
+                     COALESCE(SUM(m.qty * m.unit_cost), 0)::bigint AS TotalCost
+              FROM stock_movements m
+              WHERE m.ref_type = 'import_order' AND m.ref_id IS NOT NULL
+              GROUP BY m.ref_id
+              ORDER BY MAX(m.at) DESC;", cancellationToken: ct));
+        return rows.ToList();
+    }
 }

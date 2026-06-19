@@ -6,6 +6,7 @@ import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
 import { MoneyInput, EmptyState } from "./components.jsx";
+import { Select } from "./ui-controls.jsx";
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
 
@@ -129,19 +130,15 @@ function ComboModal({ combo, onRun, onClose, onToast }) {
             <label className="field"><span>Giá bán combo (₫)</span><div className="input"><Icon name="wallet" size={16} /><MoneyInput value={f.price} onChange={(v) => setF({ ...f, price: v })} required /></div></label>
 
             <div className="field"><span style={{ marginBottom: 6 }}>Thành phần</span>
-              <div className="input"><Icon name="search" size={16} />
-                <select className="sel" defaultValue="" onChange={(e) => { const p = products.find((x) => String(x.id) === e.target.value); if (p) addProduct(p); e.target.value = ""; }}>
-                  <option value="">— Thêm SKU —</option>
-                  {products.map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.name} (tồn {p.stock})</option>)}
-                </select></div>
+              <Select icon="search" value="" onChange={(id) => { const p = products.find((x) => String(x.id) === id); if (p) addProduct(p); }} placeholder="— Thêm SKU —"
+                options={products.map((p) => ({ value: p.id, label: `${p.sku} · ${p.name} (tồn ${p.stock})` }))} />
             </div>
             {items.map((x) => (
               <div key={x.productId} className="cost-line">
                 <div className="nm" style={{ minWidth: 0 }}><div className="pn">{x.name}</div><div className="pm mono">{x.sku} · tồn {x.stock}</div></div>
                 <input type="number" min="1" value={x.qty} onChange={(e) => setItem(x.productId, "qty", e.target.value)} className="num-inp" style={{ width: 64 }} />
-                <select className="sel" value={x.lineType} onChange={(e) => setItem(x.productId, "lineType", e.target.value)} style={{ width: 80, background: "var(--surface-2)", border: "1px solid var(--line-2)", borderRadius: 9, padding: "8px 10px" }}>
-                  <option value="ban">Bán</option><option value="tang">Tặng</option>
-                </select>
+                <Select value={x.lineType} onChange={(v) => setItem(x.productId, "lineType", v)} className="sel-compact" style={{ width: 96 }}
+                  options={[{ value: "ban", label: "Bán" }, { value: "tang", label: "Tặng" }]} />
                 <button type="button" className="icon-btn" onClick={() => removeItem(x.productId)}><Icon name="close" size={15} /></button>
               </div>
             ))}

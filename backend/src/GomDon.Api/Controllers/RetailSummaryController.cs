@@ -14,4 +14,7 @@ public sealed class RetailSummaryController : ControllerBase
 
     [HttpGet("summary")]
     public async Task<ActionResult> Summary(CancellationToken ct) => Ok(await _summary.GetAsync(ct));
+
+    [HttpGet("imports")]
+    public async Task<ActionResult> Imports(CancellationToken ct) => Ok(await _summary.ListImportsAsync(ct));
 }

@@ -7,6 +7,7 @@ import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
 import { MoneyInput, costUnitPrice, resolveCostAmount } from "./components.jsx";
+import { Select } from "./ui-controls.jsx";
 
 const fmt = (n) => (n == null ? "—" : Number(n).toLocaleString("vi-VN"));
 const ROUND_OPTS = [{ v: 0, l: "Không" }, { v: 1000, l: "1.000₫" }, { v: 5000, l: "5.000₫" }];
@@ -49,8 +50,8 @@ export function Pricing({ onToast }) {
   });
   const setCostAmt = (id, v) => setPicked((p) => ({ ...p, [id]: v }));
 
-  const pickProduct = (e) => {
-    const p = products.find((x) => String(x.id) === e.target.value);
+  const pickProduct = (id) => {
+    const p = products.find((x) => String(x.id) === id);
     if (!p) return;
     setUnitCost(p.avgCost);
     // auto-điền phụ phí mặc định của SKU (tick + fill số tiền)
@@ -82,11 +83,9 @@ export function Pricing({ onToast }) {
           <div className="card-head"><Icon name="coins" size={18} style={{ color: "var(--muted)" }} /><h3>Giá vốn</h3></div>
           <div className="card-pad" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <label className="field"><span>Chọn nhanh từ sản phẩm (tùy chọn)</span>
-              <div className="input"><Icon name="box" size={16} />
-                <select className="sel" onChange={pickProduct} defaultValue="">
-                  <option value="">— Nhập tay —</option>
-                  {products.map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.name}</option>)}
-                </select></div></label>
+              <Select icon="box" value="" onChange={pickProduct} placeholder="— Nhập tay —"
+                options={products.map((p) => ({ value: p.id, label: `${p.sku} · ${p.name}` }))} />
+            </label>
             <label className="field"><span>Giá vốn / sản phẩm (₫)</span>
               <div className="input"><Icon name="coins" size={16} /><MoneyInput value={unitCost} onChange={setUnitCost} /></div></label>
           </div>

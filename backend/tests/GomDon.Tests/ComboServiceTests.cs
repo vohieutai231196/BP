@@ -12,7 +12,7 @@ public class ComboServiceTests
     private sealed class FakeProducts : IProductRepository
     {
         public readonly Dictionary<long, long> Stock = new(); // productId -> stock
-        public Task<List<ProductListItem>> ListAsync(string? s, string? q, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task<List<ProductListItem>> ListAsync(string? s, string? q, long? orderId = null, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<Product?> GetByIdAsync(long id, CancellationToken ct = default) => Task.FromResult<Product?>(new Product { Id = id });
         public Task<bool> SkuExistsAsync(string sku, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<long> InsertAsync(CreateProductRequest req, CancellationToken ct = default) => throw new NotImplementedException();

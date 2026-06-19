@@ -16,8 +16,8 @@ public sealed class ProductService : IProductService
         _createValidator = createValidator;
     }
 
-    public Task<List<ProductListItem>> ListAsync(string? status, string? search, CancellationToken ct = default)
-        => _repo.ListAsync(status, search, ct);
+    public Task<List<ProductListItem>> ListAsync(string? status, string? search, long? orderId = null, CancellationToken ct = default)
+        => _repo.ListAsync(status, search, orderId, ct);
 
     public async Task<ProductListItem> CreateAsync(CreateProductRequest req, CancellationToken ct = default)
     {

@@ -7,7 +7,7 @@ import React from "react";
 import { Icon } from "./icons.jsx";
 import DATA from "./data.js";
 import { StatusBadge, ProductThumb, PlatformTag } from "./components.jsx";
-import { imgUrl } from "./api.js";
+import { api, imgUrl } from "./api.js";
 
 // Ghi text vào clipboard. navigator.clipboard chỉ có trong secure context (HTTPS/localhost);
 // fallback execCommand cho trường hợp app mở qua HTTP/IP thuần. Trả về true nếu thành công.
@@ -31,10 +31,18 @@ async function copyText(text) {
   } catch { return false; }
 }
 
-export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete, role }) {
+export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete, role, onViewInventory }) {
   const d = DATA, f = d.fmt, c = order.costs;
   const [busy, setBusy] = React.useState(false);
   const [deleting, setDeleting] = React.useState(false);
+  const [stocked, setStocked] = React.useState(null); // SKU đã nhập kho từ đơn này
+  React.useEffect(() => {
+    let alive = true;
+    api.retail.products({ orderId: order.id })
+      .then((d) => { if (alive) setStocked(d || []); })
+      .catch(() => { if (alive) setStocked([]); });
+    return () => { alive = false; };
+  }, [order.id]);
 
   const remove = async () => {
     if (deleting) return;
@@ -193,6 +201,31 @@ export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete,
               </div>
             );
           })()}
+
+          {/* sản phẩm đã nhập kho (truy vết Đơn → Kho) */}
+          {stocked && stocked.length > 0 && (
+            <div className="card">
+              <div className="card-head"><Icon name="warehouse" size={16} style={{ color: "var(--muted)" }} /><h3>Sản phẩm đã nhập kho</h3><span className="topbar-spacer" /><span className="tag-soft">{stocked.length} SKU</span></div>
+              <div className="card-pad" style={{ overflowX: "auto" }}>
+                <table className="mini-table">
+                  <thead><tr><th>SKU</th><th>Tên</th><th style={{ textAlign: "right" }}>SL nhận</th></tr></thead>
+                  <tbody>
+                    {stocked.map((p) => {
+                      const q = (p.sourceOrders || []).find((s) => s.orderId === order.id)?.qty ?? 0;
+                      return (
+                        <tr key={p.id} style={{ cursor: "pointer" }} onClick={() => onViewInventory && onViewInventory(order.id)}>
+                          <td className="mono" style={{ fontSize: 12 }}>{p.sku}</td>
+                          <td>{p.name}</td>
+                          <td className="num">+{Number(q).toLocaleString("vi-VN")}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                <div className="cell-sub" style={{ marginTop: 8 }}>Bấm 1 dòng để xem trong Kho (lọc theo đơn này).</div>
+              </div>
+            </div>
+          )}
 
           {/* fees */}
           <div className="card card-pad">

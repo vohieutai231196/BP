@@ -6,6 +6,7 @@ import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
 import { MoneyInput, costUnitPrice, resolveCostAmount, EmptyState } from "./components.jsx";
+import { Select } from "./ui-controls.jsx";
 
 const fmt = (n) => (n == null ? "—" : Number(n).toLocaleString("vi-VN") + "₫");
 const fmtN = (n) => Number(n || 0).toLocaleString("vi-VN");
@@ -137,6 +138,7 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
   const [products, setProducts] = React.useState([]);
   const [costTypes, setCostTypes] = React.useState([]);
   const [items, setItems] = React.useState([]); // {productId, qty, unitPrice}
+  const [pickId, setPickId] = React.useState("");
   const [picked, setPicked] = React.useState({}); // costTypeId -> amount
   const [info, setInfo] = React.useState({ customerName: "", channel: "" });
   const [busy, setBusy] = React.useState(false);
@@ -210,13 +212,11 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
           {/* chọn sản phẩm + nút thao tác */}
           <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
             <label className="field" style={{ flex: 1 }}><span>Thêm sản phẩm</span>
-              <div className="input"><Icon name="search" size={16} />
-                <select id="sale-prod-pick" className="sel" defaultValue="">
-                  <option value="">— Chọn SKU —</option>
-                  {products.map((p) => <option key={p.id} value={p.id}>{p.sku} · {p.name} (tồn {p.stock})</option>)}
-                </select></div></label>
-            <button className="btn btn-sm" onClick={() => { const el = document.getElementById("sale-prod-pick"); const p = products.find((x) => String(x.id) === el.value); if (p) addItem(p, "ban"); el.value = ""; }}>+ Bán</button>
-            <button className="btn btn-sm" onClick={() => { const el = document.getElementById("sale-prod-pick"); const p = products.find((x) => String(x.id) === el.value); if (p) addItem(p, "tang"); el.value = ""; }}>🎁 Tặng</button>
+              <Select icon="search" value={pickId} onChange={setPickId} placeholder="— Chọn SKU —"
+                options={products.map((p) => ({ value: p.id, label: `${p.sku} · ${p.name} (tồn ${p.stock})` }))} />
+            </label>
+            <button className="btn btn-sm" onClick={() => { const p = products.find((x) => String(x.id) === pickId); if (p) { addItem(p, "ban"); setPickId(""); } }}>+ Bán</button>
+            <button className="btn btn-sm" onClick={() => { const p = products.find((x) => String(x.id) === pickId); if (p) { addItem(p, "tang"); setPickId(""); } }}>🎁 Tặng</button>
           </div>
 
           {items.map((x) => (
@@ -237,11 +237,9 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
           {combos.length > 0 && (
             <div style={{ marginTop: 8 }}>
               <label className="field"><span>Thêm combo</span>
-                <div className="input"><Icon name="box" size={16} />
-                  <select className="sel" defaultValue="" onChange={(e) => { const c = combos.find((x) => String(x.id) === e.target.value); if (c) addCombo(c); e.target.value = ""; }}>
-                    <option value="">— Chọn combo —</option>
-                    {combos.map((c) => <option key={c.id} value={c.id} disabled={c.availableQty <= 0}>{c.name} ({fmt(c.price)} · còn {c.availableQty})</option>)}
-                  </select></div></label>
+                <Select icon="box" value="" onChange={(id) => { const c = combos.find((x) => String(x.id) === id); if (c) addCombo(c); }} placeholder="— Chọn combo —"
+                  options={combos.map((c) => ({ value: c.id, label: `${c.name} (${fmt(c.price)} · còn ${c.availableQty})`, disabled: c.availableQty <= 0 }))} />
+              </label>
               {comboLines.map((x) => (
                 <div key={x.comboId} className="cost-line">
                   <div style={{ flex: 1, minWidth: 0 }}>

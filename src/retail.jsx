@@ -8,6 +8,7 @@ import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
 import { ReceiveModal } from "./receive.jsx";
 import { MoneyInput, costUnitPrice, EmptyState } from "./components.jsx";
+import { Select } from "./ui-controls.jsx";
 
 const STATUS = {
   active: { label: "Đang bán", color: "green" },
@@ -20,8 +21,9 @@ const TABS = [
 ];
 const CATS = ["shoe", "bag", "apparel", "tech", "home", "beauty", "other"];
 const fmt = (n) => (n == null ? "—" : Number(n).toLocaleString("vi-VN") + "₫");
+const fmtDate = (s) => { try { return new Date(s).toLocaleDateString("vi-VN"); } catch { return s; } };
 
-export function Inventory({ onToast }) {
+export function Inventory({ onToast, onOpenOrder }) {
   const [tab, setTab] = React.useState("");
   const [search, setSearch] = React.useState("");
   const [all, setAll] = React.useState([]);
@@ -32,17 +34,23 @@ export function Inventory({ onToast }) {
   const [confirm, setConfirm] = React.useState(null);
   const [summary, setSummary] = React.useState(null);
   const [receiving, setReceiving] = React.useState(false);
+  const [orderFilter, setOrderFilter] = React.useState(() => {
+    const v = new URLSearchParams(window.location.search).get("order");
+    return v ? Number(v) : null;
+  });
+  const clearOrderFilter = () => { setOrderFilter(null); window.history.replaceState({}, "", "/inventory"); };
+  const [groupMode, setGroupMode] = React.useState("list"); // list | grouped
   React.useEffect(() => { api.retail.summary().then(setSummary).catch(() => {}); }, [reload]);
 
   React.useEffect(() => {
     let alive = true;
     setLoading(true); setErr(null);
-    api.retail.products({})
+    api.retail.products(orderFilter ? { orderId: orderFilter } : {})
       .then((d) => { if (alive) setAll(d || []); })
       .catch((e) => { if (alive) setErr(e.message); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [reload]);
+  }, [reload, orderFilter]);
 
   const refresh = () => setReload((r) => r + 1);
   const run = async (fn, okMsg) => {
@@ -97,6 +105,10 @@ export function Inventory({ onToast }) {
             </button>
           ))}
         </div>
+        <div className="seg">
+          <button className={"seg-item" + (groupMode === "list" ? " active" : "")} onClick={() => setGroupMode("list")}>Danh sách</button>
+          <button className={"seg-item" + (groupMode === "grouped" ? " active" : "")} onClick={() => setGroupMode("grouped")}>Nhóm theo đơn</button>
+        </div>
         <span className="spacer" />
         <div className="search" style={{ maxWidth: 240 }}>
           <Icon name="search" size={16} style={{ color: "var(--faint)" }} />
@@ -110,7 +122,18 @@ export function Inventory({ onToast }) {
         </button>
       </div>
 
-      {loading ? (
+      {orderFilter && (
+        <div className="filter-banner">
+          <Icon name="filter" size={15} />
+          <span>Đang lọc theo đơn <b className="mono">#{orderFilter}</b></span>
+          <span className="spacer" />
+          <button className="btn btn-sm btn-ghost" onClick={clearOrderFilter}><Icon name="close" size={14} /> Bỏ lọc</button>
+        </div>
+      )}
+
+      {groupMode === "grouped" ? (
+        <GroupedByOrder onOpenOrder={onOpenOrder} />
+      ) : loading ? (
         <div className="card empty"><Icon name="refresh" size={40} /><div>Đang tải…</div></div>
       ) : err ? (
         <div className="card empty" style={{ color: "var(--st-red)" }}><Icon name="close" size={40} /><div>{err}</div></div>
@@ -119,7 +142,7 @@ export function Inventory({ onToast }) {
       ) : (
         <div className="card"><div className="grid-wrap"><table className="dg">
           <thead><tr>
-            <th>Sản phẩm</th><th>Danh mục</th>
+            <th>Sản phẩm</th><th>Danh mục</th><th>Nguồn</th>
             <th style={{ textAlign: "right" }}>Tồn</th>
             <th style={{ textAlign: "right" }}>Giá vốn TB</th>
             <th style={{ textAlign: "right" }}>Giá niêm yết</th>
@@ -144,6 +167,17 @@ export function Inventory({ onToast }) {
                     </div>
                   </td>
                   <td className="cell-sub">{p.category}</td>
+                  <td>
+                    {p.sourceOrders && p.sourceOrders.length > 0 ? (
+                      <span className="src-chips">
+                        <button type="button" className="src-chip"
+                          onClick={() => onOpenOrder && onOpenOrder(p.sourceOrders[0].orderId)}>
+                          #{p.sourceOrders[0].orderId}
+                        </button>
+                        {p.sourceOrders.length > 1 && <span className="src-more">+{p.sourceOrders.length - 1}</span>}
+                      </span>
+                    ) : <span className="cell-sub" style={{ color: "var(--faint)" }}>—</span>}
+                  </td>
                   <td className="cell-money" style={{ color: p.stock <= 10 ? "var(--st-amber)" : "inherit" }}>
                     {Number(p.stock ?? 0).toLocaleString("vi-VN")}
                     <span className="stockbar"><i style={{ width: Math.min(100, (Number(p.stock ?? 0) / 120) * 100) + "%", background: p.stock <= 10 ? "var(--st-amber)" : "var(--st-green)" }} /></span>
@@ -185,6 +219,72 @@ export function Inventory({ onToast }) {
   );
 }
 
+/* ---------- Nhóm theo đơn nhập (B) ---------- */
+function GroupedByOrder({ onOpenOrder }) {
+  const [groups, setGroups] = React.useState(null);
+  const [err, setErr] = React.useState(null);
+  const [open, setOpen] = React.useState({});     // { [orderId]: bool }
+  const [items, setItems] = React.useState({});   // { [orderId]: ProductList }
+
+  React.useEffect(() => {
+    let alive = true;
+    api.retail.imports()
+      .then((d) => { if (alive) setGroups(d || []); })
+      .catch((e) => { if (alive) setErr(e.message); });
+    return () => { alive = false; };
+  }, []);
+
+  const toggle = async (oid) => {
+    setOpen((o) => ({ ...o, [oid]: !o[oid] }));
+    if (items[oid] === undefined) {
+      try { const d = await api.retail.products({ orderId: oid }); setItems((m) => ({ ...m, [oid]: d || [] })); }
+      catch { setItems((m) => ({ ...m, [oid]: [] })); }
+    }
+  };
+
+  if (err) return <div className="card empty" style={{ color: "var(--st-red)" }}><Icon name="close" size={40} /><div>{err}</div></div>;
+  if (!groups) return <div className="card empty"><Icon name="refresh" size={40} /><div>Đang tải…</div></div>;
+  if (groups.length === 0)
+    return <EmptyState icon="warehouse" title="Chưa có lô nhập nào" hint="Dùng “Nhận đơn vào kho” để nhập sản phẩm từ đơn mua hộ vào kho." />;
+
+  return (
+    <div className="card" style={{ overflow: "hidden" }}>
+      {groups.map((g) => (
+        <div className="imp-group" key={g.orderId}>
+          <button type="button" className="imp-head" onClick={() => toggle(g.orderId)}>
+            <Icon name="chevRight" size={16} style={{ transform: open[g.orderId] ? "rotate(90deg)" : "none", transition: "transform .15s" }} />
+            <b className="mono">#{g.orderId}</b>
+            <span className="imp-meta">{fmtDate(g.receivedAt)} · {g.skuCount} SKU · {Number(g.totalQty).toLocaleString("vi-VN")} cái · vốn {Number(g.totalCost).toLocaleString("vi-VN")}₫</span>
+            <span style={{ flex: 1 }} />
+            <span className="src-chip" onClick={(e) => { e.stopPropagation(); onOpenOrder && onOpenOrder(g.orderId); }}>Mở đơn</span>
+          </button>
+          {open[g.orderId] && (
+            <div className="imp-body">
+              {items[g.orderId] === undefined ? (
+                <div className="cell-sub" style={{ padding: "10px 16px" }}>Đang tải…</div>
+              ) : items[g.orderId].length === 0 ? (
+                <div className="cell-sub" style={{ padding: "10px 16px" }}>Không có sản phẩm.</div>
+              ) : (
+                items[g.orderId].map((p) => {
+                  const q = (p.sourceOrders || []).find((s) => s.orderId === g.orderId)?.qty ?? 0;
+                  return (
+                    <div className="imp-row" key={p.id}>
+                      <div className="thumb" style={{ background: "var(--accent)", width: 28, height: 28 }}><Icon name="box" size={16} stroke={1.7} /></div>
+                      <div style={{ minWidth: 0 }}><div className="pn" style={{ fontSize: 13 }}>{p.name}</div><div className="pm mono">{p.sku}</div></div>
+                      <span style={{ flex: 1 }} />
+                      <span className="cell-money">{Number(q).toLocaleString("vi-VN")} cái</span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ---------- Modal tạo/sửa sản phẩm ---------- */
 function ProductModal({ product, onRun, onClose }) {
   const isEdit = !!product;
@@ -194,6 +294,7 @@ function ProductModal({ product, onRun, onClose }) {
   });
   const [busy, setBusy] = React.useState(false);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
+  const setV = (k) => (v) => setF({ ...f, [k]: v });
   const num = (v) => (v === "" || v == null ? null : Math.max(0, Math.round(Number(v) || 0)));
 
   // ----- Phụ phí áp dụng -----
@@ -269,20 +370,32 @@ function ProductModal({ product, onRun, onClose }) {
             <label className="field"><span>Tên sản phẩm</span>
               <div className="input"><Icon name="tag" size={16} /><input value={f.name} onChange={set("name")} required /></div></label>
             <label className="field"><span>Danh mục</span>
-              <div className="input"><Icon name="filter" size={16} />
-                <select className="sel" value={f.category} onChange={set("category")}>
-                  {CATS.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select></div></label>
+              <Select icon="filter" value={f.category} onChange={setV("category")} ariaLabel="Danh mục"
+                options={CATS.map((c) => ({ value: c, label: c }))} />
+            </label>
             <label className="field"><span>Giá vốn TB (₫)</span>
               <div className="input"><Icon name="coins" size={16} /><MoneyInput value={f.avgCost} onChange={(v) => setF({ ...f, avgCost: v })} required /></div></label>
             <label className="field"><span>Giá niêm yết (₫) — để trống nếu chưa đặt</span>
               <div className="input"><Icon name="wallet" size={16} /><MoneyInput value={f.listPrice} onChange={(v) => setF({ ...f, listPrice: v })} /></div></label>
             {isEdit && (
               <label className="field"><span>Trạng thái</span>
-                <div className="input"><Icon name="eye" size={16} />
-                  <select className="sel" value={f.status} onChange={set("status")}>
-                    <option value="active">Đang bán</option><option value="hidden">Ẩn</option>
-                  </select></div></label>
+                <Select icon="eye" value={f.status} onChange={setV("status")} ariaLabel="Trạng thái"
+                  options={[
+                    { value: "active", label: "Đang bán" },
+                    { value: "hidden", label: "Ẩn" },
+                  ]} />
+              </label>
+            )}
+
+            {isEdit && product.sourceOrders && product.sourceOrders.length > 0 && (
+              <div className="field">
+                <span>Nguồn nhập</span>
+                <div className="src-chips">
+                  {product.sourceOrders.map((s) => (
+                    <span key={s.orderId} className="src-chip static">#{s.orderId} · {Number(s.qty).toLocaleString("vi-VN")} cái</span>
+                  ))}
+                </div>
+              </div>
             )}
 
             {/* ---------- Phụ phí áp dụng ---------- */}

@@ -15,10 +15,13 @@ public sealed class Product
 }
 
 // ---------- DTO / request ----------
+public sealed record ProductSourceRef(long OrderId, long Qty);
+
 public sealed record ProductListItem(
     long Id, string Sku, string Name, string Category,
     string? ImageUrl, string Status, long AvgCost, long? ListPrice, DateTime CreatedAt, long Stock,
-    string? CostTypeSummary = null);   // "Fee ship, Bao bì" (string_agg)
+    string? CostTypeSummary = null,                       // "Fee ship, Bao bì" (string_agg)
+    IReadOnlyList<ProductSourceRef>? SourceOrders = null);  // đơn đã nhập kho SKU này (mới→cũ)
 
 public sealed record ProductCostTypeInput(long CostTypeId, long? Amount);
 public sealed record ProductCostTypeDto(long CostTypeId, string Name, string Unit, long Amount); // Amount đã resolve

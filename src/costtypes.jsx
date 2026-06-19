@@ -7,6 +7,7 @@ import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
 import { MoneyInput, costUnitPrice } from "./components.jsx";
+import { Select } from "./ui-controls.jsx";
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
 const unitLabel = (u) => (u === "percent" ? "% theo giá" : u === "pack" ? "Theo lô" : "₫ cố định");
@@ -117,6 +118,7 @@ function CostTypeModal({ costType, onRun, onClose }) {
   });
   const [busy, setBusy] = React.useState(false);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
+  const setV = (k) => (v) => setF({ ...f, [k]: v });
   const num = (v) => (v === "" || v == null ? null : Math.max(0, Math.round(Number(v) || 0)));
 
   const submit = async (e) => {
@@ -151,12 +153,13 @@ function CostTypeModal({ costType, onRun, onClose }) {
                   <div className="input"><Icon name="coins" size={16} /><MoneyInput value={f.defaultAmount} onChange={(v) => setF({ ...f, defaultAmount: v })} placeholder="tùy chọn" /></div>
                 )}</label>
               <label className="field"><span>Đơn vị</span>
-                <div className="input"><Icon name="filter" size={16} />
-                  <select className="sel" value={f.unit} onChange={set("unit")}>
-                    <option value="vnd">₫ cố định</option>
-                    <option value="percent">% theo giá</option>
-                    <option value="pack">Theo lô (giá lô ÷ quy cách)</option>
-                  </select></div></label>
+                <Select icon="filter" value={f.unit} onChange={setV("unit")} ariaLabel="Đơn vị"
+                  options={[
+                    { value: "vnd", label: "₫ cố định" },
+                    { value: "percent", label: "% theo giá" },
+                    { value: "pack", label: "Theo lô (giá lô ÷ quy cách)" },
+                  ]} />
+              </label>
             </div>
             {f.unit === "pack" && (
               <>

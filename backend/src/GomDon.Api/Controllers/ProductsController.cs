@@ -14,8 +14,8 @@ public sealed class ProductsController : ControllerBase
     public ProductsController(IProductService products) => _products = products;
 
     [HttpGet]
-    public async Task<ActionResult> List([FromQuery] string? status, [FromQuery] string? search, CancellationToken ct)
-        => Ok(await _products.ListAsync(status, search, ct));
+    public async Task<ActionResult> List([FromQuery] string? status, [FromQuery] string? search, [FromQuery] long? orderId, CancellationToken ct)
+        => Ok(await _products.ListAsync(status, search, orderId, ct));
 
     [HttpPost]
     public async Task<ActionResult> Create([FromBody] CreateProductRequest req, CancellationToken ct)

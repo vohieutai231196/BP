@@ -10,6 +10,7 @@ import "./styles/ui.css";
 import "./styles/login.css";
 import "./styles/tweaks.css";
 import "./styles/retail.css";
+import "./styles/controls.css";
 
 import { Icon } from "./icons.jsx";
 import { Sidebar, TopBar } from "./components.jsx";
@@ -151,6 +152,12 @@ function App() {
     else setSelected(null);
   }, []);
 
+  const viewInventory = useCallback((orderId) => {
+    setSelected(null);
+    setRoute("inventory"); setPreset(null);
+    window.history.pushState({}, "", "/inventory?order=" + orderId);
+  }, []);
+
   // Deep-link: mở thẳng /orders/{id} khi đăng nhập / tải trang.
   useEffect(() => {
     if (!logged) return;
@@ -251,7 +258,7 @@ function App() {
             <div className="card empty"><Icon name="close" size={40} /><div>Bạn không có quyền truy cập trang này.</div></div>
           )}
 
-          {route === "inventory" && <Inventory onToast={showToast} />}
+          {route === "inventory" && <Inventory onToast={showToast} onOpenOrder={openOrder} />}
           {route === "pricing" && <Pricing onToast={showToast} />}
           {route === "costtypes" && <CostTypes onToast={showToast} />}
           {route === "sales" && <Sales onToast={showToast} />}
@@ -262,7 +269,7 @@ function App() {
       </div>
 
       {detailLoading && !selected && <div className="overlay" />}
-      {selected && <OrderDetail order={selected} onClose={closeOrder} onToast={showToast} onChangeStatus={changeStatus} onDelete={deleteOrder} role={user?.role} />}
+      {selected && <OrderDetail order={selected} onClose={closeOrder} onToast={showToast} onChangeStatus={changeStatus} onDelete={deleteOrder} role={user?.role} onViewInventory={viewInventory} />}
       {toast && <div className="toast"><Icon name="check" size={16} stroke={2.4} />{toast}</div>}
       {accountOpen && <AccountModal user={user} onClose={() => setAccountOpen(false)} onUpdated={setUser} onToast={showToast} />}
     </div>

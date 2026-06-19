@@ -110,6 +110,7 @@ export const api = {
     deleteCostType: (id) => request(`/v1/cost-types/${id}`, { method: "DELETE" }),
     calcPrice: (body) => request("/v1/pricing/calc", { method: "POST", body }),
     summary: () => request("/v1/retail/summary"),
+    imports: () => request("/v1/retail/imports"),
     receivePreview: (orderId) => request(`/v1/retail/receive/preview/${orderId}`),
     receiveConfirm: (body) => request("/v1/retail/receive/confirm", { method: "POST", body }),
     sales: () => request("/v1/sales"),

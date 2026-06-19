@@ -17,7 +17,7 @@ public class ProductServiceTests
         public readonly HashSet<long> Deleted = new();   // soft-deleted (deleted_at IS NOT NULL)
         private long _seq = 1;
 
-        public Task<List<ProductListItem>> ListAsync(string? status, string? search, CancellationToken ct = default)
+        public Task<List<ProductListItem>> ListAsync(string? status, string? search, long? orderId = null, CancellationToken ct = default)
             => Task.FromResult(Db.Where(p => !Deleted.Contains(p.Id) && (status == null || p.Status == status))
                 .Select(p => new ProductListItem(p.Id, p.Sku, p.Name, p.Category, p.ImageUrl, p.Status, p.AvgCost, p.ListPrice, p.CreatedAt, 0)).ToList());
         public Task<Product?> GetByIdAsync(long id, CancellationToken ct = default)

@@ -4,7 +4,7 @@ namespace GomDon.Modules.Retail.Repositories;
 
 public interface IProductRepository
 {
-    Task<List<ProductListItem>> ListAsync(string? status, string? search, CancellationToken ct = default);
+    Task<List<ProductListItem>> ListAsync(string? status, string? search, long? orderId = null, CancellationToken ct = default);
     Task<Product?> GetByIdAsync(long id, CancellationToken ct = default);
     Task<bool> SkuExistsAsync(string sku, CancellationToken ct = default);
     Task<long> InsertAsync(CreateProductRequest req, CancellationToken ct = default);

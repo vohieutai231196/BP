@@ -23,3 +23,5 @@ npm-debug.log*
 .DS_Store
 .vscode/
 .idea/
+# brainstorm visual-companion artifacts
+.superpowers/

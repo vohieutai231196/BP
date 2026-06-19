@@ -6,6 +6,7 @@ import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
 import { MoneyInput, EmptyState } from "./components.jsx";
+import { Select, DateField } from "./ui-controls.jsx";
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
 const fmtDate = (d) => { if (!d) return "—"; try { return new Date(d).toLocaleDateString("vi-VN"); } catch { return "—"; } };
@@ -96,6 +97,7 @@ function PromoModal({ promo, onRun, onClose, onToast }) {
   }, []);
 
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
+  const setV = (k) => (v) => setF({ ...f, [k]: v });
   const toggle = (id) => setPicked((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   const submit = async (e) => {
@@ -119,15 +121,22 @@ function PromoModal({ promo, onRun, onClose, onToast }) {
           <div className="modal-body">
             <label className="field"><span>Tên đợt KM</span><div className="input"><Icon name="tag" size={16} /><input value={f.name} onChange={set("name")} autoFocus required /></div></label>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              <label className="field"><span>Kiểu</span><div className="input"><Icon name="filter" size={16} />
-                <select className="sel" value={f.type} onChange={set("type")}>
-                  <option value="percent">Giảm %</option><option value="fixed">Giá cố định</option>
-                </select></div></label>
+              <label className="field"><span>Kiểu</span>
+                <Select icon="filter" value={f.type} onChange={setV("type")} ariaLabel="Kiểu khuyến mãi"
+                  options={[
+                    { value: "percent", label: "Giảm %" },
+                    { value: "fixed", label: "Giá cố định" },
+                  ]} />
+              </label>
               <label className="field"><span>{f.type === "percent" ? "% giảm" : "Giá cố định (₫)"}</span><div className="input"><Icon name="coins" size={16} /><MoneyInput value={f.value} onChange={(v) => setF({ ...f, value: v })} required /></div></label>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              <label className="field"><span>Bắt đầu (tùy chọn)</span><div className="input"><Icon name="calendar" size={16} /><input type="date" value={f.startAt} onChange={set("startAt")} /></div></label>
-              <label className="field"><span>Kết thúc (tùy chọn)</span><div className="input"><Icon name="calendar" size={16} /><input type="date" value={f.endAt} onChange={set("endAt")} /></div></label>
+              <label className="field"><span>Bắt đầu (tùy chọn)</span>
+                <DateField value={f.startAt} onChange={(v) => setF({ ...f, startAt: v })} placeholder="Chọn ngày bắt đầu" />
+              </label>
+              <label className="field"><span>Kết thúc (tùy chọn)</span>
+                <DateField value={f.endAt} onChange={(v) => setF({ ...f, endAt: v })} placeholder="Chọn ngày kết thúc" />
+              </label>
             </div>
             <div className="field"><span style={{ marginBottom: 6 }}>Áp dụng cho SKU ({picked.size})</span>
               <div style={{ maxHeight: 180, overflow: "auto", border: "1px solid var(--line)", borderRadius: 10, padding: "0 12px" }}>
