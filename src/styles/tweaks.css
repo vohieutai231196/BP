@@ -3,11 +3,11 @@
    ============================================================ */
 .tweaks-fab{ position:fixed; right:20px; bottom:20px; z-index:95; display:flex; flex-direction:column; align-items:flex-end; gap:12px; }
 .tweaks-btn{
-  width:46px; height:46px; border-radius:50%; border:1px solid var(--line);
-  background:var(--surface); color:var(--muted); display:grid; place-items:center;
-  box-shadow:var(--shadow-md); transition:.15s var(--ease);
+  width:42px; height:42px; border-radius:50%; border:1px solid var(--line);
+  background:var(--surface); color:var(--faint); display:grid; place-items:center;
+  box-shadow:var(--shadow-md); transition:.18s var(--ease); opacity:.85;
 }
-.tweaks-btn:hover{ color:var(--accent-ink); border-color:var(--line-2); transform:rotate(30deg); }
+.tweaks-btn:hover{ color:var(--accent-ink); border-color:var(--line-2); opacity:1; transform:rotate(30deg); }
 
 .tweaks-card{
   width:300px; background:var(--surface); border:1px solid var(--line);
@@ -32,3 +32,17 @@
 .tweak-seg-item{ flex:1; padding:7px 10px; border-radius:8px; font-size:12.5px; font-weight:600; color:var(--muted); background:none; border:none; transition:.15s var(--ease); white-space:nowrap; }
 .tweak-seg-item:hover{ color:var(--ink); }
 .tweak-seg-item.active{ background:var(--surface); color:var(--ink); box-shadow:var(--shadow-sm); }
+
+/* ---------- TopBar settings popover ---------- */
+.tb-pop-wrap{ position:relative; display:inline-flex; }
+.tb-pop-backdrop{ position:fixed; inset:0; z-index:40; }
+.tb-pop{
+  position:absolute; top:calc(100% + 10px); right:0; width:300px; z-index:41;
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:16px; box-shadow:var(--shadow-lg); overflow:hidden;
+  animation:tb-pop-in .14s var(--ease);
+}
+@keyframes tb-pop-in{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:translateY(0); } }
+.tb-pop-head{ display:flex; align-items:center; gap:9px; padding:14px 16px; border-bottom:1px solid var(--line); color:var(--ink); }
+.tb-pop-head b{ font-size:14px; font-weight:700; }
+.tb-pop-body{ padding:8px 16px 16px; display:flex; flex-direction:column; gap:4px; }

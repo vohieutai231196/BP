@@ -7,7 +7,7 @@ import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
 import { ReceiveModal } from "./receive.jsx";
-import { MoneyInput, costUnitPrice } from "./components.jsx";
+import { MoneyInput, costUnitPrice, EmptyState } from "./components.jsx";
 
 const STATUS = {
   active: { label: "Đang bán", color: "green" },
@@ -115,7 +115,7 @@ export function Inventory({ onToast }) {
       ) : err ? (
         <div className="card empty" style={{ color: "var(--st-red)" }}><Icon name="close" size={40} /><div>{err}</div></div>
       ) : rows.length === 0 ? (
-        <div className="card empty"><Icon name="warehouse" size={40} /><div>Chưa có sản phẩm. Bấm “Sản phẩm” để thêm.</div></div>
+        <EmptyState icon="warehouse" title="Chưa có sản phẩm" hint="Thêm sản phẩm bán lẻ hoặc nhận đơn mua hộ vào kho để bắt đầu quản lý tồn." actionLabel="Thêm sản phẩm" onAction={() => setEditing({})} />
       ) : (
         <div className="card"><div className="grid-wrap"><table className="dg">
           <thead><tr>

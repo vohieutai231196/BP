@@ -5,7 +5,7 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
-import { MoneyInput } from "./components.jsx";
+import { MoneyInput, EmptyState } from "./components.jsx";
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
 
@@ -37,7 +37,7 @@ export function Combos({ onToast }) {
 
       {loading ? <div className="card empty"><Icon name="refresh" size={40} /><div>Đang tải…</div></div>
         : err ? <div className="card empty" style={{ color: "var(--st-red)" }}><Icon name="close" size={40} /><div>{err}</div></div>
-        : list.length === 0 ? <div className="card empty"><Icon name="box" size={40} /><div>Chưa có combo.</div></div>
+        : list.length === 0 ? <EmptyState icon="box" title="Chưa có combo" hint="Gói nhiều sản phẩm thành một combo để bán kèm và tăng giá trị mỗi đơn." actionLabel="Tạo combo" onAction={() => setEditing({})} />
         : (
           <div className="card"><div className="grid-wrap"><table className="dg">
             <thead><tr><th>Combo</th><th style={{ textAlign: "right" }}>Giá bán</th><th style={{ textAlign: "right" }}>Tổng vốn</th><th style={{ textAlign: "right" }}>Lời</th><th style={{ textAlign: "right" }}>Tồn khả dụng</th><th>Trạng thái</th><th style={{ textAlign: "right" }}>Thao tác</th></tr></thead>

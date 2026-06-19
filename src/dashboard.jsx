@@ -42,11 +42,14 @@ export function Dashboard({ summary, recent, onOpen, onNav }) {
   const warehouseAgg = summary.warehouseAgg || [];
   const maxPlat = Math.max(1, ...platformAgg.map((p) => p.count));
 
+  // Chú thích phụ là số liệu THẬT dẫn xuất từ summary (không phải % xu hướng giả).
+  const pctCollected = summary.totalRevenue ? Math.round(summary.totalCollected / summary.totalRevenue * 100) : 0;
+  const avgPerOrder = summary.totalOrders ? Math.round(summary.totalRevenue / summary.totalOrders) : 0;
   const kpis = [
-    { label: "Tổng đơn hàng", val: summary.totalOrders, sub: "tháng này", delta: "+12,4%", up: true, icon: "box", color: "var(--st-blue)", bg: "var(--st-blue-bg)" },
-    { label: "Tổng giá trị đơn", val: f.fmtVNDplain(summary.totalRevenue), suffix: "₫", delta: "+8,1%", up: true, icon: "coins", color: "var(--st-green)", bg: "var(--st-green-bg)" },
-    { label: "Đã thu", val: f.fmtVNDplain(summary.totalCollected), suffix: "₫", delta: summary.totalRevenue ? Math.round(summary.totalCollected / summary.totalRevenue * 100) + "% tổng" : "—", up: true, icon: "wallet", color: "var(--st-violet)", bg: "var(--st-violet-bg)" },
-    { label: "Còn phải thu", val: f.fmtVNDplain(summary.totalOutstanding), suffix: "₫", delta: summary.outstandingOrders + " đơn", up: false, icon: "clock", color: "var(--st-amber)", bg: "var(--st-amber-bg)" },
+    { label: "Tổng đơn hàng", val: summary.totalOrders, note: Math.round(summary.totalWeight || 0).toLocaleString("vi-VN") + " kg hàng", icon: "box", color: "var(--st-blue)", bg: "var(--st-blue-bg)" },
+    { label: "Tổng giá trị đơn", val: f.fmtVNDplain(summary.totalRevenue), suffix: "₫", note: "TB " + f.fmtVNDplain(avgPerOrder) + "₫/đơn", icon: "coins", color: "var(--st-green)", bg: "var(--st-green-bg)" },
+    { label: "Đã thu", val: f.fmtVNDplain(summary.totalCollected), suffix: "₫", note: pctCollected + "% giá trị đơn", icon: "wallet", color: "var(--st-violet)", bg: "var(--st-violet-bg)" },
+    { label: "Còn phải thu", val: f.fmtVNDplain(summary.totalOutstanding), suffix: "₫", note: summary.outstandingOrders + " đơn chưa đủ", icon: "clock", color: "var(--st-amber)", bg: "var(--st-amber-bg)" },
   ];
 
   return (
@@ -57,9 +60,7 @@ export function Dashboard({ summary, recent, onOpen, onNav }) {
           <div className="card kpi" key={k.label}>
             <div className="kpi-top">
               <div className="kpi-ic" style={{ background: k.bg, color: k.color }}><Icon name={k.icon} size={21} /></div>
-              <span className={"kpi-delta " + (k.up ? "up" : "down")}>
-                {k.up ? <Icon name="arrowUp" size={13} /> : <Icon name="arrowDown" size={13} />}<span className="muted">{k.delta}</span>
-              </span>
+              <span className="kpi-delta neutral">{k.note}</span>
             </div>
             <div>
               <div className="kpi-label">{k.label}</div>
@@ -88,8 +89,8 @@ export function Dashboard({ summary, recent, onOpen, onNav }) {
           <div className="card-head"><Icon name="dashboard" size={18} style={{ color: "var(--muted)" }} /><h3>Trạng thái đơn</h3></div>
           <div className="card-pad">
             <div className="donut-wrap">
-              <Donut segments={segs} />
-              <div className="legend" style={{ flexDirection: "column", gap: 9, flex: 1 }}>
+              <Donut segments={segs} size={148} />
+              <div className="legend" style={{ flexDirection: "column", gap: 9, flex: 1, minWidth: 0 }}>
                 {segs.map((s) => (
                   <div className="legend-item" key={s.label}><span className="ld" style={{ background: s.color }} />{s.label}<b>{s.value}</b></div>
                 ))}

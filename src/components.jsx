@@ -1,6 +1,7 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import DATA from "./data.js";
+import { routeHref } from "./routes.js";
 
 /* ---------- Money input ----------
    Ô nhập tiền: hiển thị phân tách hàng nghìn (14.759) cho dễ đọc, nhưng emit
@@ -60,26 +61,40 @@ export function ProductThumb({ order, lg }) {
   );
 }
 
+/* ---------- Empty state (illustration + CTA) ---------- */
+export function EmptyState({ icon = "box", title, hint, actionLabel, onAction, tone }) {
+  return (
+    <div className={"card empty" + (tone === "error" ? " empty-error" : "")}>
+      <div className="empty-ic"><Icon name={icon} size={30} stroke={1.6} /></div>
+      <div className="empty-title">{title}</div>
+      {hint && <div className="empty-hint">{hint}</div>}
+      {actionLabel && onAction && (
+        <button className="btn btn-primary" onClick={onAction}><Icon name="plus" size={15} /> {actionLabel}</button>
+      )}
+    </div>
+  );
+}
+
 /* ---------- Sidebar ---------- */
 export function Sidebar({ route, onNav, collapsed, open, onCloseMobile, onLogout, counts, user, onOpenAccount }) {
   const c = counts || {};
   const isAdmin = user?.role === "admin";
-  const items = [
-    { key: "dashboard", label: "Tổng quan", icon: "dashboard" },
-    { key: "orders", label: "Đơn hàng", icon: "box", count: c.total },
-    { key: "pay", label: "Cần thanh toán", icon: "wallet", count: c.outstanding, go: { route: "orders", filter: "pay" } },
-    { key: "complaint", label: "Khiếu nại", icon: "bell", count: c.complaints, go: { route: "orders", filter: "khieu_nai" } },
-  ];
 
-  const NavBtn = (it) => {
-    const active = route === it.key || (it.key === "orders" && route === "orders");
+  // Mỗi mục là <a href> thật → Ctrl/⌘/giữa-chuột mở tab mới; click thường đi
+  // qua SPA (chặn default trừ khi có phím bổ trợ / chuột giữa).
+  const NavLink = ({ to, filter, icon, label, count, active }) => {
+    const onClick = (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button === 1) return;
+      e.preventDefault();
+      onNav(to, filter ? { filter } : {});
+      onCloseMobile && onCloseMobile();
+    };
     return (
-      <button key={it.key} className={"sb-item" + (active && !it.go ? " active" : "")}
-        onClick={() => { it.go ? onNav(it.go.route, { filter: it.go.filter }) : onNav(it.key); onCloseMobile && onCloseMobile(); }}>
-        <Icon name={it.icon} size={19} />
-        <span>{it.label}</span>
-        {it.count != null && <span className="sb-count">{it.count}</span>}
-      </button>
+      <a href={routeHref(to, filter)} className={"sb-item" + (active ? " active" : "")} onClick={onClick}>
+        <Icon name={icon} size={19} />
+        <span>{label}</span>
+        {count != null && <span className="sb-count">{count}</span>}
+      </a>
     );
   };
 
@@ -91,45 +106,23 @@ export function Sidebar({ route, onNav, collapsed, open, onCloseMobile, onLogout
       </div>
       <nav className="sb-nav">
         <div className="sb-section-label"><span>Quản lý</span></div>
-        {[items[0], items[1]].map(NavBtn)}
+        <NavLink to="dashboard" icon="dashboard" label="Tổng quan" active={route === "dashboard"} />
+        <NavLink to="orders" icon="box" label="Đơn hàng" count={c.total} active={route === "orders"} />
         <div className="sb-section-label"><span>Cần chú ý</span></div>
-        {[items[2], items[3]].map(NavBtn)}
+        <NavLink to="orders" filter="pay" icon="wallet" label="Cần thanh toán" count={c.outstanding} />
+        <NavLink to="orders" filter="khieu_nai" icon="bell" label="Khiếu nại" count={c.complaints} />
         <div className="sb-section-label"><span>Bán lẻ</span></div>
-        <button className={"sb-item" + (route === "inventory" ? " active" : "")}
-          onClick={() => { onNav("inventory"); onCloseMobile && onCloseMobile(); }}>
-          <Icon name="warehouse" size={19} /><span>Kho &amp; Sản phẩm</span>
-        </button>
-        <button className={"sb-item" + (route === "pricing" ? " active" : "")}
-          onClick={() => { onNav("pricing"); onCloseMobile && onCloseMobile(); }}>
-          <Icon name="coins" size={19} /><span>Máy tính giá</span>
-        </button>
-        <button className={"sb-item" + (route === "costtypes" ? " active" : "")}
-          onClick={() => { onNav("costtypes"); onCloseMobile && onCloseMobile(); }}>
-          <Icon name="filter" size={19} /><span>Phụ phí</span>
-        </button>
-        <button className={"sb-item" + (route === "sales" ? " active" : "")}
-          onClick={() => { onNav("sales"); onCloseMobile && onCloseMobile(); }}>
-          <Icon name="wallet" size={19} /><span>Đơn bán</span>
-        </button>
-        <button className={"sb-item" + (route === "promotions" ? " active" : "")}
-          onClick={() => { onNav("promotions"); onCloseMobile && onCloseMobile(); }}>
-          <Icon name="tag" size={19} /><span>Khuyến mãi</span>
-        </button>
-        <button className={"sb-item" + (route === "combos" ? " active" : "")}
-          onClick={() => { onNav("combos"); onCloseMobile && onCloseMobile(); }}>
-          <Icon name="box" size={19} /><span>Combo</span>
-        </button>
-        <button className={"sb-item" + (route === "reports" ? " active" : "")}
-          onClick={() => { onNav("reports"); onCloseMobile && onCloseMobile(); }}>
-          <Icon name="dashboard" size={19} /><span>Báo cáo</span>
-        </button>
+        <NavLink to="inventory" icon="warehouse" label="Kho & Sản phẩm" active={route === "inventory"} />
+        <NavLink to="pricing" icon="coins" label="Máy tính giá" active={route === "pricing"} />
+        <NavLink to="costtypes" icon="filter" label="Phụ phí" active={route === "costtypes"} />
+        <NavLink to="sales" icon="wallet" label="Đơn bán" active={route === "sales"} />
+        <NavLink to="promotions" icon="tag" label="Khuyến mãi" active={route === "promotions"} />
+        <NavLink to="combos" icon="box" label="Combo" active={route === "combos"} />
+        <NavLink to="reports" icon="dashboard" label="Báo cáo" active={route === "reports"} />
         {isAdmin && (
           <>
             <div className="sb-section-label"><span>Hệ thống</span></div>
-            <button className={"sb-item" + (route === "users" ? " active" : "")}
-              onClick={() => { onNav("users"); onCloseMobile && onCloseMobile(); }}>
-              <Icon name="user" size={19} /><span>Người dùng</span>
-            </button>
+            <NavLink to="users" icon="user" label="Người dùng" active={route === "users"} />
           </>
         )}
         <div className="sb-section-label"><span>Công cụ</span></div>
@@ -153,7 +146,16 @@ export function Sidebar({ route, onNav, collapsed, open, onCloseMobile, onLogout
 }
 
 /* ---------- TopBar ---------- */
-export function TopBar({ title, sub, search, setSearch, onSubmitSearch, theme, toggleTheme, onMenu }) {
+export function TopBar({ title, sub, search, setSearch, onSubmitSearch, theme, toggleTheme, onMenu, settings }) {
+  const [setOpen, setSetOpen] = React.useState(false);
+  // Đóng popover khi nhấn Esc.
+  React.useEffect(() => {
+    if (!setOpen) return;
+    const h = (e) => { if (e.key === "Escape") setSetOpen(false); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [setOpen]);
+
   return (
     <header className="topbar">
       <button className="icon-btn menu-toggle" onClick={onMenu} aria-label="menu"><Icon name="menu" size={20} /></button>
@@ -170,6 +172,23 @@ export function TopBar({ title, sub, search, setSearch, onSubmitSearch, theme, t
       <button className="icon-btn" onClick={toggleTheme} aria-label="theme" title="Đổi giao diện">
         <Icon name={theme === "dark" ? "sun" : "moon"} size={19} />
       </button>
+      {settings && (
+        <div className="tb-pop-wrap">
+          <button className={"icon-btn" + (setOpen ? " active" : "")} onClick={() => setSetOpen((v) => !v)}
+            aria-label="settings" aria-expanded={setOpen} title="Tuỳ chỉnh giao diện">
+            <Icon name="settings" size={19} />
+          </button>
+          {setOpen && (
+            <>
+              <div className="tb-pop-backdrop" onClick={() => setSetOpen(false)} />
+              <div className="tb-pop" role="dialog" aria-label="Tuỳ chỉnh giao diện">
+                <div className="tb-pop-head"><Icon name="settings" size={15} /><b>Tuỳ chỉnh giao diện</b></div>
+                <div className="tb-pop-body">{settings}</div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
       <button className="icon-btn hide-mobile" aria-label="notifications"><Icon name="bell" size={19} /><span className="dot" /></button>
     </header>
   );

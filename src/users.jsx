@@ -83,7 +83,7 @@ export function Users({ onToast, currentUserId }) {
           <input placeholder="Tìm tên / email…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <button className="btn btn-sm btn-primary" onClick={() => setCreating(true)}>
-          <Icon name="plus" size={15} /> Tạo user
+          <Icon name="plus" size={15} /> Tạo người dùng
         </button>
       </div>
 

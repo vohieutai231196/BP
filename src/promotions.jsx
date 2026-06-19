@@ -5,7 +5,7 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
-import { MoneyInput } from "./components.jsx";
+import { MoneyInput, EmptyState } from "./components.jsx";
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
 const fmtDate = (d) => { if (!d) return "—"; try { return new Date(d).toLocaleDateString("vi-VN"); } catch { return "—"; } };
@@ -33,12 +33,12 @@ export function Promotions({ onToast }) {
       <div className="toolbar">
         <div className="section-title">Đợt khuyến mãi</div>
         <span className="spacer" />
-        <button className="btn btn-sm btn-primary" onClick={() => setEditing({})}><Icon name="plus" size={15} /> Tạo KM</button>
+        <button className="btn btn-sm btn-primary" onClick={() => setEditing({})}><Icon name="plus" size={15} /> Tạo khuyến mãi</button>
       </div>
 
       {loading ? <div className="card empty"><Icon name="refresh" size={40} /><div>Đang tải…</div></div>
         : err ? <div className="card empty" style={{ color: "var(--st-red)" }}><Icon name="close" size={40} /><div>{err}</div></div>
-        : list.length === 0 ? <div className="card empty"><Icon name="tag" size={40} /><div>Chưa có khuyến mãi.</div></div>
+        : list.length === 0 ? <EmptyState icon="tag" title="Chưa có khuyến mãi" hint="Tạo đợt giảm giá theo sản phẩm để chạy chương trình bán hàng." actionLabel="Tạo khuyến mãi" onAction={() => setEditing({})} />
         : (
           <div className="card"><div className="grid-wrap"><table className="dg">
             <thead><tr><th>Tên</th><th>Kiểu</th><th style={{ textAlign: "right" }}>Giá trị</th><th>Hiệu lực</th><th style={{ textAlign: "right" }}>SKU</th><th>Trạng thái</th><th style={{ textAlign: "right" }}>Thao tác</th></tr></thead>
@@ -146,7 +146,7 @@ function PromoModal({ promo, onRun, onClose, onToast }) {
           </div>
           <div className="modal-foot">
             <button type="button" className="btn" onClick={onClose}>Hủy</button>
-            <button className="btn btn-primary" disabled={busy}>{busy ? "Đang lưu…" : (isEdit ? "Lưu" : "Tạo KM")}</button>
+            <button className="btn btn-primary" disabled={busy}>{busy ? "Đang lưu…" : (isEdit ? "Lưu" : "Tạo khuyến mãi")}</button>
           </div>
         </form>
       </div>

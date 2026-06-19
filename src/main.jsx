@@ -29,6 +29,7 @@ import { AccountModal } from "./account.jsx";
 import { useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor } from "./tweaks.jsx";
 import { api, getToken, setToken, setOnUnauthorized } from "./api.js";
 import { adaptSummary, adaptDetail, adaptDashboard } from "./data.js";
+import { pathToRoute, routeHref, currentFilter, orderIdFromPath } from "./routes.js";
 
 const { useState, useEffect, useCallback } = React;
 
@@ -45,8 +46,8 @@ function shade(hex, pct) {
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [logged, setLogged] = useState(() => !!getToken());
-  const [route, setRoute] = useState("dashboard");
-  const [preset, setPreset] = useState(null);
+  const [route, setRoute] = useState(() => pathToRoute(window.location.pathname));
+  const [preset, setPreset] = useState(() => currentFilter());
   const [search, setSearch] = useState("");
   const [theme, setTheme] = useState(() => localStorage.getItem("gd_theme") || "light");
   const [layout, setLayout] = useState(LAYOUT_MAP[t.layout] || "table");
@@ -104,10 +105,34 @@ function App() {
     return () => { alive = false; };
   }, [logged, reloadKey]);
 
-  const nav = (r, opts = {}) => { setRoute(r); setPreset(r === "orders" ? (opts.filter || null) : null); setSbOpen(false); };
+  const nav = (r, opts = {}) => {
+    const filter = r === "orders" ? (opts.filter || null) : null;
+    setRoute(r); setPreset(filter); setSbOpen(false); setSelected(null);  // điều hướng đóng drawer
+    const href = routeHref(r, filter);
+    if (href !== window.location.pathname + window.location.search) window.history.pushState({}, "", href);
+  };
   const showToast = (m) => setToast(m);
 
-  const openOrder = useCallback(async (id) => {
+  // Đồng bộ Back/Forward của trình duyệt với route nội bộ + drawer chi tiết đơn.
+  useEffect(() => {
+    const onPop = () => {
+      setRoute(pathToRoute(window.location.pathname));
+      setPreset(currentFilter());
+      const id = orderIdFromPath(window.location.pathname);
+      if (id) openOrder(id, { fromUrl: true }); else setSelected(null);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  const openOrder = useCallback(async (id, opts = {}) => {
+    // Phản chiếu lên URL (/orders/{id}) để chia sẻ link / mở tab mới được.
+    // fromUrl = gọi từ popstate hoặc deep-link → KHÔNG push thêm lịch sử.
+    if (!opts.fromUrl) {
+      const href = "/orders/" + id;
+      if (window.location.pathname !== href) window.history.pushState({}, "", href);
+      setRoute("orders"); setPreset(null);
+    }
     setDetailLoading(true);
     try {
       const o = await api.order(id);
@@ -119,6 +144,20 @@ function App() {
     }
   }, []);
 
+  // Đóng drawer: lùi lịch sử nếu đang ở /orders/{id} (Back đóng drawer tự nhiên),
+  // ngược lại chỉ xoá state.
+  const closeOrder = useCallback(() => {
+    if (orderIdFromPath(window.location.pathname)) window.history.back();
+    else setSelected(null);
+  }, []);
+
+  // Deep-link: mở thẳng /orders/{id} khi đăng nhập / tải trang.
+  useEffect(() => {
+    if (!logged) return;
+    const id = orderIdFromPath(window.location.pathname);
+    if (id) openOrder(id, { fromUrl: true });
+  }, [logged, openOrder]);
+
   const changeStatus = useCallback(async (id, status, note) => {
     const updated = await api.changeStatus(id, status, note);
     setSelected(adaptDetail(updated));     // API trả chi tiết mới
@@ -128,6 +167,8 @@ function App() {
   const deleteOrder = useCallback(async (id) => {
     await api.deleteOrder(id);
     setSelected(null);                     // đóng drawer
+    // đơn đã xoá → bỏ id khỏi URL (replace để Back không quay lại đơn đã mất)
+    if (orderIdFromPath(window.location.pathname)) window.history.replaceState({}, "", "/orders");
     setReloadKey((k) => k + 1);            // refresh summary + recent + list
   }, []);
 
@@ -143,9 +184,9 @@ function App() {
     return () => { alive = false; };
   }, [logged, user]);
 
-  function tweaksPanel() {
+  function tweakControls() {
     return (
-      <TweaksPanel>
+      <>
         <TweakSection label="Giao diện" />
         <TweakColor label="Màu nhấn" value={t.accent}
           options={["#2a6fdb", "#1f8a5b", "#6a53cf", "#d2762f"]}
@@ -157,11 +198,12 @@ function App() {
         <TweakRadio label="Mật độ" value={t.density}
           options={["Thoáng", "Gọn"]}
           onChange={(v) => setTweak("density", v)} />
-      </TweaksPanel>
+      </>
     );
   }
 
-  if (!logged) return (<><Login onLogin={onLoggedIn} />{tweaksPanel()}</>);
+  // Trước khi đăng nhập: panel tuỳ chỉnh dạng FAB (chưa có TopBar).
+  if (!logged) return (<><Login onLogin={onLoggedIn} /><TweaksPanel>{tweakControls()}</TweaksPanel></>);
 
   const counts = summary ? { total: summary.totalOrders, outstanding: summary.outstandingOrders, complaints: summary.statusCounts.khieu_nai || 0 } : {};
   const titles = {
@@ -185,7 +227,8 @@ function App() {
       <div className="main">
         <TopBar title={titles[route].t} sub={titles[route].s} search={search} setSearch={setSearch}
           onSubmitSearch={() => { if (route !== "orders") nav("orders"); }}
-          theme={theme} toggleTheme={() => setTheme(theme === "dark" ? "light" : "dark")} onMenu={() => setSbOpen(true)} />
+          theme={theme} toggleTheme={() => setTheme(theme === "dark" ? "light" : "dark")} onMenu={() => setSbOpen(true)}
+          settings={tweakControls()} />
         <div className={"content" + (t.density === "Gọn" ? " dense" : "")}>
           {loadErr && <div className="card empty"><Icon name="close" size={40} /><div>Lỗi tải dữ liệu: {loadErr}</div></div>}
 
@@ -219,10 +262,9 @@ function App() {
       </div>
 
       {detailLoading && !selected && <div className="overlay" />}
-      {selected && <OrderDetail order={selected} onClose={() => setSelected(null)} onToast={showToast} onChangeStatus={changeStatus} onDelete={deleteOrder} role={user?.role} />}
+      {selected && <OrderDetail order={selected} onClose={closeOrder} onToast={showToast} onChangeStatus={changeStatus} onDelete={deleteOrder} role={user?.role} />}
       {toast && <div className="toast"><Icon name="check" size={16} stroke={2.4} />{toast}</div>}
       {accountOpen && <AccountModal user={user} onClose={() => setAccountOpen(false)} onUpdated={setUser} onToast={showToast} />}
-      {tweaksPanel()}
     </div>
   );
 }

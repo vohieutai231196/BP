@@ -110,6 +110,11 @@ body{
 button{ font-family:inherit; cursor:pointer; }
 ::selection{ background:var(--accent-soft); }
 
+/* Keyboard focus: visible ring for accessibility, never on mouse click */
+:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px; }
+:focus:not(:focus-visible){ outline:none; }
+button:disabled{ cursor:not-allowed; }
+
 /* scrollbars */
 *::-webkit-scrollbar{ width:10px; height:10px; }
 *::-webkit-scrollbar-thumb{ background:var(--line-2); border-radius:20px; border:2px solid var(--bg); }

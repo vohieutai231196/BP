@@ -5,7 +5,7 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
-import { MoneyInput, costUnitPrice, resolveCostAmount } from "./components.jsx";
+import { MoneyInput, costUnitPrice, resolveCostAmount, EmptyState } from "./components.jsx";
 
 const fmt = (n) => (n == null ? "—" : Number(n).toLocaleString("vi-VN") + "₫");
 const fmtN = (n) => Number(n || 0).toLocaleString("vi-VN");
@@ -54,7 +54,7 @@ export function Sales({ onToast }) {
       ) : err ? (
         <div className="card empty" style={{ color: "var(--st-red)" }}><Icon name="close" size={40} /><div>{err}</div></div>
       ) : list.length === 0 ? (
-        <div className="card empty"><Icon name="wallet" size={40} /><div>Chưa có đơn bán. Bấm “Tạo đơn bán”.</div></div>
+        <EmptyState icon="wallet" title="Chưa có đơn bán" hint="Tạo đơn bán đầu tiên để theo dõi doanh thu và lợi nhuận thực." actionLabel="Tạo đơn bán" onAction={() => setCreating(true)} />
       ) : (
         <div className="card"><div className="grid-wrap"><table className="dg">
           <thead><tr>
