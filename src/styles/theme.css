@@ -115,6 +115,19 @@ button{ font-family:inherit; cursor:pointer; }
 :focus:not(:focus-visible){ outline:none; }
 button:disabled{ cursor:not-allowed; }
 
+/* Autofill: Chrome tô nền sáng cố định → ép giữ nền/chữ theo theme (cả light & dark) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active{
+  -webkit-text-fill-color: var(--ink);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+  caret-color: var(--ink);
+  transition: background-color 9999s ease-out 0s;
+}
+/* Ô tìm kiếm dùng nền surface-3 → khớp riêng cho liền mạch */
+.search input:-webkit-autofill{ -webkit-box-shadow: 0 0 0 1000px var(--surface-3) inset; }
+
 /* scrollbars */
 *::-webkit-scrollbar{ width:10px; height:10px; }
 *::-webkit-scrollbar-thumb{ background:var(--line-2); border-radius:20px; border:2px solid var(--bg); }
