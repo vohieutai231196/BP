@@ -17,7 +17,7 @@ import "react-day-picker/style.css";
      options   : Array<{ value, label, disabled? }>
      icon      : tên icon trái (vd "filter") — optional
      placeholder, disabled, className, style, ariaLabel */
-export function Select({ value, onChange, options, icon, placeholder = "— Chọn —", disabled, className, style, ariaLabel }) {
+export function Select({ value, onChange, options = [], icon, placeholder = "— Chọn —", disabled, className, style, ariaLabel }) {
   return (
     <RSelect.Root value={value == null ? "" : String(value)} onValueChange={onChange} disabled={disabled}>
       <RSelect.Trigger className={"input sel-trigger" + (className ? " " + className : "")} style={style} aria-label={ariaLabel}>

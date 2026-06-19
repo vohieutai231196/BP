@@ -142,6 +142,17 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
   const [picked, setPicked] = React.useState({}); // costTypeId -> amount
   const [info, setInfo] = React.useState({ customerName: "", channel: "" });
   const [busy, setBusy] = React.useState(false);
+  const [marginPct, setMarginPct] = React.useState(10);
+  const [roundTo, setRoundTo] = React.useState(1000);
+  const roundUp = (v, step) => (step > 0 ? Math.ceil(v / step) * step : v);
+  const applyMargin = () => {
+    const pct = Number(marginPct) || 0;
+    setItems((xs) => xs.map((x) =>
+      (x.lineType === "tang" || x.promoName)
+        ? x
+        : { ...x, unitPrice: roundUp(Math.round((Number(x.avgCost) || 0) * (1 + pct / 100)), Number(roundTo) || 0) }
+    ));
+  };
 
   const [promos, setPromos] = React.useState({}); // productId -> {price, name}
 
@@ -211,13 +222,31 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
         <div className="modal-body">
           {/* chọn sản phẩm + nút thao tác */}
           <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
-            <label className="field" style={{ flex: 1 }}><span>Thêm sản phẩm</span>
+            <label className="field" style={{ flex: 1, minWidth: 0 }}><span>Thêm sản phẩm</span>
               <Select icon="search" value={pickId} onChange={setPickId} placeholder="— Chọn SKU —"
                 options={products.map((p) => ({ value: p.id, label: `${p.sku} · ${p.name} (tồn ${p.stock})` }))} />
             </label>
             <button className="btn btn-sm" onClick={() => { const p = products.find((x) => String(x.id) === pickId); if (p) { addItem(p, "ban"); setPickId(""); } }}>+ Bán</button>
             <button className="btn btn-sm" onClick={() => { const p = products.find((x) => String(x.id) === pickId); if (p) { addItem(p, "tang"); setPickId(""); } }}>🎁 Tặng</button>
           </div>
+
+          {items.some((x) => x.lineType !== "tang") && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+              <span className="cell-sub" style={{ fontSize: 12.5 }}>Gợi ý giá:</span>
+              <input type="number" min="0" inputMode="numeric" className="num-inp" style={{ width: 64 }}
+                value={marginPct} onChange={(e) => setMarginPct(e.target.value)} />
+              <span className="cell-sub" style={{ fontSize: 12.5 }}>% lời trên vốn</span>
+              <span className="cell-sub" style={{ fontSize: 12.5, marginLeft: 4 }}>Làm tròn</span>
+              <Select className="sel-compact" style={{ width: 130 }} value={String(roundTo)}
+                onChange={(v) => setRoundTo(Number(v))}
+                options={[
+                  { value: "0", label: "Không tròn" },
+                  { value: "1000", label: "1.000₫" },
+                  { value: "5000", label: "5.000₫" },
+                ]} />
+              <button type="button" className="btn btn-sm" onClick={applyMargin}>Áp dụng cho tất cả</button>
+            </div>
+          )}
 
           {items.map((x) => (
             <div key={x.productId + "-" + x.lineType} className="cost-line">

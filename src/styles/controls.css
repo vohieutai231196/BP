@@ -4,12 +4,13 @@
    ============================================================ */
 
 /* ---- Select trigger (tái dùng .input, thêm chevron + value) ---- */
-.sel-trigger{ cursor:pointer; text-align:left; }
+.sel-trigger{ cursor:pointer; text-align:left; width:100%; min-width:0; max-width:100%; }
 .sel-trigger[data-disabled]{ opacity:.5; cursor:not-allowed; }
+.sel-trigger > svg{ flex:none; }
 .sel-trigger .sel-value{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   font-size:14.5px; color:var(--ink); }
 .sel-trigger[data-placeholder] .sel-value{ color:var(--faint); }
-.sel-chevron{ color:var(--muted); display:grid; place-items:center; transition:transform .15s var(--ease); }
+.sel-chevron{ flex:none; color:var(--muted); display:grid; place-items:center; transition:transform .15s var(--ease); }
 .sel-trigger[data-state="open"] .sel-chevron{ transform:rotate(180deg); }
 
 /* ---- Popup (Content) ---- */
@@ -40,7 +41,7 @@
   border-radius:13px; box-shadow:0 12px 32px rgba(0,0,0,.30); padding:10px;
   animation:sel-pop .13s var(--ease); }
 
-/* ---- react-day-picker v9: map biến --rdp-* về token ---- */
+/* ---- react-day-picker v10: map biến --rdp-* về token ---- */
 .date-pop .rdp-root{
   --rdp-accent-color:var(--accent);
   --rdp-accent-background-color:var(--accent-soft);
