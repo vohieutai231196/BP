@@ -175,9 +175,13 @@ function CostTypeModal({ costType, onRun, onClose }) {
               </>
             )}
             {isEdit && (
-              <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13.5 }}>
-                <input type="checkbox" checked={f.active} onChange={(e) => setF({ ...f, active: e.target.checked })} /> Đang dùng (hiện trong danh sách chọn)
-              </label>
+              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <button type="button" role="switch" aria-checked={f.active}
+                  className={"switch" + (f.active ? " on" : "")} onClick={() => setF({ ...f, active: !f.active })}>
+                  <span className="switch-knob" />
+                </button>
+                <span style={{ fontSize: 13.5 }}>{f.active ? "Đang dùng (hiện trong danh sách chọn)" : "Đang tắt (ẩn khỏi danh sách chọn)"}</span>
+              </div>
             )}
             <div className="cell-sub" style={{ fontSize: 11.5 }}>Giá mặc định chỉ là gợi ý — khi dùng vẫn sửa/bỏ được từng lần. “%” tính theo % của giá (vốn ở Máy tính giá, doanh thu ở Đơn bán).</div>
           </div>
