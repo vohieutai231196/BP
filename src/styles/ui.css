@@ -289,6 +289,30 @@ table.dg tbody tr:last-child td{ border-bottom:none; }
 .divider{ height:1px; background:var(--line); }
 .tag-soft{ font-size:12px; font-weight:600; padding:3px 9px; border-radius:7px; background:var(--surface-3); color:var(--muted); }
 
+/* ---------- bảng sản phẩm trong đơn ---------- */
+/* mã link sản phẩm — chip mono, bấm mở link gốc trên sàn */
+.code-chip{
+  display:inline-flex; align-items:center; gap:5px; max-width:100%;
+  font-family:var(--font-mono); font-size:11.5px; font-weight:600; line-height:1;
+  padding:4px 8px; border-radius:7px; white-space:nowrap;
+  background:var(--surface-3); color:var(--muted); border:1px solid var(--line);
+  text-decoration:none; transition:background .12s, color .12s, border-color .12s;
+}
+.code-chip > span{ overflow:hidden; text-overflow:ellipsis; }
+.code-chip .x-ic{ flex:0 0 auto; opacity:.55; }
+a.code-chip:hover{ background:var(--accent-soft); color:var(--accent-ink); border-color:var(--accent); }
+a.code-chip:hover .x-ic{ opacity:1; }
+
+/* ô tên + đặc điểm sản phẩm */
+.prod-cell{ min-width:200px; max-width:360px; }
+.prod-name{ font-weight:600; color:var(--ink); line-height:1.4; }
+.prod-spec{ font-size:12px; color:var(--muted); margin-top:3px; line-height:1.4; }
+.prod-spec.solo{ font-size:13px; color:var(--ink); margin-top:0; }
+
+/* căn giữa dọc ô ảnh + mã để đồng nhất khi tên dài nhiều dòng */
+.mini-table td.cell-mid{ vertical-align:middle; }
+.prod-thumb{ width:44px; height:44px; object-fit:cover; border-radius:8px; border:1px solid var(--line); display:block; background:var(--surface-3); }
+
 /* ---------- toast ---------- */
 .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--bg); padding:13px 20px; border-radius:12px; font-size:13.5px; font-weight:600; box-shadow:var(--shadow-lg); z-index:90; display:flex; align-items:center; gap:10px; }
 

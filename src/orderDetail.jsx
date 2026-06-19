@@ -182,11 +182,15 @@ export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete,
                         const unitAllIn = Math.round((l.priceVnd || 0) * coef / n);
                         return (
                           <tr key={l.idx + "-" + l.linkCode}>
-                            <td className="cell-sub">{l.idx}</td>
-                            <td>{l.imageUrl ? <img src={imgUrl(l.imageUrl)} alt={l.name || l.spec || ""} referrerPolicy="no-referrer" loading="lazy" style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 7, border: "1px solid var(--line)" }} /> : <span className="cell-sub">—</span>}</td>
-                            <td className="mono" style={{ fontSize: 12 }}>{l.sourceUrl ? <a href={l.sourceUrl} target="_blank" rel="noreferrer">{l.linkCode}</a> : l.linkCode}</td>
-                            <td>{l.name ? <div style={{ fontWeight: 600 }}>{l.name}</div> : null}<div className={l.name ? "cell-sub" : ""}>{l.specVi || l.spec || "—"}</div></td>
-                            <td className="cell-sub">{l.qty || "—"}</td>
+                            <td className="cell-sub cell-mid">{l.idx}</td>
+                            <td className="cell-mid">{l.imageUrl ? <img className="prod-thumb" src={imgUrl(l.imageUrl)} alt={l.name || l.spec || ""} referrerPolicy="no-referrer" loading="lazy" /> : <span className="cell-sub">—</span>}</td>
+                            <td className="cell-mid">{l.sourceUrl
+                              ? <a className="code-chip" href={l.sourceUrl} target="_blank" rel="noreferrer" title="Mở link gốc trên sàn"><span>{l.linkCode}</span><Icon name="external" size={11} className="x-ic" /></a>
+                              : <span className="code-chip"><span>{l.linkCode}</span></span>}</td>
+                            <td className="prod-cell">{l.name
+                              ? (<><div className="prod-name">{l.name}</div><div className="prod-spec">{l.specVi || l.spec || "—"}</div></>)
+                              : (<div className="prod-spec solo">{l.specVi || l.spec || "—"}</div>)}</td>
+                            <td className="cell-sub cell-mid">{l.qty || "—"}</td>
                             <td className="num">{f.fmtVND(l.priceVnd)}<div className="cell-sub">{l.priceCny ? "¥" + l.priceCny : ""}</div></td>
                             <td className="num" style={{ color: "var(--accent-ink)", fontWeight: 700 }}>{f.fmtVND(unitAllIn)}</td>
                           </tr>
