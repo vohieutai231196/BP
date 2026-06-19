@@ -23,6 +23,15 @@ const CATS = ["shoe", "bag", "apparel", "tech", "home", "beauty", "other"];
 const fmt = (n) => (n == null ? "—" : Number(n).toLocaleString("vi-VN") + "₫");
 const fmtDate = (s) => { try { return new Date(s).toLocaleDateString("vi-VN"); } catch { return s; } };
 
+// Tóm tắt kết quả xóa hàng loạt (BulkDeleteResult) thành 1 câu toast.
+const bulkMsg = (r) => {
+  const parts = [];
+  if (r?.deleted) parts.push(`đã xóa ${r.deleted}`);
+  if (r?.hidden) parts.push(`ẩn ${r.hidden} (còn lịch sử bán)`);
+  if (r?.blocked?.length) parts.push(`${r.blocked.length} bị chặn (đang dùng)`);
+  return parts.length ? "Hoàn tất: " + parts.join(", ") + "." : "Không có sản phẩm nào được xóa.";
+};
+
 export function Inventory({ onToast, onOpenOrder }) {
   const [tab, setTab] = React.useState("");
   const [search, setSearch] = React.useState("");
@@ -40,13 +49,15 @@ export function Inventory({ onToast, onOpenOrder }) {
   });
   const clearOrderFilter = () => { setOrderFilter(null); window.history.replaceState({}, "", "/inventory"); };
   const [groupMode, setGroupMode] = React.useState("list"); // list | grouped
+  const [sel, setSel] = React.useState(() => new Set());    // id sản phẩm đã chọn (xóa nhiều)
+  const [bulkConfirm, setBulkConfirm] = React.useState(false);
   React.useEffect(() => { api.retail.summary().then(setSummary).catch(() => {}); }, [reload]);
 
   React.useEffect(() => {
     let alive = true;
     setLoading(true); setErr(null);
     api.retail.products(orderFilter ? { orderId: orderFilter } : {})
-      .then((d) => { if (alive) setAll(d || []); })
+      .then((d) => { if (alive) { setAll(d || []); setSel(new Set()); } })
       .catch((e) => { if (alive) setErr(e.message); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
@@ -74,6 +85,24 @@ export function Inventory({ onToast, onOpenOrder }) {
     (!q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)));
 
   const profit = (p) => (p.listPrice != null ? p.listPrice - p.avgCost : null);
+
+  // ----- chọn nhiều để xóa -----
+  const selRows = rows.filter((p) => sel.has(p.id));
+  const allSelected = rows.length > 0 && selRows.length === rows.length;
+  const toggleSel = (id) => setSel((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleAll = () => setSel((s) => {
+    const n = new Set(s);
+    if (rows.every((p) => n.has(p.id))) rows.forEach((p) => n.delete(p.id));
+    else rows.forEach((p) => n.add(p.id));
+    return n;
+  });
+  const doBulkDelete = async () => {
+    try {
+      const r = await api.retail.bulkDeleteProducts(selRows.map((p) => p.id));
+      onToast && onToast(bulkMsg(r));
+    } catch (e) { onToast && onToast("Lỗi: " + e.message); }
+    setBulkConfirm(false); setSel(new Set()); refresh();
+  };
 
   return (
     <div className="fade-in">
@@ -132,7 +161,7 @@ export function Inventory({ onToast, onOpenOrder }) {
       )}
 
       {groupMode === "grouped" ? (
-        <GroupedByOrder onOpenOrder={onOpenOrder} />
+        <GroupedByOrder onOpenOrder={onOpenOrder} onToast={onToast} />
       ) : loading ? (
         <div className="card empty"><Icon name="refresh" size={40} /><div>Đang tải…</div></div>
       ) : err ? (
@@ -140,8 +169,20 @@ export function Inventory({ onToast, onOpenOrder }) {
       ) : rows.length === 0 ? (
         <EmptyState icon="warehouse" title="Chưa có sản phẩm" hint="Thêm sản phẩm bán lẻ hoặc nhận đơn mua hộ vào kho để bắt đầu quản lý tồn." actionLabel="Thêm sản phẩm" onAction={() => setEditing({})} />
       ) : (
-        <div className="card"><div className="grid-wrap"><table className="dg">
+        <div className="card">
+          {selRows.length > 0 && (
+            <div className="bulk-bar">
+              <span>Đã chọn <b>{selRows.length}</b> sản phẩm</span>
+              <span className="spacer" />
+              <button className="btn btn-sm btn-ghost" onClick={() => setSel(new Set())}>Bỏ chọn</button>
+              <button className="btn btn-sm btn-danger" onClick={() => setBulkConfirm(true)}>
+                <Icon name="close" size={14} /> Xóa {selRows.length}
+              </button>
+            </div>
+          )}
+          <div className="grid-wrap"><table className="dg">
           <thead><tr>
+            <th className="chk-col"><input type="checkbox" className="dg-chk" checked={allSelected} ref={(el) => { if (el) el.indeterminate = selRows.length > 0 && !allSelected; }} onChange={toggleAll} aria-label="Chọn tất cả" /></th>
             <th>Sản phẩm</th><th>Danh mục</th><th>Nguồn</th>
             <th style={{ textAlign: "right" }}>Tồn</th>
             <th style={{ textAlign: "right" }}>Giá vốn TB</th>
@@ -156,7 +197,8 @@ export function Inventory({ onToast, onOpenOrder }) {
               const st = STATUS[p.status] || { label: p.status, color: "slate" };
               const pf = profit(p);
               return (
-                <tr key={p.id}>
+                <tr key={p.id} className={sel.has(p.id) ? "row-sel" : ""}>
+                  <td className="chk-col"><input type="checkbox" className="dg-chk" checked={sel.has(p.id)} onChange={() => toggleSel(p.id)} aria-label={"Chọn " + p.sku} /></td>
                   <td>
                     <div className="cell-prod">
                       <div className="thumb" style={{ background: "var(--accent)" }}><Icon name="box" size={19} stroke={1.7} /></div>
@@ -213,6 +255,11 @@ export function Inventory({ onToast, onOpenOrder }) {
           onClose={() => setConfirm(null)}
           onConfirm={() => run(() => api.retail.deleteProduct(confirm.id), "Đã xóa " + confirm.sku)} />
       )}
+      {bulkConfirm && (
+        <ConfirmModal title={`Xóa ${selRows.length} sản phẩm`} confirm={`Xóa ${selRows.length} sản phẩm`}
+          message={<>Xóa <b>{selRows.length}</b> sản phẩm đã chọn? SKU còn lịch sử bán sẽ được <b>ẩn</b>; SKU đang dùng (đơn chưa trả / trong combo) sẽ <b>bị bỏ qua</b>. Không thể hoàn tác.</>}
+          onClose={() => setBulkConfirm(false)} onConfirm={doBulkDelete} />
+      )}
       {receiving && <ReceiveModal onClose={() => setReceiving(false)}
         onDone={(msg) => { onToast && onToast(msg); setReceiving(false); refresh(); }} onToast={onToast} />}
     </div>
@@ -220,11 +267,13 @@ export function Inventory({ onToast, onOpenOrder }) {
 }
 
 /* ---------- Nhóm theo đơn nhập (B) ---------- */
-function GroupedByOrder({ onOpenOrder }) {
+function GroupedByOrder({ onOpenOrder, onToast }) {
   const [groups, setGroups] = React.useState(null);
   const [err, setErr] = React.useState(null);
   const [open, setOpen] = React.useState({});     // { [orderId]: bool }
   const [items, setItems] = React.useState({});   // { [orderId]: ProductList }
+  const [reload, setReload] = React.useState(0);
+  const [del, setDel] = React.useState(null);     // lô (group) đang chờ xác nhận xóa
 
   React.useEffect(() => {
     let alive = true;
@@ -232,7 +281,7 @@ function GroupedByOrder({ onOpenOrder }) {
       .then((d) => { if (alive) setGroups(d || []); })
       .catch((e) => { if (alive) setErr(e.message); });
     return () => { alive = false; };
-  }, []);
+  }, [reload]);
 
   const toggle = async (oid) => {
     setOpen((o) => ({ ...o, [oid]: !o[oid] }));
@@ -242,12 +291,26 @@ function GroupedByOrder({ onOpenOrder }) {
     }
   };
 
+  // Xóa cả lô: lấy id SP của đơn (đã tải hoặc tải nóng) → bulk delete → tải lại danh sách lô.
+  const removeGroup = async (g) => {
+    let list = items[g.orderId];
+    if (list === undefined) list = await api.retail.products({ orderId: g.orderId }).catch(() => []);
+    try {
+      const r = await api.retail.bulkDeleteProducts((list || []).map((p) => p.id));
+      onToast && onToast(bulkMsg(r));
+    } catch (e) { onToast && onToast("Lỗi: " + e.message); }
+    setItems((m) => { const n = { ...m }; delete n[g.orderId]; return n; });
+    setOpen((o) => ({ ...o, [g.orderId]: false }));
+    setDel(null); setReload((x) => x + 1);
+  };
+
   if (err) return <div className="card empty" style={{ color: "var(--st-red)" }}><Icon name="close" size={40} /><div>{err}</div></div>;
   if (!groups) return <div className="card empty"><Icon name="refresh" size={40} /><div>Đang tải…</div></div>;
   if (groups.length === 0)
     return <EmptyState icon="warehouse" title="Chưa có lô nhập nào" hint="Dùng “Nhận đơn vào kho” để nhập sản phẩm từ đơn mua hộ vào kho." />;
 
   return (
+    <>
     <div className="card" style={{ overflow: "hidden" }}>
       {groups.map((g) => (
         <div className="imp-group" key={g.orderId}>
@@ -257,6 +320,7 @@ function GroupedByOrder({ onOpenOrder }) {
             <span className="imp-meta">{fmtDate(g.receivedAt)} · {g.skuCount} SKU · {Number(g.totalQty).toLocaleString("vi-VN")} cái · vốn {Number(g.totalCost).toLocaleString("vi-VN")}₫</span>
             <span style={{ flex: 1 }} />
             <span className="src-chip" onClick={(e) => { e.stopPropagation(); onOpenOrder && onOpenOrder(g.orderId); }}>Mở đơn</span>
+            <span className="src-chip danger" onClick={(e) => { e.stopPropagation(); setDel(g); }}><Icon name="close" size={13} /> Xóa cả lô</span>
           </button>
           {open[g.orderId] && (
             <div className="imp-body">
@@ -282,6 +346,12 @@ function GroupedByOrder({ onOpenOrder }) {
         </div>
       ))}
     </div>
+    {del && (
+      <ConfirmModal title="Xóa cả lô nhập" confirm="Xóa cả lô"
+        message={<>Xóa toàn bộ <b>{del.skuCount} SKU</b> nhập từ đơn <b className="mono">#{del.orderId}</b>? SKU còn lịch sử bán sẽ được <b>ẩn</b>; đang dùng sẽ <b>bị bỏ qua</b>. Không thể hoàn tác.</>}
+        onClose={() => setDel(null)} onConfirm={() => removeGroup(del)} />
+    )}
+    </>
   );
 }
 

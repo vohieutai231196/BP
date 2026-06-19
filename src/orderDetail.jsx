@@ -174,8 +174,17 @@ export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete,
               <div className="card">
                 <div className="card-head"><Icon name="tag" size={16} style={{ color: "var(--muted)" }} /><h3>Sản phẩm trong đơn</h3><span className="topbar-spacer" /><span className="tag-soft">{order.links.length} link · phí ×{coef.toFixed(3)}</span></div>
                 <div className="card-pad" style={{ overflowX: "auto" }}>
-                  <table className="mini-table">
-                    <thead><tr><th>#</th><th>Ảnh</th><th>Mã link</th><th>Đặc điểm</th><th>SL</th><th style={{ textAlign: "right" }}>Giá hàng</th><th style={{ textAlign: "right" }}>Giá vốn/cái<div className="cell-sub" style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>gồm mọi phí</div></th></tr></thead>
+                  <table className="mini-table prod-table">
+                    <colgroup>
+                      <col style={{ width: 28 }} />
+                      <col style={{ width: 54 }} />
+                      <col style={{ width: 100 }} />
+                      <col />
+                      <col style={{ width: 52 }} />
+                      <col style={{ width: 90 }} />
+                      <col style={{ width: 94 }} />
+                    </colgroup>
+                    <thead><tr><th>#</th><th>Ảnh</th><th>Mã link</th><th>Sản phẩm</th><th>SL</th><th className="num-h" style={{ textAlign: "right" }}>Giá hàng</th><th className="num-h" style={{ textAlign: "right" }}>Giá vốn/cái<div className="cell-sub" style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>gồm mọi phí</div></th></tr></thead>
                     <tbody>
                       {order.links.map((l) => {
                         const n = units(l.qty);

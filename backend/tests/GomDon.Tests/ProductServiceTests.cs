@@ -157,6 +157,38 @@ public class ProductServiceTests
     }
 
     [Fact]
+    public async Task DeleteMany_mixes_delete_hide_and_block()
+    {
+        var repo = new FakeRepo(); var svc = Make(repo);
+        var a = await svc.CreateAsync(new CreateProductRequest("A", "Giày", "shoe", null, 1, null)); // xóa hẳn
+        var b = await svc.CreateAsync(new CreateProductRequest("B", "Túi", "bag", null, 1, null));   // ẩn (đã bán)
+        var c = await svc.CreateAsync(new CreateProductRequest("C", "Áo", "apparel", null, 1, null)); // bị chặn (đang dùng)
+        repo.SalesHistory.Add(b.Id);
+        repo.InUse.Add(c.Id);
+
+        var r = await svc.DeleteManyAsync(new[] { a.Id, b.Id, c.Id, 999L });
+
+        Assert.Equal(1, r.Deleted);
+        Assert.Equal(1, r.Hidden);
+        Assert.Single(r.Blocked);
+        Assert.Equal(c.Id, r.Blocked[0].Id);
+        Assert.Equal("C", r.Blocked[0].Sku);
+        Assert.DoesNotContain(repo.Db, p => p.Id == a.Id);     // a đã xóa hẳn
+        Assert.Contains(b.Id, repo.Deleted);                   // b soft-deleted
+        Assert.Contains(repo.Db, p => p.Id == c.Id);           // c giữ nguyên
+    }
+
+    [Fact]
+    public async Task DeleteMany_dedupes_and_ignores_unknown_ids()
+    {
+        var repo = new FakeRepo(); var svc = Make(repo);
+        var a = await svc.CreateAsync(new CreateProductRequest("A", "Giày", "shoe", null, 1, null));
+        var r = await svc.DeleteManyAsync(new[] { a.Id, a.Id, 12345L });
+        Assert.Equal(1, r.Deleted);          // không xóa 2 lần dù id lặp
+        Assert.Empty(r.Blocked);
+    }
+
+    [Fact]
     public async Task Update_partial_keeps_existing_fields()
     {
         var repo = new FakeRepo(); var svc = Make(repo);

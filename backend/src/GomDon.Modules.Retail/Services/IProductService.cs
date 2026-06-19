@@ -9,5 +9,7 @@ public interface IProductService
     Task UpdateAsync(long id, UpdateProductRequest req, CancellationToken ct = default);
     /// <summary>Trả true nếu xóa hẳn khỏi DB, false nếu chỉ ẩn (sản phẩm còn lịch sử bán).</summary>
     Task<bool> DeleteAsync(long id, CancellationToken ct = default);
+    /// <summary>Xóa nhiều SKU một lần: gom kết quả (xóa hẳn / ẩn / bị chặn) thay vì dừng ở lỗi đầu tiên.</summary>
+    Task<BulkDeleteResult> DeleteManyAsync(IReadOnlyList<long> ids, CancellationToken ct = default);
     Task<List<ProductCostTypeDto>> GetCostTypesAsync(long id, CancellationToken ct = default);
 }

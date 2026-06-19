@@ -29,6 +29,10 @@ public sealed class ProductsController : ControllerBase
     public async Task<ActionResult> Delete(long id, CancellationToken ct)
     { var removed = await _products.DeleteAsync(id, ct); return Ok(new { removed }); }
 
+    [HttpPost("bulk-delete")]
+    public async Task<ActionResult> BulkDelete([FromBody] BulkDeleteRequest req, CancellationToken ct)
+        => Ok(await _products.DeleteManyAsync(req.Ids ?? [], ct));
+
     [HttpGet("{id:long}/cost-types")]
     public async Task<ActionResult> CostTypes(long id, CancellationToken ct) => Ok(await _products.GetCostTypesAsync(id, ct));
 }

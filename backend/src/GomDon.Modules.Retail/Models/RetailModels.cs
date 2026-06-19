@@ -34,6 +34,12 @@ public sealed record UpdateProductRequest(
     string? Name, string? Category, string? ImageUrl, long? AvgCost, long? ListPrice, string? Status,
     List<ProductCostTypeInput>? CostTypes = null);
 
+// ---------- Xóa nhiều / xóa cả lô ----------
+public sealed record BulkDeleteRequest(List<long> Ids);
+public sealed record BulkDeleteBlocked(long Id, string Sku, string Reason);
+/// <summary>Kết quả xóa hàng loạt: số xóa hẳn, số ẩn (còn lịch sử bán), danh sách bị chặn (đang dùng).</summary>
+public sealed record BulkDeleteResult(int Deleted, int Hidden, IReadOnlyList<BulkDeleteBlocked> Blocked);
+
 public sealed class CostType
 {
     public long Id { get; set; }

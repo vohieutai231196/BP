@@ -64,6 +64,31 @@ public sealed class ProductService : IProductService
         return true;
     }
 
+    public async Task<BulkDeleteResult> DeleteManyAsync(IReadOnlyList<long> ids, CancellationToken ct = default)
+    {
+        int deleted = 0, hidden = 0;
+        var blocked = new List<BulkDeleteBlocked>();
+        foreach (var id in ids.Distinct())
+        {
+            var p = await _repo.GetByIdAsync(id, ct);
+            if (p is null) continue;                       // không còn / đã xóa → bỏ qua êm
+            if (await _repo.IsInUseAsync(id, ct))
+            {
+                blocked.Add(new BulkDeleteBlocked(id, p.Sku, "Đang được sử dụng (còn đơn bán chưa trả hoặc nằm trong combo)."));
+                continue;
+            }
+            if (await _repo.HasSalesHistoryAsync(id, ct))   // còn lịch sử bán → ẩn thay vì xóa
+            {
+                await _repo.SoftDeleteAsync(id, ct);
+                hidden++;
+                continue;
+            }
+            await _repo.DeleteAsync(id, ct);
+            deleted++;
+        }
+        return new BulkDeleteResult(deleted, hidden, blocked);
+    }
+
     public Task<List<ProductCostTypeDto>> GetCostTypesAsync(long id, CancellationToken ct = default) => _repo.GetCostTypesAsync(id, ct);
 
     private async Task<Product> Require(long id, CancellationToken ct)
