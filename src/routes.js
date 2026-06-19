@@ -22,7 +22,7 @@ export function routeHref(route, filter) {
 
 // filter hiện tại trên URL ("pay" | "khieu_nai" | null)
 export function currentFilter() {
-  return new URLSearchParams(window.location.search).get("filter");
+  return currentQuery("filter");
 }
 
 // /orders/{id} → id (number) để mở thẳng drawer chi tiết đơn; null nếu không có.
@@ -34,3 +34,12 @@ export function orderIdFromPath(pathname) {
   }
   return null;
 }
+
+/* ----- Wrapper History API: gom mọi thao tác window.history/location về 1 chỗ.
+   Giữ nguyên hành vi (push/replace có chống trùng URL để Back/Forward không lặp). ----- */
+export const currentPath = () => window.location.pathname;
+export const currentUrl = () => window.location.pathname + window.location.search;
+export const currentQuery = (key) => new URLSearchParams(window.location.search).get(key);
+export function pushUrl(href) { if (currentUrl() !== href) window.history.pushState({}, "", href); }
+export function replaceUrl(href) { if (currentUrl() !== href) window.history.replaceState({}, "", href); }
+export const goBack = () => window.history.back();

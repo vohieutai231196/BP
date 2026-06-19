@@ -35,6 +35,7 @@ export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete,
   const d = DATA, f = d.fmt, c = order.costs;
   const [busy, setBusy] = React.useState(false);
   const [deleting, setDeleting] = React.useState(false);
+  const [confirmDel, setConfirmDel] = React.useState(false);
   const [stocked, setStocked] = React.useState(null); // SKU đã nhập kho từ đơn này
   React.useEffect(() => {
     let alive = true;
@@ -44,16 +45,15 @@ export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete,
     return () => { alive = false; };
   }, [order.id]);
 
-  const remove = async () => {
-    if (deleting) return;
-    if (!window.confirm(`Xoá đơn #${order.id} và toàn bộ sản phẩm/kiện/lịch sử? Không thể hoàn tác.`)) return;
+  const remove = () => { if (!deleting) setConfirmDel(true); };
+  const doRemove = async () => {
     setDeleting(true);
     try {
       await onDelete(order.id);
-      onToast("Đã xoá đơn #" + order.id);
+      onToast("Đã xoá đơn #" + order.id);   // đơn bị xoá → drawer tự đóng
     } catch (err) {
       onToast("Lỗi xoá: " + (err.message || "không xoá được"));
-      setDeleting(false);
+      setDeleting(false); setConfirmDel(false);
     }
   };
 
@@ -311,6 +311,22 @@ export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete,
           )}
         </div>
       </div>
+
+      {confirmDel && (
+        <div className="overlay" onClick={() => !deleting && setConfirmDel(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head"><div className="mh-ic"><Icon name="close" size={18} /></div><div><h3>Xoá đơn #{order.id}</h3></div></div>
+            <div className="modal-body"><div className="mb-text">Xoá đơn <b className="mono">#{order.id}</b> cùng <b>toàn bộ sản phẩm / kiện / lịch sử</b> liên quan? Không thể hoàn tác.</div></div>
+            <div className="modal-foot">
+              <button className="btn" onClick={() => setConfirmDel(false)} disabled={deleting}>Hủy</button>
+              <button className="btn btn-primary" onClick={doRemove} disabled={deleting}
+                style={{ background: "var(--st-red)", borderColor: "var(--st-red)", boxShadow: "none" }}>
+                {deleting ? "Đang xoá…" : "Xoá đơn"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

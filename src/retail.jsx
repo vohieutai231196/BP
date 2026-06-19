@@ -9,6 +9,7 @@ import { api } from "./api.js";
 import { ReceiveModal } from "./receive.jsx";
 import { MoneyInput, costUnitPrice, EmptyState } from "./components.jsx";
 import { Select } from "./ui-controls.jsx";
+import { currentQuery, replaceUrl } from "./routes.js";
 
 const STATUS = {
   active: { label: "Đang bán", color: "green" },
@@ -44,10 +45,10 @@ export function Inventory({ onToast, onOpenOrder }) {
   const [summary, setSummary] = React.useState(null);
   const [receiving, setReceiving] = React.useState(false);
   const [orderFilter, setOrderFilter] = React.useState(() => {
-    const v = new URLSearchParams(window.location.search).get("order");
+    const v = currentQuery("order");
     return v ? Number(v) : null;
   });
-  const clearOrderFilter = () => { setOrderFilter(null); window.history.replaceState({}, "", "/inventory"); };
+  const clearOrderFilter = () => { setOrderFilter(null); replaceUrl("/inventory"); };
   const [groupMode, setGroupMode] = React.useState("list"); // list | grouped
   const [sel, setSel] = React.useState(() => new Set());    // id sản phẩm đã chọn (xóa nhiều)
   const [bulkConfirm, setBulkConfirm] = React.useState(false);

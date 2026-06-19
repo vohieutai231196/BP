@@ -30,7 +30,7 @@ import { AccountModal } from "./account.jsx";
 import { useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor } from "./tweaks.jsx";
 import { api, getToken, setToken, setOnUnauthorized } from "./api.js";
 import { adaptSummary, adaptDetail, adaptDashboard } from "./data.js";
-import { pathToRoute, routeHref, currentFilter, orderIdFromPath } from "./routes.js";
+import { pathToRoute, routeHref, currentFilter, orderIdFromPath, currentPath, pushUrl, replaceUrl, goBack } from "./routes.js";
 
 const { useState, useEffect, useCallback } = React;
 
@@ -47,7 +47,7 @@ function shade(hex, pct) {
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [logged, setLogged] = useState(() => !!getToken());
-  const [route, setRoute] = useState(() => pathToRoute(window.location.pathname));
+  const [route, setRoute] = useState(() => pathToRoute(currentPath()));
   const [preset, setPreset] = useState(() => currentFilter());
   const [search, setSearch] = useState("");
   const [theme, setTheme] = useState(() => localStorage.getItem("gd_theme") || "light");
@@ -109,17 +109,16 @@ function App() {
   const nav = (r, opts = {}) => {
     const filter = r === "orders" ? (opts.filter || null) : null;
     setRoute(r); setPreset(filter); setSbOpen(false); setSelected(null);  // điều hướng đóng drawer
-    const href = routeHref(r, filter);
-    if (href !== window.location.pathname + window.location.search) window.history.pushState({}, "", href);
+    pushUrl(routeHref(r, filter));
   };
   const showToast = (m) => setToast(m);
 
   // Đồng bộ Back/Forward của trình duyệt với route nội bộ + drawer chi tiết đơn.
   useEffect(() => {
     const onPop = () => {
-      setRoute(pathToRoute(window.location.pathname));
+      setRoute(pathToRoute(currentPath()));
       setPreset(currentFilter());
-      const id = orderIdFromPath(window.location.pathname);
+      const id = orderIdFromPath(currentPath());
       if (id) openOrder(id, { fromUrl: true }); else setSelected(null);
     };
     window.addEventListener("popstate", onPop);
@@ -130,8 +129,7 @@ function App() {
     // Phản chiếu lên URL (/orders/{id}) để chia sẻ link / mở tab mới được.
     // fromUrl = gọi từ popstate hoặc deep-link → KHÔNG push thêm lịch sử.
     if (!opts.fromUrl) {
-      const href = "/orders/" + id;
-      if (window.location.pathname !== href) window.history.pushState({}, "", href);
+      pushUrl("/orders/" + id);
       setRoute("orders"); setPreset(null);
     }
     setDetailLoading(true);
@@ -148,20 +146,20 @@ function App() {
   // Đóng drawer: lùi lịch sử nếu đang ở /orders/{id} (Back đóng drawer tự nhiên),
   // ngược lại chỉ xoá state.
   const closeOrder = useCallback(() => {
-    if (orderIdFromPath(window.location.pathname)) window.history.back();
+    if (orderIdFromPath(currentPath())) goBack();
     else setSelected(null);
   }, []);
 
   const viewInventory = useCallback((orderId) => {
     setSelected(null);
     setRoute("inventory"); setPreset(null);
-    window.history.pushState({}, "", "/inventory?order=" + orderId);
+    pushUrl("/inventory?order=" + orderId);
   }, []);
 
   // Deep-link: mở thẳng /orders/{id} khi đăng nhập / tải trang.
   useEffect(() => {
     if (!logged) return;
-    const id = orderIdFromPath(window.location.pathname);
+    const id = orderIdFromPath(currentPath());
     if (id) openOrder(id, { fromUrl: true });
   }, [logged, openOrder]);
 
@@ -175,7 +173,7 @@ function App() {
     await api.deleteOrder(id);
     setSelected(null);                     // đóng drawer
     // đơn đã xoá → bỏ id khỏi URL (replace để Back không quay lại đơn đã mất)
-    if (orderIdFromPath(window.location.pathname)) window.history.replaceState({}, "", "/orders");
+    if (orderIdFromPath(currentPath())) replaceUrl("/orders");
     setReloadKey((k) => k + 1);            // refresh summary + recent + list
   }, []);
 
