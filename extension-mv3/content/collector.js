@@ -125,6 +125,13 @@
     return order;
   }
 
+  /** Mã sản phẩm gốc trên sàn (1688 offer / taobao-tmall item id) từ URL link gốc. */
+  function offerIdFromUrl(url) {
+    if (!url) return null;
+    const m = url.match(/offer\/(\d+)/) || url.match(/[?&]id=(\d+)/) || url.match(/\/(\d{8,})\.html/);
+    return m ? m[1] : null;
+  }
+
   /** Bóc danh sách link từ DOM bảng "Link hàng": mỗi ô td.img-parent-hover = 1 sản phẩm. */
   function parseGiaKhoLinks(root) {
     const cells = [...root.querySelectorAll("td.img-parent-hover")];
@@ -135,11 +142,17 @@
       const tr = td.closest("tr") || td;
       const rowText = tr.innerText || tr.textContent || "";
       const img = td.querySelector("img");
+      // Link gốc về sàn (1688/Taobao/Tmall) — nguồn DUY NHẤT để truy ra tên sản phẩm.
+      const a = tr.querySelector('a[href*="1688.com"], a[href*="taobao.com"], a[href*="tmall.com"]') || tr.querySelector("a[href]");
+      const sourceUrl = a ? a.href : null;
       links.push({
         idx: parseInt(m[1], 10),
         linkCode: m[2],
         spec: (rowText.match(/([^\n]*?)\s*--/) || [, ""])[1].trim(),
         specVi: null,
+        name: null,                       // tên SP — background.js bóc og:title từ sourceUrl, BE dịch sang Việt
+        sourceUrl,
+        offerId: offerIdFromUrl(sourceUrl),
         imageUrl: img ? img.src : null,
         qty: (rowText.match(/Số lượng:\s*([\d/]+)/) || [, ""])[1],
         priceVnd: parseInt(((rowText.match(/([\d.]+)đ/) || [, "0"])[1]).replace(/\./g, ""), 10) || 0,
@@ -219,6 +232,9 @@
         priceVnd: parseInt(((chunk.match(/([\d.]+)đ/) || [, "0"])[1]).replace(/\./g, ""), 10) || 0,
         priceCny: parseFloat((chunk.match(/([\d.]+)\s*¥/) || [, "0"])[1]) || 0,
         specVi: null,
+        name: null,                       // innerText không có link gốc → để BE/DOM bổ sung
+        sourceUrl: null,
+        offerId: null,
         imageUrl: null,
         note: null,
       });

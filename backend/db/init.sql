@@ -139,6 +139,8 @@ CREATE TABLE IF NOT EXISTS order_links (
   link_code   TEXT NOT NULL,                -- mã link sản phẩm (vd 3383117)
   spec        TEXT,                         -- đặc điểm / màu gốc (vd 米色)
   spec_vi     TEXT,                         -- đặc điểm dịch sang tiếng Việt (vd kem)
+  name        TEXT,                         -- tên SP (đã dịch sang Việt) bóc từ link gốc
+  source_url  TEXT,                         -- link gốc trên sàn (1688/Taobao/Tmall)
   image_url   TEXT,                         -- ảnh sản phẩm (URL trên CDN sàn)
   qty         TEXT,                         -- số lượng đặt/mua/về (vd 5/5/5)
   price_vnd   BIGINT NOT NULL DEFAULT 0,    -- giá quy đổi VND
@@ -147,8 +149,10 @@ CREATE TABLE IF NOT EXISTS order_links (
 );
 CREATE INDEX IF NOT EXISTS ix_links_order ON order_links(order_id, idx);
 -- migration an toàn cho bảng đã tồn tại (thêm cột mới nếu chưa có)
-ALTER TABLE order_links ADD COLUMN IF NOT EXISTS spec_vi   TEXT;
-ALTER TABLE order_links ADD COLUMN IF NOT EXISTS image_url TEXT;
+ALTER TABLE order_links ADD COLUMN IF NOT EXISTS spec_vi    TEXT;
+ALTER TABLE order_links ADD COLUMN IF NOT EXISTS image_url  TEXT;
+ALTER TABLE order_links ADD COLUMN IF NOT EXISTS name       TEXT;
+ALTER TABLE order_links ADD COLUMN IF NOT EXISTS source_url TEXT;
 
 -- ============================================================
 --  Ghi chú Table Partitioning (theo PRD — khi dữ liệu lớn)

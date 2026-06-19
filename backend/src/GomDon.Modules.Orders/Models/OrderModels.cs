@@ -55,6 +55,8 @@ public sealed class LinkDto
     public string LinkCode { get; set; } = "";
     public string? Spec { get; set; }
     public string? SpecVi { get; set; }
+    public string? Name { get; set; }
+    public string? SourceUrl { get; set; }
     public string? ImageUrl { get; set; }
     public string? Qty { get; set; }
     public long PriceVnd { get; set; }

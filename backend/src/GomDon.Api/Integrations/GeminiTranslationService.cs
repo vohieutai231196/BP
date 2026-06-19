@@ -34,7 +34,8 @@ public sealed class GeminiTranslationService : ITranslationService
         }
         var model = _config["Gemini:Model"] ?? "gemini-2.5-flash";
 
-        var prompt = "Dịch đặc điểm/màu/kích cỡ sản phẩm thương mại điện tử từ tiếng Trung sang tiếng Việt, ngắn gọn tự nhiên. " +
+        var prompt = "Dịch tên/đặc điểm/màu/kích cỡ sản phẩm thương mại điện tử từ tiếng Trung sang tiếng Việt, " +
+                     "tự nhiên, gọn; KHÔNG để sót chữ Hán nào trong bản dịch. " +
                      "Chỉ trả về JSON object map mỗi cụm đầu vào sang bản dịch tiếng Việt (key đúng nguyên văn đầu vào). " +
                      "Danh sách cần dịch: " + JsonSerializer.Serialize(list);
 

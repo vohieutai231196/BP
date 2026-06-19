@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using FluentValidation;
 using GomDon.Modules.Orders.Models;
 using GomDon.Modules.Orders.Repositories;
@@ -28,7 +29,20 @@ public sealed class OrderService : IOrderService
 
     private static bool HasCjk(string? s) => !string.IsNullOrEmpty(s) && s.Any(c => c >= 0x4E00 && c <= 0x9FFF);
 
-    // Từ điển màu/đặc điểm thường gặp — dịch offline, miễn phí (trước khi gọi Haiku).
+    // Ký tự Trung (chữ Hán + dấu câu/【】+ ký tự full-width) — dùng để DÒ và LOẠI bỏ.
+    private static readonly Regex CjkChars = new(
+        @"[　-〿㐀-䶿一-鿿豈-﫿＀-￯]+", RegexOptions.Compiled);
+    private static readonly Regex MultiSpace = new(@"\s{2,}", RegexOptions.Compiled);
+
+    /// <summary>Loại sạch mọi ký tự tiếng Trung, dọn khoảng trắng/dấu phân tách lẻ.</summary>
+    private static string StripCjk(string s)
+    {
+        var t = MultiSpace.Replace(CjkChars.Replace(s, " "), " ").Trim();
+        return t.Trim(' ', '-', '·', ',', '|', ':', '/').Trim();
+    }
+
+    // Từ điển màu/đặc điểm thường gặp — CHỈ dùng làm dự phòng khi AI lỗi/thiếu key
+    // (dịch chính đã chuyển hoàn toàn sang AI). Giữ lại để offline vẫn có bản tối thiểu.
     private static readonly Dictionary<string, string> ColorMap = new()
     {
         ["米色"] = "kem", ["米白色"] = "trắng kem", ["棕色"] = "nâu", ["黑色"] = "đen", ["白色"] = "trắng",
@@ -52,24 +66,45 @@ public sealed class OrderService : IOrderService
     {
         await _ingestValidator.ValidateAndThrowAsync(req, ct);
 
-        // Dịch đặc điểm sản phẩm (tiếng Trung) → Việt.
-        // 1) Từ điển màu tĩnh (miễn phí, tức thì) cho các màu thường gặp.
-        foreach (var l in req.Links)
-            if (string.IsNullOrWhiteSpace(l.SpecVi) && l.Spec != null && ColorMap.TryGetValue(l.Spec.Trim(), out var dictVi))
-                l.SpecVi = dictVi;
-
-        // 2) Phần còn lại (không có trong từ điển) → gọi Haiku gộp 1 lần.
+        // Dịch đặc điểm + TÊN sản phẩm (tiếng Trung) → Việt: HOÀN TOÀN qua AI.
+        // Gộp mọi cụm còn chữ Hán vào 1 lần gọi AI (đặc điểm chưa dịch + tên).
         var toTranslate = req.Links
-            .Where(l => string.IsNullOrWhiteSpace(l.SpecVi) && HasCjk(l.Spec))
-            .Select(l => l.Spec!)
+            .Where(l => string.IsNullOrWhiteSpace(l.SpecVi) && HasCjk(l.Spec)).Select(l => l.Spec!)
+            .Concat(req.Links.Where(l => HasCjk(l.Name)).Select(l => l.Name!))
             .Distinct()
             .ToList();
+        IReadOnlyDictionary<string, string> map = new Dictionary<string, string>();
         if (toTranslate.Count > 0)
+            map = await _translation.TranslateAsync(toTranslate, ct);
+
+        foreach (var l in req.Links)
         {
-            var map = await _translation.TranslateAsync(toTranslate, ct);
-            foreach (var l in req.Links)
-                if (string.IsNullOrWhiteSpace(l.SpecVi) && l.Spec != null && map.TryGetValue(l.Spec, out var vi))
-                    l.SpecVi = vi;
+            // Đặc điểm: AI là nguồn chính, từ điển màu dự phòng khi AI lỗi/thiếu.
+            if (string.IsNullOrWhiteSpace(l.SpecVi) && l.Spec != null)
+            {
+                if (map.TryGetValue(l.Spec, out var vi)) l.SpecVi = vi;
+                else if (ColorMap.TryGetValue(l.Spec.Trim(), out var dictVi)) l.SpecVi = dictVi;
+            }
+            // Tên: AI dịch tại chỗ (không có từ điển dự phòng cho câu dài).
+            if (HasCjk(l.Name) && map.TryGetValue(l.Name!, out var nameVi)) l.Name = nameVi;
+        }
+
+        // BẢO ĐẢM không còn tiếng Trung ở phần hiển thị (đặc điểm + tên). Nếu còn ký tự Hán
+        // (AI dịch sót / rơi về bản gốc) thì loại sạch; loại xong rỗng → "(không rõ)" để FE
+        // không rơi về hiển thị bản gốc tiếng Trung (FE dùng specVi || spec, name || …).
+        foreach (var l in req.Links)
+        {
+            var spec = !string.IsNullOrWhiteSpace(l.SpecVi) ? l.SpecVi! : l.Spec;
+            if (!string.IsNullOrWhiteSpace(spec) && CjkChars.IsMatch(spec))
+            {
+                var clean = StripCjk(spec);
+                l.SpecVi = string.IsNullOrWhiteSpace(clean) ? "(không rõ)" : clean;
+            }
+            if (!string.IsNullOrWhiteSpace(l.Name) && CjkChars.IsMatch(l.Name))
+            {
+                var clean = StripCjk(l.Name);
+                l.Name = string.IsNullOrWhiteSpace(clean) ? "(không rõ)" : clean;
+            }
         }
 
         return await _repo.IngestAsync(req, ct);

@@ -34,8 +34,8 @@ public sealed class HaikuTranslationService : ITranslationService
             return empty;
         }
 
-        var system = "Bạn dịch đặc điểm/màu sản phẩm thương mại điện tử từ tiếng Trung sang tiếng Việt ngắn gọn. " +
-                     "Chỉ trả về JSON object map mỗi cụm đầu vào sang bản dịch tiếng Việt, không thêm gì khác.";
+        var system = "Bạn dịch tên/đặc điểm/màu sản phẩm thương mại điện tử từ tiếng Trung sang tiếng Việt, gọn tự nhiên, " +
+                     "KHÔNG để sót chữ Hán nào. Chỉ trả về JSON object map mỗi cụm đầu vào sang bản dịch tiếng Việt, không thêm gì khác.";
         var userPayload = JsonSerializer.Serialize(list);
 
         var body = new

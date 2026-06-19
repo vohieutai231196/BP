@@ -183,9 +183,9 @@ export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete,
                         return (
                           <tr key={l.idx + "-" + l.linkCode}>
                             <td className="cell-sub">{l.idx}</td>
-                            <td>{l.imageUrl ? <img src={imgUrl(l.imageUrl)} alt={l.spec || ""} referrerPolicy="no-referrer" loading="lazy" style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 7, border: "1px solid var(--line)" }} /> : <span className="cell-sub">—</span>}</td>
-                            <td className="mono" style={{ fontSize: 12 }}>{l.linkCode}</td>
-                            <td>{l.specVi || l.spec || "—"}{l.specVi && l.spec ? <div className="cell-sub">{l.spec}</div> : null}</td>
+                            <td>{l.imageUrl ? <img src={imgUrl(l.imageUrl)} alt={l.name || l.spec || ""} referrerPolicy="no-referrer" loading="lazy" style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 7, border: "1px solid var(--line)" }} /> : <span className="cell-sub">—</span>}</td>
+                            <td className="mono" style={{ fontSize: 12 }}>{l.sourceUrl ? <a href={l.sourceUrl} target="_blank" rel="noreferrer">{l.linkCode}</a> : l.linkCode}</td>
+                            <td>{l.name ? <div style={{ fontWeight: 600 }}>{l.name}</div> : null}<div className={l.name ? "cell-sub" : ""}>{l.specVi || l.spec || "—"}</div></td>
                             <td className="cell-sub">{l.qty || "—"}</td>
                             <td className="num">{f.fmtVND(l.priceVnd)}<div className="cell-sub">{l.priceCny ? "¥" + l.priceCny : ""}</div></td>
                             <td className="num" style={{ color: "var(--accent-ink)", fontWeight: 700 }}>{f.fmtVND(unitAllIn)}</td>

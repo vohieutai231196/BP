@@ -106,7 +106,7 @@ SELECT at, text FROM order_history WHERE order_id = @id ORDER BY at;
 
 SELECT at, reason, amount FROM order_payments WHERE order_id = @id ORDER BY at;
 
-SELECT idx, link_code, spec, spec_vi, image_url, qty, price_vnd, price_cny, note FROM order_links WHERE order_id = @id ORDER BY idx;";
+SELECT idx, link_code, spec, spec_vi, name, source_url, image_url, qty, price_vnd, price_cny, note FROM order_links WHERE order_id = @id ORDER BY idx;";
 
         using var conn = _factory.Create();
         using var multi = await conn.QueryMultipleAsync(new CommandDefinition(sql, new { id }, cancellationToken: ct));
@@ -190,9 +190,9 @@ VALUES(@id, @Code, @Weight, @WeightCharged, @UnitPrice, @Total, @Extra, @SellerS
 
         foreach (var lk in r.Links)
             await conn.ExecuteAsync(new CommandDefinition(@"
-INSERT INTO order_links(order_id, idx, link_code, spec, spec_vi, image_url, qty, price_vnd, price_cny, note)
-VALUES(@id, @Idx, @LinkCode, @Spec, @SpecVi, @ImageUrl, @Qty, @PriceVnd, @PriceCny, @Note);",
-                new { id, lk.Idx, lk.LinkCode, lk.Spec, lk.SpecVi, lk.ImageUrl, lk.Qty, lk.PriceVnd, lk.PriceCny, lk.Note }, tx, cancellationToken: ct));
+INSERT INTO order_links(order_id, idx, link_code, spec, spec_vi, name, source_url, image_url, qty, price_vnd, price_cny, note)
+VALUES(@id, @Idx, @LinkCode, @Spec, @SpecVi, @Name, @SourceUrl, @ImageUrl, @Qty, @PriceVnd, @PriceCny, @Note);",
+                new { id, lk.Idx, lk.LinkCode, lk.Spec, lk.SpecVi, lk.Name, lk.SourceUrl, lk.ImageUrl, lk.Qty, lk.PriceVnd, lk.PriceCny, lk.Note }, tx, cancellationToken: ct));
 
         tx.Commit();
         return id;

@@ -16,9 +16,46 @@ async function appendLog(entries) {
   await chrome.storage.local.set({ log: next });
 }
 
+// Đuôi tên sàn cần cắt khỏi tiêu đề (og:title/<title>).
+const NAME_SUFFIX = /\s*[-–—|]\s*(阿里巴巴|淘宝网|淘宝|天猫|Taobao|Tmall|1688\.com|1688|Alibaba)\s*.*$/i;
+
+/** Fetch trang sản phẩm gốc (1688/Taobao/Tmall) → bóc tên từ og:title, fallback <title>. */
+async function fetchProductName(url) {
+  try {
+    const res = await fetch(url, { credentials: "include" });
+    if (!res.ok) return null;
+    const html = await res.text();
+    const m =
+      html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i) ||
+      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i) ||
+      html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    if (!m) return null;
+    const name = m[1].replace(/\s+/g, " ").trim().replace(NAME_SUFFIX, "").trim();
+    return name || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Bổ sung tên sản phẩm cho từng link bằng cách đọc link gốc. Cache theo URL (nhiều
+   SKU cùng 1 offer → fetch 1 lần). BE sẽ dịch tên (tiếng Trung) sang tiếng Việt. */
+async function enrichNames(orders) {
+  const cache = new Map();
+  for (const o of orders) {
+    for (const l of o.links || []) {
+      if (l.name || !l.sourceUrl) continue;
+      if (!cache.has(l.sourceUrl)) cache.set(l.sourceUrl, await fetchProductName(l.sourceUrl));
+      const n = cache.get(l.sourceUrl);
+      if (n) l.name = n;
+    }
+  }
+}
+
 async function ingestOrders(orders) {
   const cfg = await getCfg();
   if (!cfg.token) return { ok: 0, fail: orders.length, error: "Chưa cấu hình Access Token." };
+
+  await enrichNames(orders);   // bóc tên SP từ link gốc trước khi gửi đi
 
   const result = { ok: 0, fail: 0, error: null };
   const newLog = [];

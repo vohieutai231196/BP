@@ -36,6 +36,17 @@ public class OrderServiceTests
             => Task.FromResult<IReadOnlyDictionary<string, string>>(new Dictionary<string, string>());
     }
 
+    // Dịch giả trả về map cố định (mô phỏng AI dịch sót / dịch đủ).
+    private sealed class StubTranslation : ITranslationService
+    {
+        private readonly Dictionary<string, string> _map;
+        public StubTranslation(Dictionary<string, string> map) => _map = map;
+        public Task<IReadOnlyDictionary<string, string>> TranslateAsync(IEnumerable<string> terms, CancellationToken ct = default)
+            => Task.FromResult<IReadOnlyDictionary<string, string>>(_map);
+    }
+
+    private static bool HasChinese(string? s) => s != null && s.Any(c => c >= 0x4E00 && c <= 0x9FFF);
+
     private static (OrderService svc, FakeRepo repo) Make()
     {
         var repo = new FakeRepo();
@@ -49,6 +60,64 @@ public class OrderServiceTests
         var id = await svc.IngestAsync(new IngestOrderRequest { ProductName = "P", CustomerName = "C", Rate = 4035 });
         Assert.Equal(648001L, id);
         Assert.NotNull(repo.Ingested);
+    }
+
+    [Fact]
+    public async Task Ingest_strips_residual_chinese_when_ai_translation_incomplete()
+    {
+        var repo = new FakeRepo();
+        // AI dịch SÓT: vẫn còn "码" và "米色" trong bản dịch trả về.
+        var svc = new OrderService(repo, new IngestOrderRequestValidator(),
+            new StubTranslation(new Dictionary<string, string> { ["17码 -- 米色"] = "size 17码 -- 米色 kem" }));
+
+        await svc.IngestAsync(new IngestOrderRequest
+        {
+            ProductName = "P", CustomerName = "C", Rate = 4035,
+            Links = { new IngestLink { Idx = 1, LinkCode = "1", Spec = "17码 -- 米色" } },
+        });
+
+        var vi = repo.Ingested!.Links[0].SpecVi;
+        Assert.False(HasChinese(vi), $"vẫn còn tiếng Trung: {vi}");
+        Assert.Contains("kem", vi);          // phần tiếng Việt được giữ
+    }
+
+    [Fact]
+    public async Task Ingest_translates_product_name_via_ai_and_leaves_no_chinese()
+    {
+        var repo = new FakeRepo();
+        var svc = new OrderService(repo, new IngestOrderRequestValidator(),
+            new StubTranslation(new Dictionary<string, string> { ["女宝鞋子"] = "Giày bé gái" }));
+
+        await svc.IngestAsync(new IngestOrderRequest
+        {
+            ProductName = "P", CustomerName = "C", Rate = 4035,
+            Links =
+            {
+                new IngestLink { Idx = 1, LinkCode = "1", Name = "女宝鞋子", SourceUrl = "https://detail.1688.com/offer/1.html" },
+                new IngestLink { Idx = 2, LinkCode = "2", Name = "未翻译中文名" }, // AI không dịch → vẫn phải sạch tiếng Trung
+            },
+        });
+
+        Assert.Equal("Giày bé gái", repo.Ingested!.Links[0].Name);
+        Assert.All(repo.Ingested!.Links, l => Assert.False(HasChinese(l.Name), $"tên còn tiếng Trung: {l.Name}"));
+    }
+
+    [Fact]
+    public async Task Ingest_with_no_translation_still_leaves_no_chinese_in_spec()
+    {
+        var (svc, repo) = Make();   // NoopTranslation → AI không dịch được gì
+
+        await svc.IngestAsync(new IngestOrderRequest
+        {
+            ProductName = "P", CustomerName = "C", Rate = 4035,
+            Links =
+            {
+                new IngestLink { Idx = 1, LinkCode = "1", Spec = "16码 鞋内长12厘米" }, // còn số → giữ số
+                new IngestLink { Idx = 2, LinkCode = "2", Spec = "纯中文颜色" },          // thuần Hán → "(không rõ)"
+            },
+        });
+
+        Assert.All(repo.Ingested!.Links, l => Assert.False(HasChinese(l.SpecVi), $"còn tiếng Trung: {l.SpecVi}"));
     }
 
     [Fact]
