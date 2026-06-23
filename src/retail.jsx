@@ -221,9 +221,9 @@ export function Inventory({ onToast, onOpenOrder }) {
                       </span>
                     ) : <span className="cell-sub" style={{ color: "var(--faint)" }}>—</span>}
                   </td>
-                  <td className="cell-money" style={{ color: p.stock <= 10 ? "var(--st-amber)" : "inherit" }}>
+                  <td className="cell-money" style={{ color: p.stock <= 0 ? "var(--st-red)" : p.stock <= 10 ? "var(--st-amber)" : "inherit" }}>
                     {Number(p.stock ?? 0).toLocaleString("vi-VN")}
-                    <span className="stockbar"><i style={{ width: Math.min(100, (Number(p.stock ?? 0) / 120) * 100) + "%", background: p.stock <= 10 ? "var(--st-amber)" : "var(--st-green)" }} /></span>
+                    <span className="stockbar"><i style={{ width: Math.min(100, (Number(p.stock ?? 0) / 120) * 100) + "%", background: p.stock <= 0 ? "var(--st-red)" : p.stock <= 10 ? "var(--st-amber)" : "var(--st-green)" }} /></span>
                   </td>
                   <td className="cell-money">{fmt(p.avgCost)}</td>
                   <td className="cell-money">{fmt(p.listPrice)}</td>
@@ -231,7 +231,10 @@ export function Inventory({ onToast, onOpenOrder }) {
                   <td className="cell-money">
                     {pf == null ? "—" : <span className={pf >= 0 ? "pos" : "neg"}>{(pf >= 0 ? "+" : "") + fmt(pf)}</span>}
                   </td>
-                  <td><span className={"badge " + st.color}><span className="dot" /> {st.label}</span></td>
+                  <td>
+                    <span className={"badge " + st.color}><span className="dot" /> {st.label}</span>
+                    {p.stock <= 0 && <span className="badge red" style={{ marginLeft: 6 }}><span className="dot" /> Hết hàng</span>}
+                  </td>
                   <td>
                     <div className="u-actions">
                       <button className="btn btn-sm btn-ghost" onClick={() => setEditing(p)}>

@@ -224,10 +224,14 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
           <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
             <label className="field" style={{ flex: 1, minWidth: 0 }}><span>Thêm sản phẩm</span>
               <Select icon="search" value={pickId} onChange={setPickId} placeholder="— Chọn SKU —"
-                options={products.map((p) => ({ value: p.id, label: `${p.sku} · ${p.name} (tồn ${p.stock})` }))} />
+                options={products.map((p) => ({
+                  value: p.id,
+                  label: p.stock <= 0 ? `${p.sku} · HẾT HÀNG · ${p.name}` : `${p.sku} · tồn ${p.stock} · ${p.name}`,
+                  disabled: p.stock <= 0,
+                }))} />
             </label>
-            <button className="btn btn-sm" onClick={() => { const p = products.find((x) => String(x.id) === pickId); if (p) { addItem(p, "ban"); setPickId(""); } }}>+ Bán</button>
-            <button className="btn btn-sm" onClick={() => { const p = products.find((x) => String(x.id) === pickId); if (p) { addItem(p, "tang"); setPickId(""); } }}>🎁 Tặng</button>
+            <button className="btn btn-sm" onClick={() => { const p = products.find((x) => String(x.id) === pickId); if (!p) return; if (p.stock <= 0) { onToast && onToast(`${p.sku} đã hết tồn.`); return; } addItem(p, "ban"); setPickId(""); }}>+ Bán</button>
+            <button className="btn btn-sm" onClick={() => { const p = products.find((x) => String(x.id) === pickId); if (!p) return; if (p.stock <= 0) { onToast && onToast(`${p.sku} đã hết tồn.`); return; } addItem(p, "tang"); setPickId(""); }}>🎁 Tặng</button>
           </div>
 
           {items.some((x) => x.lineType !== "tang") && (
@@ -248,20 +252,29 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
             </div>
           )}
 
-          {items.map((x) => (
+          {items.map((x) => {
+            const over = (Number(x.qty) || 0) > x.stock;
+            const stockStyle = x.stock <= 0
+              ? { color: "var(--st-red)", background: "var(--st-red-bg)" }
+              : x.stock <= 10 ? { color: "var(--st-amber)", background: "var(--st-amber-bg)" }
+              : { color: "var(--st-slate)", background: "var(--st-slate-bg)" };
+            const stockLabel = x.stock <= 0 ? "Hết hàng" : x.stock <= 10 ? `Sắp hết · ${x.stock}` : `Tồn ${x.stock}`;
+            return (
             <div key={x.productId + "-" + x.lineType} className="cost-line">
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="pn">{x.name}
+                  <span className="tag-mini" style={stockStyle}>{stockLabel}</span>
                   {x.lineType === "tang" && <span className="tag-mini" style={{ color: "var(--st-violet)", background: "var(--st-violet-bg)" }}>🎁 Tặng</span>}
                   {x.promoName && <span className="tag-mini" style={{ color: "var(--st-green)", background: "var(--st-green-bg)" }}>KM</span>}
                 </div>
-                <div className="pm">{x.sku} · tồn {x.stock} · vốn {fmt(x.avgCost)}</div>
+                <div className="pm">{x.sku} · vốn {fmt(x.avgCost)}</div>
               </div>
-              <input type="number" min="1" value={x.qty} onChange={(e) => setItem2(x, "qty", e.target.value)} className="num-inp" style={{ width: 56 }} />
+              <input type="number" min="1" value={x.qty} onChange={(e) => setItem2(x, "qty", e.target.value)} className="num-inp" style={{ width: 56, ...(over ? { borderColor: "var(--st-red)", color: "var(--st-red)" } : {}) }} />
               <MoneyInput value={x.unitPrice} disabled={x.lineType === "tang"} onChange={(v) => setItem2(x, "unitPrice", v)} className="num-inp" style={{ width: 96 }} />
               <button className="icon-btn" onClick={() => removeItem2(x)}><Icon name="close" size={15} /></button>
             </div>
-          ))}
+            );
+          })}
 
           {combos.length > 0 && (
             <div style={{ marginTop: 8 }}>
