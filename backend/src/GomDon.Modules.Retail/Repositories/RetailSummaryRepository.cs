@@ -43,6 +43,7 @@ public sealed class RetailSummaryRepository : IRetailSummaryRepository
                      COALESCE(SUM(m.qty), 0)::bigint AS TotalQty,
                      COALESCE(SUM(m.qty * m.unit_cost), 0)::bigint AS TotalCost
               FROM stock_movements m
+              JOIN products p ON p.id = m.product_id AND p.deleted_at IS NULL
               WHERE m.ref_type = 'import_order' AND m.ref_id IS NOT NULL
               GROUP BY m.ref_id
               ORDER BY MAX(m.at) DESC;", cancellationToken: ct));
