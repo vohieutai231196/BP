@@ -104,6 +104,7 @@ export const api = {
     updateProduct: (id, body) => request(`/v1/products/${id}`, { method: "PATCH", body }),
     deleteProduct: (id) => request(`/v1/products/${id}`, { method: "DELETE" }),
     bulkDeleteProducts: (ids) => request("/v1/products/bulk-delete", { method: "POST", body: { ids } }),
+    restoreProduct: (id) => request(`/v1/products/${id}/restore`, { method: "POST" }),
     productCostTypes: (id) => request(`/v1/products/${id}/cost-types`),
     costTypes: (query) => request("/v1/cost-types" + qs(query)),
     createCostType: (body) => request("/v1/cost-types", { method: "POST", body }),

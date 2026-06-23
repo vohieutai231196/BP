@@ -16,8 +16,8 @@ public sealed class ProductService : IProductService
         _createValidator = createValidator;
     }
 
-    public Task<List<ProductListItem>> ListAsync(string? status, string? search, long? orderId = null, CancellationToken ct = default)
-        => _repo.ListAsync(status, search, orderId, ct);
+    public Task<List<ProductListItem>> ListAsync(string? status, string? search, long? orderId = null, bool deleted = false, CancellationToken ct = default)
+        => _repo.ListAsync(status, search, orderId, deleted, ct);
 
     public async Task<ProductListItem> CreateAsync(CreateProductRequest req, CancellationToken ct = default)
     {
@@ -87,6 +87,15 @@ public sealed class ProductService : IProductService
             deleted++;
         }
         return new BulkDeleteResult(deleted, hidden, blocked);
+    }
+
+    public async Task RestoreAsync(long id, CancellationToken ct = default)
+    {
+        var (outcome, sku) = await _repo.RestoreAsync(id, ct);
+        if (outcome == RestoreOutcome.NotFound)
+            throw new ValidationException($"Không tìm thấy sản phẩm #{id}.");
+        if (outcome == RestoreOutcome.SkuConflict)
+            throw new ValidationException($"Mã SKU '{sku}' đã được dùng lại bởi sản phẩm khác. Đổi mã sản phẩm hiện tại trước khi khôi phục.");
     }
 
     public Task<List<ProductCostTypeDto>> GetCostTypesAsync(long id, CancellationToken ct = default) => _repo.GetCostTypesAsync(id, ct);

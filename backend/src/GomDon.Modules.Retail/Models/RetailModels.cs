@@ -40,6 +40,8 @@ public sealed record BulkDeleteBlocked(long Id, string Sku, string Reason);
 /// <summary>Kết quả xóa hàng loạt: số xóa hẳn, số ẩn (còn lịch sử bán), danh sách bị chặn (đang dùng).</summary>
 public sealed record BulkDeleteResult(int Deleted, int Hidden, IReadOnlyList<BulkDeleteBlocked> Blocked);
 
+public enum RestoreOutcome { Restored, NotFound, SkuConflict }
+
 public sealed class CostType
 {
     public long Id { get; set; }

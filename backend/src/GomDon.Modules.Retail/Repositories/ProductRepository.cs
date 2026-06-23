@@ -30,10 +30,10 @@ public sealed class ProductRepository : IProductRepository
         public string? SourceOrdersJson { get; set; }
     }
 
-    public async Task<List<ProductListItem>> ListAsync(string? status, string? search, long? orderId = null, CancellationToken ct = default)
+    public async Task<List<ProductListItem>> ListAsync(string? status, string? search, long? orderId = null, bool deleted = false, CancellationToken ct = default)
     {
         using var conn = _factory.Create();
-        var where = new List<string> { "p.deleted_at IS NULL" };
+        var where = new List<string> { deleted ? "p.deleted_at IS NOT NULL" : "p.deleted_at IS NULL" };
         if (!string.IsNullOrWhiteSpace(status)) where.Add("p.status = @status");
         if (!string.IsNullOrWhiteSpace(search)) where.Add("(p.name ILIKE @q OR p.sku ILIKE @q)");
         if (orderId is not null)
@@ -71,6 +71,21 @@ public sealed class ProductRepository : IProductRepository
         using var conn = _factory.Create();
         return await conn.QueryFirstOrDefaultAsync<Product>(new CommandDefinition(
             $"SELECT {Cols} FROM products WHERE id = @id AND deleted_at IS NULL;", new { id }, cancellationToken: ct));
+    }
+
+    public async Task<(RestoreOutcome Outcome, string? Sku)> RestoreAsync(long id, CancellationToken ct = default)
+    {
+        using var conn = _factory.Create();
+        var sku = await conn.ExecuteScalarAsync<string?>(new CommandDefinition(
+            "SELECT sku FROM products WHERE id = @id;", new { id }, cancellationToken: ct));
+        if (sku is null) return (RestoreOutcome.NotFound, null);
+        var conflict = await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
+            "SELECT EXISTS(SELECT 1 FROM products WHERE lower(sku) = lower(@sku) AND deleted_at IS NULL AND id <> @id);",
+            new { sku, id }, cancellationToken: ct));
+        if (conflict) return (RestoreOutcome.SkuConflict, sku);
+        await conn.ExecuteAsync(new CommandDefinition(
+            "UPDATE products SET deleted_at = NULL WHERE id = @id;", new { id }, cancellationToken: ct));
+        return (RestoreOutcome.Restored, sku);
     }
 
     public async Task<bool> SkuExistsAsync(string sku, CancellationToken ct = default)

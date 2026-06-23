@@ -11,7 +11,8 @@ public class SaleServiceTests
     private sealed class FakeProducts : IProductRepository
     {
         public readonly List<Product> Db = new();
-        public Task<List<ProductListItem>> ListAsync(string? s, string? q, long? orderId = null, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task<List<ProductListItem>> ListAsync(string? s, string? q, long? orderId = null, bool deleted = false, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task<(RestoreOutcome Outcome, string? Sku)> RestoreAsync(long id, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<Product?> GetByIdAsync(long id, CancellationToken ct = default) => Task.FromResult(Db.FirstOrDefault(p => p.Id == id));
         public Task<bool> SkuExistsAsync(string sku, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<long> InsertAsync(CreateProductRequest req, CancellationToken ct = default) => throw new NotImplementedException();

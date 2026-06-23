@@ -19,6 +19,7 @@ const TABS = [
   { key: "", label: "Tất cả" },
   { key: "active", label: "Đang bán" },
   { key: "hidden", label: "Ẩn" },
+  { key: "trash", label: "Thùng rác" },
 ];
 const CATS = ["shoe", "bag", "apparel", "tech", "home", "beauty", "other"];
 const fmt = (n) => (n == null ? "—" : Number(n).toLocaleString("vi-VN") + "₫");
@@ -50,6 +51,7 @@ export function Inventory({ onToast, onOpenOrder }) {
   });
   const clearOrderFilter = () => { setOrderFilter(null); replaceUrl("/inventory"); };
   const [groupMode, setGroupMode] = React.useState("list"); // list | grouped
+  const [trash, setTrash] = React.useState(null);           // SKU đã xóa mềm (thùng rác)
   const [sel, setSel] = React.useState(() => new Set());    // id sản phẩm đã chọn (xóa nhiều)
   const [bulkConfirm, setBulkConfirm] = React.useState(false);
   React.useEffect(() => { api.retail.summary().then(setSummary).catch(() => {}); }, [reload]);
@@ -63,6 +65,10 @@ export function Inventory({ onToast, onOpenOrder }) {
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, [reload, orderFilter]);
+
+  React.useEffect(() => {
+    api.retail.products({ deleted: true }).then((d) => setTrash(d || [])).catch(() => setTrash([]));
+  }, [reload]);
 
   const refresh = () => setReload((r) => r + 1);
   const run = async (fn, okMsg) => {
@@ -86,6 +92,7 @@ export function Inventory({ onToast, onOpenOrder }) {
     (!q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)));
 
   const profit = (p) => (p.listPrice != null ? p.listPrice - p.avgCost : null);
+  const restore = (p) => run(() => api.retail.restoreProduct(p.id), "Đã khôi phục " + p.sku);
 
   // ----- chọn nhiều để xóa -----
   const selRows = rows.filter((p) => sel.has(p.id));
@@ -131,7 +138,7 @@ export function Inventory({ onToast, onOpenOrder }) {
         <div className="chips">
           {TABS.map((t) => (
             <button key={t.key} className={"chip" + (tab === t.key ? " active" : "")} onClick={() => setTab(t.key)}>
-              {t.label}<span className="cc">{counts[t.key] || 0}</span>
+              {t.label}<span className="cc">{t.key === "trash" ? (trash?.length || 0) : (counts[t.key] || 0)}</span>
             </button>
           ))}
         </div>
@@ -163,6 +170,8 @@ export function Inventory({ onToast, onOpenOrder }) {
 
       {groupMode === "grouped" ? (
         <GroupedByOrder onOpenOrder={onOpenOrder} onToast={onToast} />
+      ) : tab === "trash" ? (
+        <TrashList items={trash} onRestore={restore} />
       ) : loading ? (
         <div className="card empty"><Icon name="refresh" size={40} /><div>Đang tải…</div></div>
       ) : err ? (
@@ -267,6 +276,51 @@ export function Inventory({ onToast, onOpenOrder }) {
       {receiving && <ReceiveModal onClose={() => setReceiving(false)}
         onDone={(msg) => { onToast && onToast(msg); setReceiving(false); refresh(); }} onToast={onToast} />}
     </div>
+  );
+}
+
+/* ---------- Thùng rác: SKU đã xóa mềm + khôi phục ---------- */
+function TrashList({ items, onRestore }) {
+  if (items == null) return <div className="card empty"><Icon name="refresh" size={40} /><div>Đang tải…</div></div>;
+  if (items.length === 0)
+    return <EmptyState icon="warehouse" title="Thùng rác trống" hint="Sản phẩm đã xóa (còn lịch sử bán) sẽ nằm ở đây để khôi phục lại." />;
+  return (
+    <div className="card"><div className="grid-wrap"><table className="dg prod-grid">
+      <thead><tr>
+        <th>Sản phẩm</th><th>Danh mục</th><th>Nguồn</th>
+        <th style={{ textAlign: "right" }}>Tồn</th>
+        <th style={{ textAlign: "right" }}>Giá vốn TB</th>
+        <th style={{ textAlign: "right" }}>Thao tác</th>
+      </tr></thead>
+      <tbody>
+        {items.map((p) => (
+          <tr key={p.id}>
+            <td>
+              <div className="cell-prod">
+                <div className="thumb" style={{ background: "var(--st-slate)" }}><Icon name="box" size={19} stroke={1.7} /></div>
+                <div style={{ minWidth: 0 }}>
+                  <div className="pn">{p.name}</div>
+                  <div className="pm mono">{p.sku}</div>
+                </div>
+              </div>
+            </td>
+            <td className="cell-sub">{p.category}</td>
+            <td>{p.sourceOrders && p.sourceOrders.length > 0
+              ? <span className="src-chip static">#{p.sourceOrders[0].orderId}</span>
+              : <span className="cell-sub" style={{ color: "var(--faint)" }}>—</span>}</td>
+            <td className="cell-money">{Number(p.stock ?? 0).toLocaleString("vi-VN")}</td>
+            <td className="cell-money">{fmt(p.avgCost)}</td>
+            <td>
+              <div className="u-actions">
+                <button className="btn btn-sm btn-ghost" onClick={() => onRestore(p)}>
+                  <Icon name="refresh" size={15} /> Khôi phục
+                </button>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table></div></div>
   );
 }
 

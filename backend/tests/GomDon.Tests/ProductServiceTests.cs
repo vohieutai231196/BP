@@ -17,9 +17,19 @@ public class ProductServiceTests
         public readonly HashSet<long> Deleted = new();   // soft-deleted (deleted_at IS NOT NULL)
         private long _seq = 1;
 
-        public Task<List<ProductListItem>> ListAsync(string? status, string? search, long? orderId = null, CancellationToken ct = default)
-            => Task.FromResult(Db.Where(p => !Deleted.Contains(p.Id) && (status == null || p.Status == status))
+        public Task<List<ProductListItem>> ListAsync(string? status, string? search, long? orderId = null, bool deleted = false, CancellationToken ct = default)
+            => Task.FromResult(Db.Where(p => (deleted ? Deleted.Contains(p.Id) : !Deleted.Contains(p.Id)) && (status == null || p.Status == status))
                 .Select(p => new ProductListItem(p.Id, p.Sku, p.Name, p.Category, p.ImageUrl, p.Status, p.AvgCost, p.ListPrice, p.CreatedAt, 0)).ToList());
+
+        public Task<(RestoreOutcome Outcome, string? Sku)> RestoreAsync(long id, CancellationToken ct = default)
+        {
+            var p = Db.FirstOrDefault(x => x.Id == id);
+            if (p is null) return Task.FromResult<(RestoreOutcome, string?)>((RestoreOutcome.NotFound, null));
+            var conflict = Db.Any(x => x.Id != id && !Deleted.Contains(x.Id) && x.Sku.Equals(p.Sku, StringComparison.OrdinalIgnoreCase));
+            if (conflict) return Task.FromResult<(RestoreOutcome, string?)>((RestoreOutcome.SkuConflict, p.Sku));
+            Deleted.Remove(id);
+            return Task.FromResult<(RestoreOutcome, string?)>((RestoreOutcome.Restored, p.Sku));
+        }
         public Task<Product?> GetByIdAsync(long id, CancellationToken ct = default)
             => Task.FromResult(Db.FirstOrDefault(p => p.Id == id && !Deleted.Contains(p.Id)));
         public Task<bool> SkuExistsAsync(string sku, CancellationToken ct = default)
@@ -186,6 +196,38 @@ public class ProductServiceTests
         var r = await svc.DeleteManyAsync(new[] { a.Id, a.Id, 12345L });
         Assert.Equal(1, r.Deleted);          // không xóa 2 lần dù id lặp
         Assert.Empty(r.Blocked);
+    }
+
+    [Fact]
+    public async Task Restore_brings_back_soft_deleted_product()
+    {
+        var repo = new FakeRepo(); var svc = Make(repo);
+        var p = await svc.CreateAsync(new CreateProductRequest("SKU-1", "Giày", "shoe", null, 1, null));
+        repo.SalesHistory.Add(p.Id);
+        await svc.DeleteAsync(p.Id);                        // soft-delete
+        Assert.Empty(await svc.ListAsync(null, null));      // ẩn khỏi danh sách
+        await svc.RestoreAsync(p.Id);
+        Assert.DoesNotContain(p.Id, repo.Deleted);
+        Assert.Single(await svc.ListAsync(null, null));     // hiện lại
+    }
+
+    [Fact]
+    public async Task Restore_blocked_when_sku_reused()
+    {
+        var repo = new FakeRepo(); var svc = Make(repo);
+        var a = await svc.CreateAsync(new CreateProductRequest("SKU-1", "Giày", "shoe", null, 1, null));
+        repo.SalesHistory.Add(a.Id);
+        await svc.DeleteAsync(a.Id);                        // soft-delete A
+        await svc.CreateAsync(new CreateProductRequest("SKU-1", "Giày mới", "shoe", null, 1, null)); // B dùng lại SKU
+        await Assert.ThrowsAsync<ValidationException>(() => svc.RestoreAsync(a.Id));
+        Assert.Contains(a.Id, repo.Deleted);               // A vẫn bị ẩn
+    }
+
+    [Fact]
+    public async Task Restore_missing_id_throws()
+    {
+        var repo = new FakeRepo(); var svc = Make(repo);
+        await Assert.ThrowsAsync<ValidationException>(() => svc.RestoreAsync(999));
     }
 
     [Fact]
