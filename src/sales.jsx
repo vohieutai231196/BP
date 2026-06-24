@@ -7,6 +7,7 @@ import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
 import { MoneyInput, costUnitPrice, resolveCostAmount, EmptyState } from "./components.jsx";
 import { Select } from "./ui-controls.jsx";
+import { useRefresh } from "./refresh.js";
 
 const fmt = (n) => (n == null ? "—" : Number(n).toLocaleString("vi-VN") + "₫");
 const fmtN = (n) => Number(n || 0).toLocaleString("vi-VN");
@@ -16,7 +17,7 @@ export function Sales({ onToast }) {
   const [list, setList] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [err, setErr] = React.useState(null);
-  const [reload, setReload] = React.useState(0);
+  const { version: reload, refresh } = useRefresh();
   const [creating, setCreating] = React.useState(false);
   const [returning, setReturning] = React.useState(null); // sale đang chờ xác nhận trả
 
@@ -26,8 +27,6 @@ export function Sales({ onToast }) {
       .catch((e) => { if (alive) setErr(e.message); }).finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, [reload]);
-
-  const refresh = () => setReload((r) => r + 1);
 
   const doReturn = async (s) => {
     try {

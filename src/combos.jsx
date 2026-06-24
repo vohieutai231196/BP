@@ -7,6 +7,7 @@ import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
 import { MoneyInput, EmptyState } from "./components.jsx";
 import { Select } from "./ui-controls.jsx";
+import { useRefresh } from "./refresh.js";
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
 
@@ -14,7 +15,7 @@ export function Combos({ onToast }) {
   const [list, setList] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [err, setErr] = React.useState(null);
-  const [reload, setReload] = React.useState(0);
+  const { version: reload, refresh } = useRefresh();
   const [editing, setEditing] = React.useState(null);
   const [confirm, setConfirm] = React.useState(null);
 
@@ -25,7 +26,6 @@ export function Combos({ onToast }) {
     return () => { alive = false; };
   }, [reload]);
 
-  const refresh = () => setReload((r) => r + 1);
   const run = async (fn, msg) => { try { await fn(); onToast && onToast(msg); setEditing(null); setConfirm(null); refresh(); } catch (e) { onToast && onToast("Lỗi: " + e.message); } };
 
   return (

@@ -146,8 +146,9 @@ export function Sidebar({ route, onNav, collapsed, open, onCloseMobile, onLogout
 }
 
 /* ---------- TopBar ---------- */
-export function TopBar({ title, sub, search, setSearch, onSubmitSearch, theme, toggleTheme, onMenu, settings }) {
+export function TopBar({ title, sub, search, setSearch, onSubmitSearch, theme, toggleTheme, onMenu, onRefresh, settings }) {
   const [setOpen, setSetOpen] = React.useState(false);
+  const [spin, setSpin] = React.useState(false);
   // Đóng popover khi nhấn Esc.
   React.useEffect(() => {
     if (!setOpen) return;
@@ -169,6 +170,10 @@ export function TopBar({ title, sub, search, setSearch, onSubmitSearch, theme, t
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Tìm mã đơn, khách hàng, sản phẩm…" />
         <kbd>/</kbd>
       </form>
+      <button className="icon-btn" onClick={() => { setSpin(true); onRefresh && onRefresh(); setTimeout(() => setSpin(false), 600); }}
+        aria-label="refresh" title="Làm mới dữ liệu">
+        <Icon name="refresh" size={19} className={spin ? "spin" : undefined} />
+      </button>
       <button className="icon-btn" onClick={toggleTheme} aria-label="theme" title="Đổi giao diện">
         <Icon name={theme === "dark" ? "sun" : "moon"} size={19} />
       </button>

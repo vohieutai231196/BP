@@ -31,6 +31,7 @@ import { useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor } from "./
 import { api, getToken, setToken, setOnUnauthorized } from "./api.js";
 import { adaptSummary, adaptDetail, adaptDashboard } from "./data.js";
 import { pathToRoute, routeHref, currentFilter, orderIdFromPath, currentPath, pushUrl, replaceUrl, goBack } from "./routes.js";
+import { RefreshContext } from "./refresh.js";
 
 const { useState, useEffect, useCallback } = React;
 
@@ -63,6 +64,7 @@ function App() {
   const [selected, setSelected] = useState(null);   // chi tiết đơn (đã adapt)
   const [detailLoading, setDetailLoading] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const refresh = useCallback(() => setReloadKey((k) => k + 1), []);
 
   // theme
   useEffect(() => { document.documentElement.setAttribute("data-theme", theme); localStorage.setItem("gd_theme", theme); }, [theme]);
@@ -225,6 +227,7 @@ function App() {
   };
 
   return (
+    <RefreshContext.Provider value={{ version: reloadKey, refresh }}>
     <div className="app-shell">
       <Sidebar route={route} onNav={nav} open={sbOpen} onCloseMobile={() => setSbOpen(false)}
         onLogout={logout} counts={counts} user={user} onOpenAccount={() => setAccountOpen(true)} />
@@ -233,7 +236,7 @@ function App() {
         <TopBar title={titles[route].t} sub={titles[route].s} search={search} setSearch={setSearch}
           onSubmitSearch={() => { if (route !== "orders") nav("orders"); }}
           theme={theme} toggleTheme={() => setTheme(theme === "dark" ? "light" : "dark")} onMenu={() => setSbOpen(true)}
-          settings={tweakControls()} />
+          onRefresh={refresh} settings={tweakControls()} />
         <div className={"content" + (t.density === "Gọn" ? " dense" : "")}>
           {loadErr && <div className="card empty"><Icon name="close" size={40} /><div>Lỗi tải dữ liệu: {loadErr}</div></div>}
 
@@ -271,6 +274,7 @@ function App() {
       {toast && <div className="toast"><Icon name="check" size={16} stroke={2.4} />{toast}</div>}
       {accountOpen && <AccountModal user={user} onClose={() => setAccountOpen(false)} onUpdated={setUser} onToast={showToast} />}
     </div>
+    </RefreshContext.Provider>
   );
 }
 

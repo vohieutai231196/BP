@@ -10,6 +10,7 @@ import { ReceiveModal } from "./receive.jsx";
 import { MoneyInput, costUnitPrice, EmptyState } from "./components.jsx";
 import { Select } from "./ui-controls.jsx";
 import { currentQuery, replaceUrl } from "./routes.js";
+import { useRefresh } from "./refresh.js";
 
 const STATUS = {
   active: { label: "Đang bán", color: "green" },
@@ -40,7 +41,7 @@ export function Inventory({ onToast, onOpenOrder }) {
   const [all, setAll] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [err, setErr] = React.useState(null);
-  const [reload, setReload] = React.useState(0);
+  const { version: reload, refresh } = useRefresh();
   const [editing, setEditing] = React.useState(null); // null | {} (new) | product (edit)
   const [confirm, setConfirm] = React.useState(null);
   const [summary, setSummary] = React.useState(null);
@@ -70,7 +71,6 @@ export function Inventory({ onToast, onOpenOrder }) {
     api.retail.products({ deleted: true }).then((d) => setTrash(d || [])).catch(() => setTrash([]));
   }, [reload]);
 
-  const refresh = () => setReload((r) => r + 1);
   const run = async (fn, okMsg) => {
     try {
       const r = await fn();
@@ -330,7 +330,7 @@ function GroupedByOrder({ onOpenOrder, onToast }) {
   const [err, setErr] = React.useState(null);
   const [open, setOpen] = React.useState({});     // { [orderId]: bool }
   const [items, setItems] = React.useState({});   // { [orderId]: ProductList }
-  const [reload, setReload] = React.useState(0);
+  const { version: reload, refresh } = useRefresh();
   const [del, setDel] = React.useState(null);     // lô (group) đang chờ xác nhận xóa
 
   React.useEffect(() => {
@@ -359,7 +359,7 @@ function GroupedByOrder({ onOpenOrder, onToast }) {
     } catch (e) { onToast && onToast("Lỗi: " + e.message); }
     setItems((m) => { const n = { ...m }; delete n[g.orderId]; return n; });
     setOpen((o) => ({ ...o, [g.orderId]: false }));
-    setDel(null); setReload((x) => x + 1);
+    setDel(null); refresh();
   };
 
   if (err) return <div className="card empty" style={{ color: "var(--st-red)" }}><Icon name="close" size={40} /><div>{err}</div></div>;

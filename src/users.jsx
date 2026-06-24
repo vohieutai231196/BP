@@ -6,6 +6,7 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
+import { useRefresh } from "./refresh.js";
 
 const ROLES = [
   { key: "admin", label: "Quản trị viên", desc: "Toàn quyền + quản lý người dùng" },
@@ -35,7 +36,7 @@ export function Users({ onToast, currentUserId }) {
   const [all, setAll] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [err, setErr] = React.useState(null);
-  const [reload, setReload] = React.useState(0);
+  const { version: reload, refresh } = useRefresh();
   const [creating, setCreating] = React.useState(false);
   const [action, setAction] = React.useState(null); // { type, user }
 
@@ -49,7 +50,6 @@ export function Users({ onToast, currentUserId }) {
     return () => { alive = false; };
   }, [reload]);
 
-  const refresh = () => setReload((r) => r + 1);
   const run = async (fn, okMsg) => {
     try { await fn(); onToast && onToast(okMsg); setAction(null); setCreating(false); refresh(); }
     catch (e) { onToast && onToast("Lỗi: " + e.message); }

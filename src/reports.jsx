@@ -4,16 +4,18 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
+import { useRefresh } from "./refresh.js";
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
 
 export function Reports({ onToast }) {
   const [data, setData] = React.useState(null);
   const [err, setErr] = React.useState(null);
+  const { version } = useRefresh();
 
   React.useEffect(() => {
     api.retail.reports().then(setData).catch((e) => setErr(e.message));
-  }, []);
+  }, [version]);
 
   if (err) return <div className="card empty" style={{ color: "var(--st-red)" }}><Icon name="close" size={40} /><div>{err}</div></div>;
   if (!data) return <div className="card empty"><Icon name="refresh" size={40} /><div>Đang tải…</div></div>;

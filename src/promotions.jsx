@@ -7,6 +7,7 @@ import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
 import { MoneyInput, EmptyState } from "./components.jsx";
 import { Select, DateField } from "./ui-controls.jsx";
+import { useRefresh } from "./refresh.js";
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
 const fmtDate = (d) => { if (!d) return "—"; try { return new Date(d).toLocaleDateString("vi-VN"); } catch { return "—"; } };
@@ -15,7 +16,7 @@ export function Promotions({ onToast }) {
   const [list, setList] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [err, setErr] = React.useState(null);
-  const [reload, setReload] = React.useState(0);
+  const { version: reload, refresh } = useRefresh();
   const [editing, setEditing] = React.useState(null); // {} new | promo edit
   const [confirm, setConfirm] = React.useState(null);
 
@@ -26,7 +27,6 @@ export function Promotions({ onToast }) {
     return () => { alive = false; };
   }, [reload]);
 
-  const refresh = () => setReload((r) => r + 1);
   const run = async (fn, msg) => { try { await fn(); onToast && onToast(msg); setEditing(null); setConfirm(null); refresh(); } catch (e) { onToast && onToast("Lỗi: " + e.message); } };
 
   return (

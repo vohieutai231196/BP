@@ -8,6 +8,7 @@ import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
 import { MoneyInput, costUnitPrice, resolveCostAmount } from "./components.jsx";
 import { Select } from "./ui-controls.jsx";
+import { useRefresh } from "./refresh.js";
 
 const fmt = (n) => (n == null ? "—" : Number(n).toLocaleString("vi-VN"));
 const ROUND_OPTS = [{ v: 0, l: "Không" }, { v: 1000, l: "1.000₫" }, { v: 5000, l: "5.000₫" }];
@@ -21,12 +22,13 @@ export function Pricing({ onToast }) {
   const [result, setResult] = React.useState(null);
   const [manualPrice, setManualPrice] = React.useState("");
   const [level, setLevel] = React.useState(30);   // mức lời mục tiêu (thanh kéo)
+  const { version } = useRefresh();
 
   // nạp danh mục chi phí + sản phẩm (để chọn nhanh giá vốn)
   React.useEffect(() => {
     api.retail.costTypes({ activeOnly: true }).then((d) => setCostTypes(d || [])).catch(() => {});
     api.retail.products({ status: "active" }).then((d) => setProducts(d || [])).catch(() => {});
-  }, []);
+  }, [version]);
 
   // gọi tính giá khi input đổi (debounce nhẹ)
   React.useEffect(() => {

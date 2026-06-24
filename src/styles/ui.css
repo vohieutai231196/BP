@@ -289,6 +289,10 @@ table.dg tbody tr:last-child td{ border-bottom:none; }
 .divider{ height:1px; background:var(--line); }
 .tag-soft{ font-size:12px; font-weight:600; padding:3px 9px; border-radius:7px; background:var(--surface-3); color:var(--muted); }
 
+/* nút Refresh trên TopBar: icon quay nhẹ khi bấm */
+@keyframes gd-spin { to { transform: rotate(360deg); } }
+.icon-btn .spin { animation: gd-spin .6s linear; }
+
 /* ---------- bảng sản phẩm trong đơn ---------- */
 /* mã link sản phẩm — chip mono, bấm mở link gốc trên sàn */
 .code-chip{
