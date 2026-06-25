@@ -65,10 +65,12 @@ export function ProductThumb({ order, lg }) {
    Thumbnail nhỏ (42px) khó xem. Rê chuột → preview lớn nổi cạnh ảnh (định vị fixed nên
    không bị bảng overflow cắt); bấm → lightbox toàn màn (Esc/click nền để đóng). Mobile
    không hover được nên dựa vào click. */
-export function ZoomImage({ src, alt, className }) {
+export function ZoomImage({ src, zoomSrc, alt, className }) {
   const [open, setOpen] = React.useState(false);       // lightbox
   const [pv, setPv] = React.useState(null);            // {left,top,size} preview hover
+  const [hiFail, setHiFail] = React.useState(false);   // ảnh nét lỗi → fallback bản nhỏ
   const wrapRef = React.useRef(null);
+  const big = hiFail || !zoomSrc ? src : zoomSrc;      // nguồn cho preview + lightbox
 
   React.useEffect(() => {
     if (!open) return;
@@ -98,14 +100,14 @@ export function ZoomImage({ src, alt, className }) {
         {pv && (
           <span className="zoom-preview" aria-hidden="true"
                 style={{ left: pv.left, top: pv.top, width: pv.size, height: pv.size }}>
-            <img src={src} alt="" referrerPolicy="no-referrer" />
+            <img src={big} alt="" referrerPolicy="no-referrer" onError={() => setHiFail(true)} />
           </span>
         )}
       </span>
       {open && (
         <div className="overlay overlay-top lightbox" onClick={() => setOpen(false)}>
           <div className="lightbox-inner" onClick={(e) => e.stopPropagation()}>
-            <img src={src} alt={alt} referrerPolicy="no-referrer" />
+            <img src={big} alt={alt} referrerPolicy="no-referrer" onError={() => setHiFail(true)} />
             <button className="lightbox-x" onClick={() => setOpen(false)} aria-label="đóng">
               <Icon name="close" size={18} />
             </button>

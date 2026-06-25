@@ -7,7 +7,7 @@ import React from "react";
 import { Icon } from "./icons.jsx";
 import DATA from "./data.js";
 import { StatusBadge, ProductThumb, PlatformTag, ProdName, ZoomImage } from "./components.jsx";
-import { api, imgUrl } from "./api.js";
+import { api, imgUrl, imgUrlLarge } from "./api.js";
 
 // Ghi text vào clipboard. navigator.clipboard chỉ có trong secure context (HTTPS/localhost);
 // fallback execCommand cho trường hợp app mở qua HTTP/IP thuần. Trả về true nếu thành công.
@@ -192,7 +192,7 @@ export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete,
                         return (
                           <tr key={l.idx + "-" + l.linkCode}>
                             <td className="cell-sub cell-mid">{l.idx}</td>
-                            <td className="cell-mid">{l.imageUrl ? <ZoomImage src={imgUrl(l.imageUrl)} alt={l.name || l.spec || ""} /> : <span className="cell-sub">—</span>}</td>
+                            <td className="cell-mid">{l.imageUrl ? <ZoomImage src={imgUrl(l.imageUrl)} zoomSrc={imgUrlLarge(l.imageUrl)} alt={l.name || l.spec || ""} /> : <span className="cell-sub">—</span>}</td>
                             <td className="cell-mid">{l.sourceUrl
                               ? <a className="code-chip" href={l.sourceUrl} target="_blank" rel="noreferrer" title="Mở link gốc trên sàn"><span>{l.linkCode}</span><Icon name="external" size={11} className="x-ic" /></a>
                               : <span className="code-chip"><span>{l.linkCode}</span></span>}</td>

@@ -18,6 +18,18 @@ export const setOnUnauthorized = (fn) => { onUnauthorized = fn; };
 // điện thoại không tải được. Đẩy qua proxy cùng origin (/v1/img) để server tự lấy.
 export const imgUrl = (u) => u ? `${BASE}/v1/img?u=${encodeURIComponent(u)}` : u;
 
+// Nâng URL ảnh alicdn/Taobao về bản gốc (nét) bằng cách bỏ hậu tố kích thước CDN
+// chèn vào, vd "...jpg_120x120q90.jpg" → "...jpg", "..._230x230.jpg" → "...". Dùng cho
+// xem phóng to; thumbnail nhỏ vẫn dùng bản gốc cho nhẹ. Có fallback ở UI nếu URL lỗi.
+export const imgHiRes = (u) => {
+  if (!u || typeof u !== "string") return u;
+  return u
+    .replace(/(\.(?:jpe?g|png|webp|gif))_[^/?#]*$/i, "$1")            // ...ext_<spec>.<ext> → ...ext
+    .replace(/_\d+x\d+(?:[a-z]\d+)*(\.(?:jpe?g|png|webp|gif))$/i, "$1"); // ..._NxN[q90].ext → ...ext
+};
+// URL phóng to đã qua proxy.
+export const imgUrlLarge = (u) => imgUrl(imgHiRes(u));
+
 export class ApiError extends Error {
   constructor(status, message) { super(message); this.status = status; }
 }
