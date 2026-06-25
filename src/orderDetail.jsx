@@ -6,7 +6,7 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import DATA from "./data.js";
-import { StatusBadge, ProductThumb, PlatformTag } from "./components.jsx";
+import { StatusBadge, ProductThumb, PlatformTag, ProdName } from "./components.jsx";
 import { api, imgUrl } from "./api.js";
 
 // Ghi text vào clipboard. navigator.clipboard chỉ có trong secure context (HTTPS/localhost);
@@ -107,7 +107,7 @@ export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete,
           <ProductThumb order={order} lg />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}><span className="cell-id" style={{ fontSize: 16 }}>#{order.id}</span><StatusBadge status={order.status} size="sm" /></div>
-            <div style={{ fontWeight: 600, marginTop: 3 }}>{order.productName}</div>
+            <ProdName name={order.productName} style={{ fontWeight: 600, marginTop: 3 }} />
           </div>
           <button className="icon-btn" onClick={onClose} aria-label="đóng"><Icon name="close" size={19} /></button>
         </div>
@@ -313,7 +313,7 @@ export function OrderDetail({ order, onClose, onToast, onChangeStatus, onDelete,
       </div>
 
       {confirmDel && (
-        <div className="overlay" onClick={() => !deleting && setConfirmDel(false)}>
+        <div className="overlay overlay-top" onClick={() => !deleting && setConfirmDel(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head"><div className="mh-ic"><Icon name="close" size={18} /></div><div><h3>Xoá đơn #{order.id}</h3></div></div>
             <div className="modal-body"><div className="mb-text">Xoá đơn <b className="mono">#{order.id}</b> cùng <b>toàn bộ sản phẩm / kiện / lịch sử</b> liên quan? Không thể hoàn tác.</div></div>

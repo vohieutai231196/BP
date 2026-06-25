@@ -7,7 +7,7 @@ import React from "react";
 import { Icon } from "./icons.jsx";
 import DATA, { adaptSummary } from "./data.js";
 import { api } from "./api.js";
-import { StatusBadge, ProductThumb, PlatformTag } from "./components.jsx";
+import { StatusBadge, ProductThumb, PlatformTag, ProdName } from "./components.jsx";
 
 const { STATUS, fmt: f } = DATA;
 const { useState, useEffect, useRef } = React;
@@ -133,7 +133,7 @@ export function Orders({ statusCounts, total: totalAll, search, preset, onOpen, 
             {items.map((o) => (
               <tr key={o.id} onClick={() => onOpen(o.id)}>
                 <td><span className="cell-id">#{o.id}</span><div className="cell-sub">{f.fmtDate(o.createdAt)}</div></td>
-                <td><div className="cell-prod"><ProductThumb order={o} /><div><div className="pn">{o.productName}</div><div className="pm"><PlatformTag platform={o.platform} /> · {o.packagesCount} kiện</div></div></div></td>
+                <td><div className="cell-prod"><ProductThumb order={o} /><div style={{ minWidth: 0 }}><ProdName name={o.productName} className="pn" /><div className="pm"><PlatformTag platform={o.platform} /> · {o.packagesCount} kiện</div></div></div></td>
                 <td className="cell-cust"><b>{o.customer.name}</b><span>{o.customer.phone}</span></td>
                 <td><StatusBadge status={o.status} size="sm" /></td>
                 <td className="cell-money">{f.fmtKg(o.weightReal)}</td>
@@ -148,7 +148,7 @@ export function Orders({ statusCounts, total: totalAll, search, preset, onOpen, 
           {items.map((o) => (
             <div className="orow" key={o.id} onClick={() => onOpen(o.id)}>
               <ProductThumb order={o} lg />
-              <div className="o-main"><b>{o.productName}</b><div className="o-meta"><span className="cell-id">#{o.id}</span><PlatformTag platform={o.platform} /><span>{o.customer.name}</span></div></div>
+              <div className="o-main" style={{ minWidth: 0 }}><ProdName name={o.productName} style={{ fontWeight: 600 }} /><div className="o-meta"><span className="cell-id">#{o.id}</span><PlatformTag platform={o.platform} /><span>{o.customer.name}</span></div></div>
               <div className="o-hideS"><StatusBadge status={o.status} size="sm" /><div className="cell-sub" style={{ marginTop: 6 }}>{o.packagesCount} kiện · {f.fmtKg(o.weightReal)}</div></div>
               <div className="o-hideS" style={{ textAlign: "right" }}><div className="cell-money">{f.fmtVND(o.costs.tongChiPhi)}</div><div className="cell-sub" style={{ marginTop: 4 }}>{o.costs.conThieu > 0 ? "Thiếu " + f.fmtVND(o.costs.conThieu) : "Đã đủ"}</div></div>
               <Icon name="chevRight" size={18} style={{ color: "var(--faint)" }} />
@@ -165,7 +165,7 @@ export function Orders({ statusCounts, total: totalAll, search, preset, onOpen, 
                   <ProductThumb order={o} lg />
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div className="oid">#{o.id}</div>
-                    <div className="pn">{o.productName}</div>
+                    <ProdName name={o.productName} className="pn" />
                   </div>
                   <StatusBadge status={o.status} size="sm" />
                 </div>

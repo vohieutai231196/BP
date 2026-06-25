@@ -61,6 +61,39 @@ export function ProductThumb({ order, lg }) {
   );
 }
 
+/* ---------- Product name (clamp 2 dòng, click bung full) ----------
+   Tên dài bị cắt còn 2 dòng kèm dấu "…". Hover hiện tooltip tên đầy đủ;
+   click vào tên thì bung toàn bộ ngay tại chỗ (không vỡ layout của hàng).
+   Chỉ bật con trỏ/khả năng click khi tên thật sự bị cắt. */
+export function ProdName({ name, className = "", style }) {
+  const [expanded, setExpanded] = React.useState(false);
+  const [clamped, setClamped] = React.useState(false);
+  const ref = React.useRef(null);
+  React.useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => { if (!expanded) setClamped(el.scrollHeight > el.clientHeight + 1); };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [name, expanded]);
+  const canToggle = clamped || expanded;
+  return (
+    <div
+      ref={ref}
+      className={"pn-clamp" + (expanded ? " is-open" : "") + (canToggle ? " pn-toggle" : "") + (className ? " " + className : "")}
+      style={style}
+      title={name}
+      role={canToggle ? "button" : undefined}
+      tabIndex={canToggle ? 0 : undefined}
+      onClick={canToggle ? (e) => { e.stopPropagation(); setExpanded((v) => !v); } : undefined}
+      onKeyDown={canToggle ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setExpanded((v) => !v); } } : undefined}
+    >
+      {name}
+    </div>
+  );
+}
+
 /* ---------- Empty state (illustration + CTA) ---------- */
 export function EmptyState({ icon = "box", title, hint, actionLabel, onAction, tone }) {
   return (

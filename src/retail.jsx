@@ -7,7 +7,7 @@ import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
 import { ReceiveModal } from "./receive.jsx";
-import { MoneyInput, costUnitPrice, EmptyState } from "./components.jsx";
+import { MoneyInput, costUnitPrice, EmptyState, ProdName } from "./components.jsx";
 import { Select } from "./ui-controls.jsx";
 import { currentQuery, replaceUrl } from "./routes.js";
 import { useRefresh } from "./refresh.js";
@@ -213,7 +213,7 @@ export function Inventory({ onToast, onOpenOrder }) {
                     <div className="cell-prod">
                       <div className="thumb" style={{ background: "var(--accent)" }}><Icon name="box" size={19} stroke={1.7} /></div>
                       <div style={{ minWidth: 0 }}>
-                        <div className="pn">{p.name}</div>
+                        <ProdName name={p.name} className="pn" />
                         <div className="pm mono">{p.sku}</div>
                       </div>
                     </div>
@@ -299,7 +299,7 @@ function TrashList({ items, onRestore }) {
               <div className="cell-prod">
                 <div className="thumb" style={{ background: "var(--st-slate)" }}><Icon name="box" size={19} stroke={1.7} /></div>
                 <div style={{ minWidth: 0 }}>
-                  <div className="pn">{p.name}</div>
+                  <ProdName name={p.name} className="pn" />
                   <div className="pm mono">{p.sku}</div>
                 </div>
               </div>
