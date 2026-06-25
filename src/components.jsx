@@ -61,6 +61,61 @@ export function ProductThumb({ order, lg }) {
   );
 }
 
+/* ---------- Ảnh phóng to (hover preview desktop + click lightbox mọi thiết bị) ----------
+   Thumbnail nhỏ (42px) khó xem. Rê chuột → preview lớn nổi cạnh ảnh (định vị fixed nên
+   không bị bảng overflow cắt); bấm → lightbox toàn màn (Esc/click nền để đóng). Mobile
+   không hover được nên dựa vào click. */
+export function ZoomImage({ src, alt, className }) {
+  const [open, setOpen] = React.useState(false);       // lightbox
+  const [pv, setPv] = React.useState(null);            // {left,top,size} preview hover
+  const wrapRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  const showPreview = () => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const size = 260, gap = 12;
+    let left = r.right + gap;                                   // ưu tiên bên phải
+    if (left + size > window.innerWidth - 8) left = r.left - gap - size; // hết chỗ → sang trái
+    const top = Math.max(8, Math.min(r.top + r.height / 2 - size / 2, window.innerHeight - size - 8));
+    setPv({ left, top, size });
+  };
+
+  return (
+    <>
+      <span className="zoom-wrap" ref={wrapRef}
+            onMouseEnter={showPreview} onMouseLeave={() => setPv(null)}>
+        <img className={"prod-thumb zoom-thumb" + (className ? " " + className : "")}
+             src={src} alt={alt} referrerPolicy="no-referrer" loading="lazy"
+             onClick={(e) => { e.stopPropagation(); setPv(null); setOpen(true); }} />
+        {pv && (
+          <span className="zoom-preview" aria-hidden="true"
+                style={{ left: pv.left, top: pv.top, width: pv.size, height: pv.size }}>
+            <img src={src} alt="" referrerPolicy="no-referrer" />
+          </span>
+        )}
+      </span>
+      {open && (
+        <div className="overlay overlay-top lightbox" onClick={() => setOpen(false)}>
+          <div className="lightbox-inner" onClick={(e) => e.stopPropagation()}>
+            <img src={src} alt={alt} referrerPolicy="no-referrer" />
+            <button className="lightbox-x" onClick={() => setOpen(false)} aria-label="đóng">
+              <Icon name="close" size={18} />
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 /* ---------- Product name (clamp 2 dòng, click bung full) ----------
    Tên dài bị cắt còn 2 dòng kèm dấu "…". Hover hiện tooltip tên đầy đủ;
    click vào tên thì bung toàn bộ ngay tại chỗ (không vỡ layout của hàng).

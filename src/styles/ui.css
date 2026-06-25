@@ -324,6 +324,24 @@ a.code-chip:hover .x-ic{ opacity:1; }
 .mini-table td.cell-mid{ vertical-align:middle; }
 .prod-thumb{ width:42px; height:42px; object-fit:cover; border-radius:8px; border:1px solid var(--line); display:block; background:var(--surface-3); }
 
+/* Phóng to ảnh: hover preview (desktop) + click lightbox (mọi thiết bị) — xem ZoomImage */
+.zoom-wrap{ position:relative; display:inline-block; line-height:0; }
+.zoom-thumb{ cursor:zoom-in; transition:border-color .12s var(--ease); }
+.zoom-thumb:hover{ border-color:var(--accent); }
+.zoom-preview{ position:fixed; z-index:75; padding:4px; background:var(--bg); border:1px solid var(--line-2);
+  border-radius:12px; box-shadow:var(--shadow-lg); pointer-events:none; animation:zoom-pop .12s var(--ease); }
+.zoom-preview img{ width:100%; height:100%; object-fit:contain; border-radius:9px; display:block; background:var(--surface-3); }
+@keyframes zoom-pop{ from{ opacity:0; transform:scale(.92); } to{ opacity:1; transform:scale(1); } }
+
+.lightbox{ display:flex; align-items:center; justify-content:center; cursor:zoom-out; }
+.lightbox-inner{ position:relative; max-width:86vw; max-height:86vh; cursor:default; animation:zoom-in .16s var(--ease); }
+.lightbox-inner img{ max-width:86vw; max-height:86vh; object-fit:contain; border-radius:14px; box-shadow:var(--shadow-lg); display:block; background:var(--surface-3); }
+.lightbox-x{ position:absolute; top:-13px; right:-13px; width:34px; height:34px; border-radius:50%; padding:0;
+  border:1px solid var(--line-2); background:var(--bg); color:var(--ink); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-md); }
+.lightbox-x:hover{ background:var(--surface-2); }
+@keyframes zoom-in{ from{ opacity:0; transform:scale(.85); } to{ opacity:1; transform:scale(1); } }
+
 /* layout cố định → bảng LUÔN vừa khung, cột tên co giãn + tự xuống dòng, các cột giá không bị cắt */
 .prod-table{ table-layout:fixed; width:100%; }
 .prod-table th, .prod-table td{ padding:9px 8px; overflow:hidden; }
