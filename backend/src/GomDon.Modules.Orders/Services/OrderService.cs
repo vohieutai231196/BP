@@ -41,6 +41,10 @@ public sealed class OrderService : IOrderService
         return t.Trim(' ', '-', '·', ',', '|', ':', '/').Trim();
     }
 
+    /// <summary>Tên còn "đủ nghĩa" để hiển thị sau khi bỏ tiếng Trung: còn ≥ 6 ký tự chữ/số.
+    /// Ngăn việc một tiêu đề chủ yếu tiếng Trung bị rút thành mẩu Latin lẻ (vd "ins").</summary>
+    private static bool IsMeaningfulName(string s) => s.Count(char.IsLetterOrDigit) >= 6;
+
     // Từ điển màu/đặc điểm thường gặp — CHỈ dùng làm dự phòng khi AI lỗi/thiếu key
     // (dịch chính đã chuyển hoàn toàn sang AI). Giữ lại để offline vẫn có bản tối thiểu.
     private static readonly Dictionary<string, string> ColorMap = new()
@@ -100,10 +104,14 @@ public sealed class OrderService : IOrderService
                 var clean = StripCjk(spec);
                 l.SpecVi = string.IsNullOrWhiteSpace(clean) ? "(không rõ)" : clean;
             }
+            // Tên SP: KHÔNG strip thành rác. Nếu sau khi bỏ chữ Hán phần còn lại quá ngắn
+            // (tên vốn chủ yếu là tiếng Trung, vd "ins风简约连衣裙" -> "ins"), thì GIỮ NGUYÊN
+            // tên gốc (og:title) để người dùng thấy tên thật & tự sửa, thay vì mẩu Latin vô
+            // nghĩa. Chỉ strip khi phần còn lại đủ nghĩa (tên vốn phần lớn là Latin/số).
             if (!string.IsNullOrWhiteSpace(l.Name) && CjkChars.IsMatch(l.Name))
             {
                 var clean = StripCjk(l.Name);
-                l.Name = string.IsNullOrWhiteSpace(clean) ? "(không rõ)" : clean;
+                if (IsMeaningfulName(clean)) l.Name = clean;
             }
         }
 

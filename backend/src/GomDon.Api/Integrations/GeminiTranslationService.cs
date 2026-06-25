@@ -34,10 +34,12 @@ public sealed class GeminiTranslationService : ITranslationService
         }
         var model = _config["Gemini:Model"] ?? "gemini-2.5-flash";
 
+        // Trả về MẢNG theo thứ tự (không bắt model lặp lại key tiếng Trung — vốn hay bị
+        // chuẩn hoá/đổi nên không khớp lại được). Service tự ghép input[i] -> output[i].
         var prompt = "Dịch tên/đặc điểm/màu/kích cỡ sản phẩm thương mại điện tử từ tiếng Trung sang tiếng Việt, " +
                      "tự nhiên, gọn; KHÔNG để sót chữ Hán nào trong bản dịch. " +
-                     "Chỉ trả về JSON object map mỗi cụm đầu vào sang bản dịch tiếng Việt (key đúng nguyên văn đầu vào). " +
-                     "Danh sách cần dịch: " + JsonSerializer.Serialize(list);
+                     "Trả về DUY NHẤT một JSON array các bản dịch tiếng Việt theo ĐÚNG THỨ TỰ và ĐÚNG SỐ LƯỢNG cụm đầu vào, " +
+                     "không thêm gì khác. Danh sách cần dịch (theo thứ tự): " + JsonSerializer.Serialize(list);
 
         var body = new
         {
@@ -45,7 +47,7 @@ public sealed class GeminiTranslationService : ITranslationService
             generationConfig = new
             {
                 temperature = 0,
-                maxOutputTokens = 2048,
+                maxOutputTokens = 4096,
                 responseMimeType = "application/json",
                 thinkingConfig = new { thinkingBudget = 0 },
             },
@@ -72,15 +74,21 @@ public sealed class GeminiTranslationService : ITranslationService
                 .GetProperty("content").GetProperty("parts")[0]
                 .GetProperty("text").GetString() ?? "";
 
-            var jsonText = ExtractJsonObject(text);
+            var jsonText = ExtractJsonArray(text);
             if (jsonText is null) return empty;
 
-            using var map = JsonDocument.Parse(jsonText);
+            using var arr = JsonDocument.Parse(jsonText);
+            if (arr.RootElement.ValueKind != JsonValueKind.Array) return empty;
+            var translations = arr.RootElement.EnumerateArray()
+                .Select(e => e.ValueKind == JsonValueKind.String ? e.GetString() : e.ToString())
+                .ToList();
+
+            // Ghép theo CHỈ SỐ: key = đúng nguyên văn input → OrderService luôn match được.
             var result = new Dictionary<string, string>();
-            foreach (var p in map.RootElement.EnumerateObject())
+            for (var i = 0; i < list.Count && i < translations.Count; i++)
             {
-                var v = p.Value.ValueKind == JsonValueKind.String ? p.Value.GetString() : p.Value.ToString();
-                if (!string.IsNullOrWhiteSpace(v)) result[p.Name] = v!;
+                var v = translations[i];
+                if (!string.IsNullOrWhiteSpace(v)) result[list[i]] = v!;
             }
             _log.LogInformation("Gemini đã dịch {N}/{Total} cụm sang tiếng Việt.", result.Count, list.Count);
             return result;
@@ -92,10 +100,10 @@ public sealed class GeminiTranslationService : ITranslationService
         }
     }
 
-    private static string? ExtractJsonObject(string text)
+    private static string? ExtractJsonArray(string text)
     {
-        var start = text.IndexOf('{');
-        var end = text.LastIndexOf('}');
+        var start = text.IndexOf('[');
+        var end = text.LastIndexOf(']');
         return (start >= 0 && end > start) ? text.Substring(start, end - start + 1) : null;
     }
 }

@@ -82,7 +82,7 @@ public class OrderServiceTests
     }
 
     [Fact]
-    public async Task Ingest_translates_product_name_via_ai_and_leaves_no_chinese()
+    public async Task Ingest_translates_product_name_via_ai()
     {
         var repo = new FakeRepo();
         var svc = new OrderService(repo, new IngestOrderRequestValidator(),
@@ -91,15 +91,46 @@ public class OrderServiceTests
         await svc.IngestAsync(new IngestOrderRequest
         {
             ProductName = "P", CustomerName = "C", Rate = 4035,
-            Links =
-            {
-                new IngestLink { Idx = 1, LinkCode = "1", Name = "女宝鞋子", SourceUrl = "https://detail.1688.com/offer/1.html" },
-                new IngestLink { Idx = 2, LinkCode = "2", Name = "未翻译中文名" }, // AI không dịch → vẫn phải sạch tiếng Trung
-            },
+            Links = { new IngestLink { Idx = 1, LinkCode = "1", Name = "女宝鞋子", SourceUrl = "https://detail.1688.com/offer/1.html" } },
         });
 
         Assert.Equal("Giày bé gái", repo.Ingested!.Links[0].Name);
-        Assert.All(repo.Ingested!.Links, l => Assert.False(HasChinese(l.Name), $"tên còn tiếng Trung: {l.Name}"));
+    }
+
+    // Tên chủ yếu tiếng Trung, dịch trượt → KHÔNG được rút thành mẩu Latin lẻ ("ins").
+    // Giữ nguyên og:title gốc để người dùng thấy tên thật & tự sửa (plan B).
+    [Fact]
+    public async Task Ingest_keeps_original_name_when_strip_would_leave_only_latin_debris()
+    {
+        var (svc, repo) = Make();   // NoopTranslation → AI không dịch được gì
+        const string raw = "ins风简约百搭连衣裙";
+
+        await svc.IngestAsync(new IngestOrderRequest
+        {
+            ProductName = "P", CustomerName = "C", Rate = 4035,
+            Links = { new IngestLink { Idx = 1, LinkCode = "1", Name = raw } },
+        });
+
+        var name = repo.Ingested!.Links[0].Name;
+        Assert.Equal(raw, name);            // giữ nguyên, KHÔNG strip
+        Assert.NotEqual("ins", name);       // không còn là rác Latin
+    }
+
+    // Tên còn nhiều phần Latin có nghĩa → vẫn loại tiếng Trung như cũ.
+    [Fact]
+    public async Task Ingest_strips_chinese_from_name_when_latin_remainder_is_meaningful()
+    {
+        var (svc, repo) = Make();   // NoopTranslation
+
+        await svc.IngestAsync(new IngestOrderRequest
+        {
+            ProductName = "P", CustomerName = "C", Rate = 4035,
+            Links = { new IngestLink { Idx = 1, LinkCode = "1", Name = "Nike Air Max 中国限定版" } },
+        });
+
+        var name = repo.Ingested!.Links[0].Name;
+        Assert.False(HasChinese(name), $"tên còn tiếng Trung: {name}");
+        Assert.Contains("Nike Air Max", name);
     }
 
     [Fact]
