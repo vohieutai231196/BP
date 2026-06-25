@@ -25,14 +25,14 @@ public sealed class ReportRepository : IReportRepository
     {
         using var conn = _factory.Create();
         var rows = await conn.QueryAsync<SkuProfit>(new CommandDefinition(
-            @"SELECT p.id AS ProductId, p.sku AS Sku, p.name AS Name,
+            @"SELECT p.id AS ProductId, p.sku AS Sku, p.name AS Name, p.image_url AS ImageUrl,
                      COALESCE(SUM(si.qty),0) AS QtySold,
                      COALESCE(SUM(si.qty*si.unit_price),0) AS Revenue,
                      COALESCE(SUM(si.qty*(si.unit_price - si.unit_cost)),0) AS Margin
               FROM sale_items si
               JOIN products p ON p.id = si.product_id
               JOIN sales s ON s.id = si.sale_id AND s.status <> 'returned'
-              GROUP BY p.id, p.sku, p.name
+              GROUP BY p.id, p.sku, p.name, p.image_url
               ORDER BY Margin DESC;", cancellationToken: ct));
         return rows.ToList();
     }

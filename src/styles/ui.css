@@ -324,6 +324,11 @@ a.code-chip:hover .x-ic{ opacity:1; }
 .mini-table td.cell-mid{ vertical-align:middle; }
 .prod-thumb{ width:42px; height:42px; object-fit:cover; border-radius:8px; border:1px solid var(--line); display:block; background:var(--surface-3); }
 
+/* Ảnh SP trong list khớp footprint với placeholder .thumb (44px), bản nhỏ 28px */
+.prod-thumb.thumb-img{ width:44px; height:44px; border-radius:10px; }
+.prod-thumb.thumb-sm{ width:28px; height:28px; border-radius:8px; }
+.thumb.thumb-sm{ width:28px; height:28px; border-radius:8px; }
+
 /* Phóng to ảnh: hover preview (desktop) + click lightbox (mọi thiết bị) — xem ZoomImage */
 .zoom-wrap{ position:relative; display:inline-block; line-height:0; }
 .zoom-thumb{ cursor:zoom-in; transition:border-color .12s var(--ease); }

@@ -5,7 +5,7 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
-import { MoneyInput, EmptyState } from "./components.jsx";
+import { MoneyInput, EmptyState, ProductImg } from "./components.jsx";
 import { Select, DateField } from "./ui-controls.jsx";
 import { useRefresh } from "./refresh.js";
 
@@ -145,6 +145,7 @@ function PromoModal({ promo, onRun, onClose, onToast }) {
                   return (
                     <div key={p.id} onClick={() => toggle(p.id)} className={"cost-line" + (on ? "" : " off")} style={{ cursor: "pointer" }}>
                       <span className={"cost-chk" + (on ? " on" : "")}><Icon name={on ? "check" : "plus"} size={15} /></span>
+                      <ProductImg imageUrl={p.imageUrl} alt={p.name} sm />
                       <span className="nm">{p.name} <span className="pm mono">{p.sku}</span></span>
                       <span className="mono cell-sub">{fmt(p.listPrice)}₫</span>
                     </div>

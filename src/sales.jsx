@@ -5,7 +5,7 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
-import { MoneyInput, costUnitPrice, resolveCostAmount, EmptyState } from "./components.jsx";
+import { MoneyInput, costUnitPrice, resolveCostAmount, EmptyState, ProductImg } from "./components.jsx";
 import { Select } from "./ui-controls.jsx";
 import { useRefresh } from "./refresh.js";
 
@@ -176,7 +176,7 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
 
   const addItem = (p, lineType = "ban") => setItems((xs) => xs.some((x) => x.productId === p.id && x.lineType === lineType) ? xs
     : [...xs, {
-        productId: p.id, sku: p.sku, name: p.name, stock: p.stock, avgCost: p.avgCost, qty: 1, lineType,
+        productId: p.id, sku: p.sku, name: p.name, imageUrl: p.imageUrl, stock: p.stock, avgCost: p.avgCost, qty: 1, lineType,
         unitPrice: lineType === "tang" ? 0 : (promos[p.id]?.price ?? p.listPrice ?? p.avgCost),
         promoName: lineType === "ban" ? (promos[p.id]?.name || null) : null,
         promoId: lineType === "ban" ? (promos[p.id]?.promotionId ?? null) : null,
@@ -260,6 +260,7 @@ function CreateSaleModal({ onClose, onDone, onToast }) {
             const stockLabel = x.stock <= 0 ? "Hết hàng" : x.stock <= 10 ? `Sắp hết · ${x.stock}` : `Tồn ${x.stock}`;
             return (
             <div key={x.productId + "-" + x.lineType} className="cost-line">
+              <ProductImg imageUrl={x.imageUrl} alt={x.name} sm />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="pn">{x.name}
                   <span className="tag-mini" style={stockStyle}>{stockLabel}</span>

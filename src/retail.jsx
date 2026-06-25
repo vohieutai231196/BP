@@ -7,7 +7,7 @@ import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
 import { ReceiveModal } from "./receive.jsx";
-import { MoneyInput, costUnitPrice, EmptyState, ProdName } from "./components.jsx";
+import { MoneyInput, costUnitPrice, EmptyState, ProdName, ProductImg } from "./components.jsx";
 import { Select } from "./ui-controls.jsx";
 import { currentQuery, replaceUrl } from "./routes.js";
 import { useRefresh } from "./refresh.js";
@@ -211,7 +211,7 @@ export function Inventory({ onToast, onOpenOrder }) {
                   <td className="chk-col"><input type="checkbox" className="dg-chk" checked={sel.has(p.id)} onChange={() => toggleSel(p.id)} aria-label={"Chọn " + p.sku} /></td>
                   <td>
                     <div className="cell-prod">
-                      <div className="thumb" style={{ background: "var(--accent)" }}><Icon name="box" size={19} stroke={1.7} /></div>
+                      <ProductImg imageUrl={p.imageUrl} alt={p.name} />
                       <div style={{ minWidth: 0 }}>
                         <ProdName name={p.name} className="pn" />
                         <div className="pm mono">{p.sku}</div>
@@ -297,7 +297,7 @@ function TrashList({ items, onRestore }) {
           <tr key={p.id}>
             <td>
               <div className="cell-prod">
-                <div className="thumb" style={{ background: "var(--st-slate)" }}><Icon name="box" size={19} stroke={1.7} /></div>
+                <ProductImg imageUrl={p.imageUrl} alt={p.name} tint="var(--st-slate)" />
                 <div style={{ minWidth: 0 }}>
                   <ProdName name={p.name} className="pn" />
                   <div className="pm mono">{p.sku}</div>
@@ -391,7 +391,7 @@ function GroupedByOrder({ onOpenOrder, onToast }) {
                   const q = (p.sourceOrders || []).find((s) => s.orderId === g.orderId)?.qty ?? 0;
                   return (
                     <div className="imp-row" key={p.id}>
-                      <div className="thumb" style={{ background: "var(--accent)", width: 28, height: 28 }}><Icon name="box" size={16} stroke={1.7} /></div>
+                      <ProductImg imageUrl={p.imageUrl} alt={p.name} sm />
                       <div style={{ minWidth: 0 }}><div className="pn" style={{ fontSize: 13 }}>{p.name}</div><div className="pm mono">{p.sku}</div></div>
                       <span style={{ flex: 1 }} />
                       <span className="cell-money">{Number(q).toLocaleString("vi-VN")} cái</span>

@@ -5,7 +5,7 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
-import { MoneyInput, EmptyState } from "./components.jsx";
+import { MoneyInput, EmptyState, ProductImg } from "./components.jsx";
 import { Select } from "./ui-controls.jsx";
 import { useRefresh } from "./refresh.js";
 
@@ -49,7 +49,7 @@ export function Combos({ onToast }) {
                   <tr key={c.id}>
                     <td>
                       <div className="cell-prod">
-                        <div className="thumb" style={{ background: "var(--accent)" }}><Icon name="box" size={19} stroke={1.7} /></div>
+                        <ProductImg imageUrl={c.imageUrl} alt={c.name} />
                         <div><div className="pn">{c.name}</div><div className="pm mono">{c.code} · {c.itemCount} món</div></div>
                       </div>
                     </td>

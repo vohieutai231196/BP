@@ -15,6 +15,7 @@ public sealed class SkuProfit
     public long ProductId { get; set; }
     public string Sku { get; set; } = "";
     public string Name { get; set; } = "";
+    public string? ImageUrl { get; set; }
     public long QtySold { get; set; }
     public long Revenue { get; set; }
     public long Margin { get; set; }

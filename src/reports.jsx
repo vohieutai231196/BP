@@ -4,6 +4,7 @@
 import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
+import { ProductImg } from "./components.jsx";
 import { useRefresh } from "./refresh.js";
 
 const fmt = (n) => Number(n || 0).toLocaleString("vi-VN");
@@ -48,7 +49,7 @@ export function Reports({ onToast }) {
             {data.bySku.length === 0 ? <tr><td colSpan={4} className="cell-sub" style={{ textAlign: "center", padding: 20 }}>Chưa có dữ liệu</td></tr>
               : data.bySku.map((s) => (
                 <tr key={s.productId}>
-                  <td><div className="pn">{s.name}</div><div className="pm mono">{s.sku}</div></td>
+                  <td><div className="cell-prod"><ProductImg imageUrl={s.imageUrl} alt={s.name} /><div style={{ minWidth: 0 }}><div className="pn">{s.name}</div><div className="pm mono">{s.sku}</div></div></div></td>
                   <td className="cell-money">{fmt(s.qtySold)}</td>
                   <td className="cell-money">{fmt(s.revenue)}₫</td>
                   <td className={"cell-money " + (s.margin >= 0 ? "pos" : "neg")}>{(s.margin >= 0 ? "+" : "") + fmt(s.margin)}₫</td>

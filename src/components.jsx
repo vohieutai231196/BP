@@ -2,6 +2,7 @@ import React from "react";
 import { Icon } from "./icons.jsx";
 import DATA from "./data.js";
 import { routeHref } from "./routes.js";
+import { imgUrl, imgUrlLarge } from "./api.js";
 
 /* ---------- Money input ----------
    Ô nhập tiền: hiển thị phân tách hàng nghìn (14.759) cho dễ đọc, nhưng emit
@@ -115,6 +116,22 @@ export function ZoomImage({ src, zoomSrc, alt, className }) {
         </div>
       )}
     </>
+  );
+}
+
+/* ---------- Ảnh sản phẩm cho list: ảnh thật (rê/click phóng to) hoặc placeholder icon ----------
+   Có ảnh → ZoomImage (thumbnail nhỏ + zoom nét); không có ảnh → ô icon sọc như cũ. Dùng chung
+   cho mọi bảng sản phẩm để đồng nhất trải nghiệm phóng to với đơn hàng. */
+export function ProductImg({ imageUrl, alt, tint = "var(--accent)", sm = false }) {
+  if (imageUrl)
+    return (
+      <ZoomImage src={imgUrl(imageUrl)} zoomSrc={imgUrlLarge(imageUrl)} alt={alt || ""}
+                 className={"thumb-img" + (sm ? " thumb-sm" : "")} />
+    );
+  return (
+    <div className={"thumb" + (sm ? " thumb-sm" : "")} style={{ background: tint }}>
+      <Icon name="box" size={sm ? 16 : 19} stroke={1.7} />
+    </div>
   );
 }
 
