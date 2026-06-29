@@ -65,3 +65,46 @@
   .login-wrap{ grid-template-columns:1fr; }
   .login-brand{ display:none; }
 }
+
+/* ============================================================
+   MOTION — the hero load is the one orchestrated moment:
+   the seal stamps the paper, then the route draws itself in.
+   (gd-rise / gd-draw-x live in ui.css; reduced-motion in theme.css.)
+   ============================================================ */
+@keyframes gd-seal{
+  0%{ opacity:0; transform:translateY(-16px) scale(1.5) rotate(-10deg); }
+  55%{ opacity:1; transform:translateY(2px) scale(.92) rotate(2deg); }   /* the press */
+  78%{ transform:translateY(0) scale(1.02) rotate(0); }
+  100%{ opacity:1; transform:none; }
+}
+@keyframes gd-bead{ 0%{ opacity:0; transform:scale(.2); } 70%{ opacity:1; transform:scale(1.14); } 100%{ transform:scale(1); } }
+
+/* the chop hits the paper */
+.lb-top .sb-logo{ animation:gd-seal .62s cubic-bezier(.3,1.25,.5,1) both; }
+.lb-top .sb-name{ animation:gd-rise .4s var(--ease) both; animation-delay:.18s; }
+
+/* left column reveals in reading order */
+.lb-mid .eyebrow{ animation:gd-rise .5s var(--ease) both; animation-delay:.30s; }
+.lb-mid h1{ animation:gd-rise .55s var(--ease) both; animation-delay:.38s; }
+.lb-mid p{ animation:gd-rise .55s var(--ease) both; animation-delay:.48s; }
+.lb-stats{ animation:gd-rise .5s var(--ease) both; animation-delay:.58s; }
+
+/* the freight route draws itself: each bead pops, then its leg extends */
+.lb-flow{ animation:gd-fade .3s var(--ease) both; animation-delay:.62s; }
+.lbf-num{ animation:gd-bead .42s var(--ease) both; }
+.lbf-label{ animation:gd-rise .4s var(--ease) both; }
+.lbf-step::before{ transform-origin:left center; animation:gd-draw-x .4s var(--ease) both; }
+.lbf-step:nth-child(1) .lbf-num{ animation-delay:.70s; } .lbf-step:nth-child(1) .lbf-label{ animation-delay:.74s; } .lbf-step:nth-child(1)::before{ animation-delay:.80s; }
+.lbf-step:nth-child(2) .lbf-num{ animation-delay:.82s; } .lbf-step:nth-child(2) .lbf-label{ animation-delay:.86s; } .lbf-step:nth-child(2)::before{ animation-delay:.92s; }
+.lbf-step:nth-child(3) .lbf-num{ animation-delay:.94s; } .lbf-step:nth-child(3) .lbf-label{ animation-delay:.98s; } .lbf-step:nth-child(3)::before{ animation-delay:1.04s; }
+.lbf-step:nth-child(4) .lbf-num{ animation-delay:1.06s; } .lbf-step:nth-child(4) .lbf-label{ animation-delay:1.10s; } .lbf-step:nth-child(4)::before{ animation-delay:1.16s; }
+.lbf-step:nth-child(5) .lbf-num{ animation-delay:1.18s; } .lbf-step:nth-child(5) .lbf-label{ animation-delay:1.22s; }
+
+/* right column: the form settles in after the brand has spoken */
+.login-form > *{ animation:gd-rise .45s var(--ease) both; }
+.login-form > *:nth-child(1){ animation-delay:.16s; }
+.login-form > *:nth-child(2){ animation-delay:.24s; }
+.login-form > *:nth-child(3){ animation-delay:.32s; }
+.login-form > *:nth-child(4){ animation-delay:.40s; }
+.login-form > *:nth-child(5){ animation-delay:.48s; }
+.login-form > *:nth-child(6){ animation-delay:.56s; }

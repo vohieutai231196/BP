@@ -35,7 +35,7 @@ import { RefreshContext } from "./refresh.js";
 
 const { useState, useEffect, useCallback } = React;
 
-const TWEAK_DEFAULTS = { accent: "#1b7a5c", layout: "Bảng", density: "Thoáng" };
+const TWEAK_DEFAULTS = { accent: "#1f7a63", layout: "Bảng", density: "Thoáng" };
 const LAYOUT_MAP = { "Bảng": "table", "Danh sách": "rows", "Thẻ": "cards" };
 
 function shade(hex, pct) {
@@ -197,7 +197,7 @@ function App() {
       <>
         <TweakSection label="Giao diện" />
         <TweakColor label="Màu nhấn" value={t.accent}
-          options={["#1b7a5c", "#c0392b", "#b07d1a", "#1e7e84"]}
+          options={["#1f7a63", "#c0392b", "#a8801e", "#1e7e84"]}
           onChange={(v) => setTweak("accent", v)} />
         <TweakRadio label="Mật độ" value={t.density}
           options={["Thoáng", "Gọn"]}

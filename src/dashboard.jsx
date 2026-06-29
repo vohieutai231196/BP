@@ -73,7 +73,7 @@ export function Dashboard({ summary, recent, onOpen, onNav }) {
             <div className="bars">
               {series.map((s, i) => (
                 <div className="bar-col" key={i} title={`${s.label}: ${s.count} đơn`}>
-                  <div className="bar" style={{ height: (s.count / maxCount * 100) + "%" }} />
+                  <div className="bar" style={{ height: (s.count / maxCount * 100) + "%", "--i": i }} />
                   <span className="bar-x">{s.label}</span>
                 </div>
               ))}

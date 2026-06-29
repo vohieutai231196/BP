@@ -46,7 +46,7 @@
 .sb-footer{ padding:14px; border-top:1px solid var(--sidebar-line); }
 .sb-user{ display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:10px; }
 .sb-user:hover{ background:var(--sidebar-hover); }
-.sb-avatar{ width:34px; height:34px; border-radius:50%; flex:none; background:linear-gradient(135deg,#1b7a5c,#2e8d68); display:grid; place-items:center; color:#fff; font-weight:700; font-size:13px; }
+.sb-avatar{ width:34px; height:34px; border-radius:50%; flex:none; background:linear-gradient(135deg,#1f7a63,#2b9079); display:grid; place-items:center; color:#fff; font-weight:700; font-size:13px; }
 .sb-user-info{ line-height:1.3; }
 .sb-user-info b{ font-size:13.5px; font-weight:600; }
 .sb-user-info span{ display:block; font-size:11.5px; color:var(--sidebar-muted); }
@@ -410,3 +410,61 @@ a.code-chip:hover .x-ic{ opacity:1; }
 .role-opt .ro-t{ display:flex; flex-direction:column; line-height:1.35; }
 .role-opt .ro-t b{ font-size:14px; }
 .role-opt .ro-t span{ font-size:12.5px; color:var(--faint); }
+
+/* ============================================================
+   MOTION — "Đóng dấu" (The Stamp)
+   Two gestures only: pressing a seal, and a parcel advancing the
+   route. Everything else is a single quiet page-rise. All of it
+   collapses to nothing under prefers-reduced-motion (theme.css).
+   ============================================================ */
+@keyframes gd-rise   { from{ opacity:0; transform:translateY(9px); } to{ opacity:1; transform:none; } }
+@keyframes gd-draw-x { from{ transform:scaleX(0); } to{ transform:scaleX(1); } }
+@keyframes gd-bar    { from{ transform:scaleY(0); } to{ transform:scaleY(1); } }
+@keyframes gd-fade   { from{ opacity:0; } to{ opacity:1; } }
+@keyframes gd-slide  { from{ opacity:0; transform:translateX(36px); } to{ opacity:1; transform:none; } }
+@keyframes gd-pop    { from{ opacity:0; transform:translateY(10px) scale(.97); } to{ opacity:1; transform:none; } }
+/* the seal hits the paper: a confirmation lands with a tiny press */
+@keyframes gd-stamp-in{ 0%{ opacity:0; transform:translate(-50%,10px) scale(.86); }
+  60%{ opacity:1; transform:translate(-50%,-2px) scale(1.03); } 100%{ transform:translate(-50%,0) scale(1); } }
+/* current node: the parcel sits here, a ring breathes outward */
+@keyframes gd-pulse  { 0%{ box-shadow:0 0 0 0 var(--accent-soft); } 70%{ box-shadow:0 0 0 8px rgba(0,0,0,0); } 100%{ box-shadow:0 0 0 0 rgba(0,0,0,0); } }
+
+/* ---- page entrance: one disciplined rise per mounted view ---- */
+.fade-in{ animation:gd-rise .42s var(--ease) both; }
+
+/* ---- KPI ledger-tabs wipe in like marks struck on a manifest ---- */
+.kpi{ transition:transform .16s var(--ease), box-shadow .16s var(--ease), border-color .16s var(--ease); }
+.kpi:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); border-color:var(--line-2); }
+.kpi::before{ transform-origin:left center; animation:gd-draw-x .5s var(--ease) both; animation-delay:.22s; }
+.kpi:nth-child(2)::before{ animation-delay:.30s; }
+.kpi:nth-child(3)::before{ animation-delay:.38s; }
+.kpi:nth-child(4)::before{ animation-delay:.46s; }
+
+/* ---- bars grow from the baseline, sweeping left→right (--i set inline) ---- */
+.bar{ transform-origin:bottom; animation:gd-bar .5s var(--ease) both; animation-delay:calc(.3s + var(--i,0) * .03s); }
+
+/* ---- nav: the gold journey thread strikes down when a stop is active ---- */
+.sb-item.active::before{ transform-origin:center; animation:gd-draw-y .28s var(--ease) both; }
+@keyframes gd-draw-y { from{ transform:scaleY(0); } to{ transform:scaleY(1); } }
+
+/* ---- micro-interactions: presses you can feel, nothing flashy ---- */
+.btn{ transition:.15s var(--ease), transform .08s var(--ease); }
+.btn:active{ transform:translateY(1px); }
+.btn-primary:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(27,98,72,.32); }
+.btn-primary:active{ transform:translateY(0); }
+.icon-btn{ transition:.15s var(--ease), transform .08s var(--ease); }
+.icon-btn:active{ transform:translateY(1px); }
+.chip:active, .seg-item:active{ transform:translateY(1px); }
+
+/* ---- overlays arrive with intent ---- */
+.overlay{ animation:gd-fade .22s var(--ease) both; }
+.drawer{ animation:gd-slide .34s var(--ease) both; }
+.modal-card{ animation:gd-pop .26s var(--ease) both; }
+
+/* ---- a saved/changed confirmation is stamped, not slid ---- */
+.toast{ animation:gd-stamp-in .4s cubic-bezier(.34,1.4,.5,1) both; }
+
+/* ---- order timeline: where the parcel is now keeps breathing ---- */
+.tl-node.cur{ animation:gd-pulse 2.4s ease-in-out infinite; }
+/* completed legs draw downward as the journey fills in */
+.tl-line.done{ transform-origin:top; animation:gd-bar .45s var(--ease) both; animation-delay:.15s; }

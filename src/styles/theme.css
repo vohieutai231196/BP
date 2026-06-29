@@ -16,11 +16,11 @@
   --r-lg: 13px;
   --r-xl: 20px;
 
-  /* warm, paper-toned shadows (not cool gray) */
-  --shadow-sm: 0 1px 2px rgba(40,30,12,.06), 0 1px 3px rgba(40,30,12,.05);
-  --shadow-md: 0 4px 14px rgba(40,30,12,.09), 0 2px 5px rgba(40,30,12,.05);
-  --shadow-lg: 0 20px 52px rgba(33,24,8,.18), 0 7px 18px rgba(33,24,8,.10);
-  --shadow-pop: 0 26px 64px rgba(28,20,6,.26);
+  /* soft, cool-neutral shadows (low-glare) */
+  --shadow-sm: 0 1px 2px rgba(20,24,33,.06), 0 1px 3px rgba(20,24,33,.05);
+  --shadow-md: 0 4px 14px rgba(20,24,33,.08), 0 2px 5px rgba(20,24,33,.05);
+  --shadow-lg: 0 20px 52px rgba(17,20,28,.16), 0 7px 18px rgba(17,20,28,.09);
+  --shadow-pop: 0 26px 64px rgba(15,18,26,.22);
 
   --sb-w: 256px;
   --topbar-h: 68px;
@@ -28,97 +28,97 @@
   --ease: cubic-bezier(.4,0,.2,1);
 }
 
-/* ---------- LIGHT ---------- */
+/* ---------- LIGHT (cool neutral — low glare, no yellow cast) ---------- */
 :root, [data-theme="light"]{
-  --bg: #ece6d9;          /* warm manila / packing paper */
-  --surface: #fcfaf5;     /* lifted paper — cards */
-  --surface-2: #f4eee2;
-  --surface-3: #e8e1d0;
-  --ink: #211c14;         /* warm sumi ink */
-  --ink-2: #433c2d;
-  --muted: #6e6553;
-  --faint: #9c917a;
-  --line: #ddd3bf;
-  --line-2: #cbbfa4;
+  --bg: #ebedf0;          /* soft cool gray — calm field, low glare */
+  --surface: #fbfcfd;     /* near-white card, faint cool */
+  --surface-2: #f1f3f6;
+  --surface-3: #e5e9ee;
+  --ink: #1e232b;         /* cool charcoal (not pure black) */
+  --ink-2: #3c4450;
+  --muted: #5e6675;
+  --faint: #96a0ae;
+  --line: #e0e4ea;
+  --line-2: #cdd4dd;
 
-  /* jade = action */
-  --accent: #1b7a5c;
-  --accent-ink: #1a6f54;
-  --accent-soft: #e0ede4;
-  --accent-2: #155e47;
+  /* jade = action (deep, calm) */
+  --accent: #1f7a63;
+  --accent-ink: #1c7059;
+  --accent-soft: #e2efe9;
+  --accent-2: #176450;
 
   /* cinnabar seal = signature (used sparingly) */
   --seal: #c0392b;
   --seal-2: #a52c20;
-  --seal-soft: #f6e3df;
+  --seal-soft: #f7e2df;
   /* gold = journey thread / premium hairline */
-  --gold: #b07d1a;
-  --gold-soft: #f1e6cb;
+  --gold: #a8801e;
+  --gold-soft: #f0e7cf;
 
-  /* sidebar = deep espresso-lacquer panel (anchors the app; also
+  /* sidebar = deep cool-ink lacquer panel (anchors the app; also
      drives the login hero, whose text is light) */
-  --sidebar-bg: #1a140d;
-  --sidebar-ink: #f3ecdd;
-  --sidebar-muted: #a5997f;
-  --sidebar-line: #322819;
+  --sidebar-bg: #181b22;
+  --sidebar-ink: #eef0f4;
+  --sidebar-muted: #99a1b0;
+  --sidebar-line: #272b34;
   --sidebar-active: rgba(255,255,255,.07);
   --sidebar-active-ink: #ffffff;
   --sidebar-accent: #d2a23f;       /* gold active thread */
   --sidebar-hover: rgba(255,255,255,.05);
   --sidebar-chip: rgba(255,255,255,.09);
 
-  /* status (warmed; lifecycle palette of the freight journey) */
-  --st-green:#2e7d55;   --st-green-bg:#e1efe3;   /* delivered / done   */
-  --st-amber:#9c6b12;   --st-amber-bg:#f4ead0;   /* buying (ties gold) */
+  /* status (lifecycle palette, on a cool-neutral field) */
+  --st-green:#2e7d58;   --st-green-bg:#e3efe9;   /* delivered / done   */
+  --st-amber:#946810;   --st-amber-bg:#f1e9d6;   /* buying (ties gold) */
   --st-blue:#1e7e84;    --st-blue-bg:#dcecee;    /* transit teal       */
-  --st-violet:#7e4e7e;  --st-violet-bg:#efe2ef;  /* in VN warehouse    */
-  --st-red:#be2f4b;     --st-red-bg:#f7e0e3;     /* complaint / alert  */
-  --st-slate:#5f6b5f;   --st-slate-bg:#e5e8e1;   /* waiting deposit    */
+  --st-violet:#6c5398;  --st-violet-bg:#e9e6f3;  /* in VN warehouse    */
+  --st-red:#c23149;     --st-red-bg:#f7e1e5;     /* complaint / alert  */
+  --st-slate:#5c6675;   --st-slate-bg:#e6e9ee;   /* waiting deposit    */
 
-  --pos:#2e7d55;
-  --neg:#be2f4b;
+  --pos:#2e7d58;
+  --neg:#c23149;
 }
 
-/* ---------- DARK (lacquer night) ---------- */
+/* ---------- DARK (cool ink night) ---------- */
 [data-theme="dark"]{
-  --bg: #13110c;          /* warm near-black */
-  --surface: #1c1812;
-  --surface-2: #231e16;
-  --surface-3: #2b251b;
-  --ink: #f2ecde;
-  --ink-2: #d2c9b4;
-  --muted: #9d927b;
-  --faint: #6f6553;
-  --line: #2f2819;
-  --line-2: #413827;
+  --bg: #0f1115;          /* cool near-black */
+  --surface: #171a20;
+  --surface-2: #1d212a;
+  --surface-3: #252b35;
+  --ink: #eef0f4;
+  --ink-2: #c3c9d3;
+  --muted: #8b93a1;
+  --faint: #5c6573;
+  --line: #262b34;
+  --line-2: #353c47;
 
-  --accent: #34a47c;
-  --accent-ink: #4cbf95;
-  --accent-soft: #16291f;
-  --accent-2: #2c8c69;
+  --accent: #2f9d7d;
+  --accent-ink: #46bd97;
+  --accent-soft: #15291f;
+  --accent-2: #268468;
 
   --seal: #d75646;
   --seal-2: #c0392b;
-  --seal-soft: #361712;
+  --seal-soft: #341619;
   --gold: #d2a23f;
-  --gold-soft: #2c2310;
+  --gold-soft: #2a2410;
 
-  --sidebar-bg: #0e0b07;
-  --sidebar-ink: #f1ead9;
-  --sidebar-muted: #998d74;
-  --sidebar-line: #241d12;
+  --sidebar-bg: #0b0d11;
+  --sidebar-ink: #eef0f4;
+  --sidebar-muted: #8b93a1;
+  --sidebar-line: #1c2027;
   --sidebar-active: rgba(255,255,255,.06);
   --sidebar-active-ink: #ffffff;
   --sidebar-accent: #d2a23f;
   --sidebar-hover: rgba(255,255,255,.05);
   --sidebar-chip: rgba(255,255,255,.08);
 
-  --st-green:#46b07e;   --st-green-bg:#13301f;
-  --st-amber:#d59b2f;   --st-amber-bg:#322509;
+  --st-green:#46b07e;   --st-green-bg:#11301f;
+  --st-amber:#d59b2f;   --st-amber-bg:#2f2509;
   --st-blue:#3fb0b7;    --st-blue-bg:#0e2b2d;
-  --st-violet:#b389b3;  --st-violet-bg:#2c1f2c;
+  --st-violet:#a98fd0;  --st-violet-bg:#211d33;
   --st-red:#e0697c;     --st-red-bg:#331319;
-  --st-slate:#8e978a;   --st-slate-bg:#22271f;
+  --st-slate:#8b93a1;   --st-slate-bg:#1f2530;
 
   --pos:#46b07e;
   --neg:#e0697c;
@@ -171,6 +171,7 @@ input:-webkit-autofill:active{
 @media (prefers-reduced-motion: reduce){
   *, *::before, *::after{
     animation-duration:.001ms !important; animation-iteration-count:1 !important;
-    transition-duration:.001ms !important; scroll-behavior:auto !important;
+    animation-delay:0s !important; transition-duration:.001ms !important;
+    transition-delay:0s !important; scroll-behavior:auto !important;
   }
 }
