@@ -46,8 +46,12 @@ input[type="number"]{ -moz-appearance:textfield; appearance:textfield; }
 .range::-webkit-slider-thumb{ -webkit-appearance:none; width:20px; height:20px; border-radius:50%;
   background:#fff; border:none; box-shadow:0 2px 6px rgba(0,0,0,.35); cursor:pointer; }
 .range::-moz-range-thumb{ width:20px; height:20px; border-radius:50%; background:#fff; border:none; cursor:pointer; }
-.range-ticks{ display:flex; justify-content:space-between; margin-top:6px; color:var(--faint);
+/* mốc thước đặt tuyệt đối theo vị trí THẬT của giá trị (xem pricing.jsx) —
+   không dùng space-between vì 10/30/50/70/100 không cách đều nhau trên trục 10→100 */
+.range-wrap{ position:relative; }
+.range-ticks{ position:relative; height:15px; margin-top:7px; color:var(--faint);
   font-size:11px; font-family:var(--font-mono); }
+.range-ticks span{ position:absolute; top:0; transform:translateX(-50%); white-space:nowrap; }
 
 /* bảng quét: hàng nhấn mạnh + hàng không bấm được */
 table.dg tbody tr.hl{ background:var(--accent-soft); }

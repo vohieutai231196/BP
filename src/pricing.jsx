@@ -141,9 +141,17 @@ export function Pricing({ onToast }) {
       <div className="card">
         <div className="card-head"><Icon name="coins" size={18} style={{ color: "var(--muted)" }} /><h3>Mức lời mục tiêu</h3><span className="topbar-spacer" /><span className="tag-soft mono">+{level}%</span></div>
         <div className="card-pad">
-          {/* thanh kéo mức lời */}
-          <input className="range" type="range" min="10" max="100" step="5" value={level} onChange={(e) => setLevel(Number(e.target.value))} />
-          <div className="range-ticks"><span>10%</span><span>30%</span><span>50%</span><span>70%</span><span>100%</span></div>
+          {/* thanh kéo mức lời — mốc đặt đúng vị trí thật trên trục 10→100,
+             bù bề rộng núm (20px) để nhãn nằm ngay dưới núm tại mỗi mức */}
+          <div className="range-wrap">
+            <input className="range" type="range" min="10" max="100" step="5" value={level} onChange={(e) => setLevel(Number(e.target.value))} />
+            <div className="range-ticks">
+              {[10, 30, 50, 70, 100].map((v) => {
+                const p = (v - 10) / (100 - 10) * 100;
+                return <span key={v} style={{ left: `calc(${p}% - ${(p / 100 - 0.5) * 20}px)` }}>{v}%</span>;
+              })}
+            </div>
+          </div>
 
           {/* 2 ô hero */}
           <div className="hero-2">
