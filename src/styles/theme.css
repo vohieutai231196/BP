@@ -1,22 +1,28 @@
 /* ============================================================
-   GomĐơn — Design tokens (reuse deck system: navy + off-white,
-   Be Vietnam Pro, JetBrains Mono). Light + dark themes.
+   GomĐơn — Design tokens · "Niêm Phong" (The Seal)
+   A cross-border freight console: warm packing-paper ground,
+   sumi ink, jade for action, a lacquer-cinnabar seal as the
+   signature, and a gold journey thread. Light + dark.
+   Type: Archivo (display) · Be Vietnam Pro (body) · JetBrains Mono (data)
    ============================================================ */
 :root{
+  --font-display: 'Archivo', 'Be Vietnam Pro', system-ui, sans-serif;
   --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 16px;
-  --r-xl: 22px;
+  /* crisper than the soft SaaS default — document, not bubble */
+  --r-sm: 7px;
+  --r-md: 10px;
+  --r-lg: 13px;
+  --r-xl: 20px;
 
-  --shadow-sm: 0 1px 2px rgba(15,17,23,.05), 0 1px 3px rgba(15,17,23,.04);
-  --shadow-md: 0 4px 12px rgba(15,17,23,.07), 0 2px 4px rgba(15,17,23,.04);
-  --shadow-lg: 0 18px 50px rgba(15,17,23,.16), 0 6px 16px rgba(15,17,23,.08);
-  --shadow-pop: 0 24px 60px rgba(15,17,23,.22);
+  /* warm, paper-toned shadows (not cool gray) */
+  --shadow-sm: 0 1px 2px rgba(40,30,12,.06), 0 1px 3px rgba(40,30,12,.05);
+  --shadow-md: 0 4px 14px rgba(40,30,12,.09), 0 2px 5px rgba(40,30,12,.05);
+  --shadow-lg: 0 20px 52px rgba(33,24,8,.18), 0 7px 18px rgba(33,24,8,.10);
+  --shadow-pop: 0 26px 64px rgba(28,20,6,.26);
 
-  --sb-w: 252px;
+  --sb-w: 256px;
   --topbar-h: 68px;
 
   --ease: cubic-bezier(.4,0,.2,1);
@@ -24,84 +30,103 @@
 
 /* ---------- LIGHT ---------- */
 :root, [data-theme="light"]{
-  --bg: #f4f4f0;
-  --surface: #ffffff;
-  --surface-2: #fafaf7;
-  --surface-3: #f1f1ec;
-  --ink: #14161c;
-  --ink-2: #353a44;
-  --muted: #5b616b;
-  --faint: #949aa4;
-  --line: #e7e7e1;
-  --line-2: #d9d9d2;
-  --accent: #2a6fdb;
-  --accent-ink: #2a6fdb;
-  --accent-soft: #e9f0fb;
-  --accent-2: #1f5cc0;
+  --bg: #ece6d9;          /* warm manila / packing paper */
+  --surface: #fcfaf5;     /* lifted paper — cards */
+  --surface-2: #f4eee2;
+  --surface-3: #e8e1d0;
+  --ink: #211c14;         /* warm sumi ink */
+  --ink-2: #433c2d;
+  --muted: #6e6553;
+  --faint: #9c917a;
+  --line: #ddd3bf;
+  --line-2: #cbbfa4;
 
-  --sidebar-bg: #ffffff;
-  --sidebar-ink: #14161c;
-  --sidebar-muted: #5b616b;
-  --sidebar-line: #e7e7e1;
-  --sidebar-active: #e9f0fb;
-  --sidebar-active-ink: #2a6fdb;
-  --sidebar-accent: #2a6fdb;
-  --sidebar-hover: rgba(15,17,23,.045);
-  --sidebar-chip: rgba(15,17,23,.06);
+  /* jade = action */
+  --accent: #1b7a5c;
+  --accent-ink: #1a6f54;
+  --accent-soft: #e0ede4;
+  --accent-2: #155e47;
 
-  /* status (shared chroma family) */
-  --st-green:#1f8a5b;   --st-green-bg:#e4f3ec;
-  --st-amber:#bb7d12;   --st-amber-bg:#f7efdc;
-  --st-blue:#2a6fdb;    --st-blue-bg:#e9f0fb;
-  --st-violet:#6a53cf;  --st-violet-bg:#ece8f9;
-  --st-red:#cf4257;     --st-red-bg:#fae8eb;
-  --st-slate:#646b77;   --st-slate-bg:#eceef1;
+  /* cinnabar seal = signature (used sparingly) */
+  --seal: #c0392b;
+  --seal-2: #a52c20;
+  --seal-soft: #f6e3df;
+  /* gold = journey thread / premium hairline */
+  --gold: #b07d1a;
+  --gold-soft: #f1e6cb;
 
-  --pos:#1f8a5b;
-  --neg:#cf4257;
+  /* sidebar = deep espresso-lacquer panel (anchors the app; also
+     drives the login hero, whose text is light) */
+  --sidebar-bg: #1a140d;
+  --sidebar-ink: #f3ecdd;
+  --sidebar-muted: #a5997f;
+  --sidebar-line: #322819;
+  --sidebar-active: rgba(255,255,255,.07);
+  --sidebar-active-ink: #ffffff;
+  --sidebar-accent: #d2a23f;       /* gold active thread */
+  --sidebar-hover: rgba(255,255,255,.05);
+  --sidebar-chip: rgba(255,255,255,.09);
+
+  /* status (warmed; lifecycle palette of the freight journey) */
+  --st-green:#2e7d55;   --st-green-bg:#e1efe3;   /* delivered / done   */
+  --st-amber:#9c6b12;   --st-amber-bg:#f4ead0;   /* buying (ties gold) */
+  --st-blue:#1e7e84;    --st-blue-bg:#dcecee;    /* transit teal       */
+  --st-violet:#7e4e7e;  --st-violet-bg:#efe2ef;  /* in VN warehouse    */
+  --st-red:#be2f4b;     --st-red-bg:#f7e0e3;     /* complaint / alert  */
+  --st-slate:#5f6b5f;   --st-slate-bg:#e5e8e1;   /* waiting deposit    */
+
+  --pos:#2e7d55;
+  --neg:#be2f4b;
 }
 
-/* ---------- DARK ---------- */
+/* ---------- DARK (lacquer night) ---------- */
 [data-theme="dark"]{
-  --bg: #0c0e13;
-  --surface: #15181f;
-  --surface-2: #1a1e27;
-  --surface-3: #202531;
-  --ink: #eef0f4;
-  --ink-2: #c4c9d2;
-  --muted: #9298a3;
-  --faint: #646b78;
-  --line: #262b36;
-  --line-2: #333a48;
-  --accent: #5b8def;
-  --accent-ink: #7aa4f4;
-  --accent-soft: #18233a;
-  --accent-2: #6f9bf0;
+  --bg: #13110c;          /* warm near-black */
+  --surface: #1c1812;
+  --surface-2: #231e16;
+  --surface-3: #2b251b;
+  --ink: #f2ecde;
+  --ink-2: #d2c9b4;
+  --muted: #9d927b;
+  --faint: #6f6553;
+  --line: #2f2819;
+  --line-2: #413827;
 
-  --sidebar-bg: #090a0e;
-  --sidebar-ink: #eceef2;
-  --sidebar-muted: #7c8395;
-  --sidebar-line: #1c1f28;
-  --sidebar-active: #18233a;
+  --accent: #34a47c;
+  --accent-ink: #4cbf95;
+  --accent-soft: #16291f;
+  --accent-2: #2c8c69;
+
+  --seal: #d75646;
+  --seal-2: #c0392b;
+  --seal-soft: #361712;
+  --gold: #d2a23f;
+  --gold-soft: #2c2310;
+
+  --sidebar-bg: #0e0b07;
+  --sidebar-ink: #f1ead9;
+  --sidebar-muted: #998d74;
+  --sidebar-line: #241d12;
+  --sidebar-active: rgba(255,255,255,.06);
   --sidebar-active-ink: #ffffff;
-  --sidebar-accent: #7aa4f4;
+  --sidebar-accent: #d2a23f;
   --sidebar-hover: rgba(255,255,255,.05);
   --sidebar-chip: rgba(255,255,255,.08);
 
-  --st-green:#3fb27e;   --st-green-bg:#13301f;
-  --st-amber:#d59b2f;   --st-amber-bg:#33260d;
-  --st-blue:#5b8def;    --st-blue-bg:#152139;
-  --st-violet:#9384e0;  --st-violet-bg:#221d3a;
-  --st-red:#e0697c;     --st-red-bg:#33141b;
-  --st-slate:#8b929e;   --st-slate-bg:#222731;
+  --st-green:#46b07e;   --st-green-bg:#13301f;
+  --st-amber:#d59b2f;   --st-amber-bg:#322509;
+  --st-blue:#3fb0b7;    --st-blue-bg:#0e2b2d;
+  --st-violet:#b389b3;  --st-violet-bg:#2c1f2c;
+  --st-red:#e0697c;     --st-red-bg:#331319;
+  --st-slate:#8e978a;   --st-slate-bg:#22271f;
 
-  --pos:#3fb27e;
+  --pos:#46b07e;
   --neg:#e0697c;
 
-  --shadow-sm: 0 1px 2px rgba(0,0,0,.3);
-  --shadow-md: 0 4px 14px rgba(0,0,0,.4);
-  --shadow-lg: 0 18px 50px rgba(0,0,0,.55);
-  --shadow-pop: 0 24px 60px rgba(0,0,0,.6);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.34);
+  --shadow-md: 0 4px 14px rgba(0,0,0,.46);
+  --shadow-lg: 0 20px 52px rgba(0,0,0,.6);
+  --shadow-pop: 0 26px 64px rgba(0,0,0,.66);
 }
 
 *{ box-sizing:border-box; }
@@ -141,3 +166,11 @@ input:-webkit-autofill:active{
 
 .mono{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
 .tnum{ font-variant-numeric:tabular-nums; }
+
+/* Reduced motion: honor the OS setting app-wide */
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    animation-duration:.001ms !important; animation-iteration-count:1 !important;
+    transition-duration:.001ms !important; scroll-behavior:auto !important;
+  }
+}

@@ -48,8 +48,8 @@ const SHIPPING = ["Chuyển THƯỜNG", "Chuyển NHANH", "Chuyển VIP", "Tiế
 const VIPS = ["Vip 1", "Vip 2", "Vip 3", "Vip 4", "Vip 5"];
 
 const CAT_TINT = {
-  shoe: "#2a6fdb", bag: "#6a53cf", apparel: "#1f8a5b",
-  tech: "#bb7d12", home: "#cf4257", beauty: "#c0497f",
+  shoe: "#1b7a5c", bag: "#1e7e84", apparel: "#7e4e7e",
+  tech: "#b07d1a", home: "#c0392b", beauty: "#b8418f",
 };
 
 const fmt = { fmtVND, fmtVNDplain, fmtCNY, fmtKg, fmtDate, fmtDateTime };
@@ -63,7 +63,7 @@ export { DATA };
    Adapters — API JSON → hình dạng component
    ============================================================ */
 const toDate = (v) => (v ? new Date(v) : null);
-const tintOf = (cat) => CAT_TINT[cat] || "#646b77";
+const tintOf = (cat) => CAT_TINT[cat] || "#5f6b5f";
 
 /** Tóm tắt đơn (danh sách / đơn gần đây) — gom phẳng → nested + Date. */
 export function adaptSummary(o) {

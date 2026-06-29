@@ -54,18 +54,13 @@ export function Dashboard({ summary, recent, onOpen, onNav }) {
 
   return (
     <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* KPIs */}
+      {/* KPIs — manifest summary band */}
       <div className="kpi-grid">
         {kpis.map((k) => (
-          <div className="card kpi" key={k.label}>
-            <div className="kpi-top">
-              <div className="kpi-ic" style={{ background: k.bg, color: k.color }}><Icon name={k.icon} size={21} /></div>
-              <span className="kpi-delta neutral">{k.note}</span>
-            </div>
-            <div>
-              <div className="kpi-label">{k.label}</div>
-              <div className="kpi-val" style={{ marginTop: 6 }}>{k.val}{k.suffix && <small>{k.suffix}</small>}</div>
-            </div>
+          <div className="card kpi" key={k.label} style={{ "--kc": k.color }}>
+            <div className="kpi-label"><Icon name={k.icon} size={14} stroke={2} /> {k.label}</div>
+            <div className="kpi-val">{k.val}{k.suffix && <small>{k.suffix}</small>}</div>
+            <div className="kpi-note">{k.note}</div>
           </div>
         ))}
       </div>

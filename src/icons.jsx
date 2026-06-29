@@ -42,6 +42,8 @@ const ICON_PATHS = {
   scale: '<path d="M12 3v18"/><path d="M7 7h10"/><path d="m4 12 3-5 3 5a3 3 0 0 1-6 0Z"/><path d="m14 12 3-5 3 5a3 3 0 0 1-6 0Z"/><path d="M8 21h8"/>',
   tag: '<path d="M3 3h7l11 11-7 7L3 10V3Z"/><circle cx="7.5" cy="7.5" r="1.3"/>',
   globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/>',
+  lock: '<rect x="4" y="10.5" width="16" height="10.5" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 7 8.5 6 8.5-6"/>',
 };
 
 export function Icon({ name, size = 18, stroke = 1.7, style, className }) {

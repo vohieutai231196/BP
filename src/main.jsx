@@ -35,7 +35,7 @@ import { RefreshContext } from "./refresh.js";
 
 const { useState, useEffect, useCallback } = React;
 
-const TWEAK_DEFAULTS = { accent: "#2a6fdb", layout: "Bảng", density: "Thoáng" };
+const TWEAK_DEFAULTS = { accent: "#1b7a5c", layout: "Bảng", density: "Thoáng" };
 const LAYOUT_MAP = { "Bảng": "table", "Danh sách": "rows", "Thẻ": "cards" };
 
 function shade(hex, pct) {
@@ -76,7 +76,8 @@ function App() {
     root.setProperty("--accent-ink", t.accent);
     root.setProperty("--accent-2", shade(t.accent, 0.14));
     root.setProperty("--accent-soft", `color-mix(in srgb, ${t.accent} 13%, transparent)`);
-    root.setProperty("--sidebar-accent", t.accent);
+    // NB: --sidebar-accent intentionally NOT overridden — it's the gold "journey
+    // thread" brand motif (theme.css), kept independent of the action accent.
   }, [t.accent]);
 
   useEffect(() => { setLayout(LAYOUT_MAP[t.layout] || "table"); }, [t.layout]);
@@ -196,15 +197,15 @@ function App() {
       <>
         <TweakSection label="Giao diện" />
         <TweakColor label="Màu nhấn" value={t.accent}
-          options={["#2a6fdb", "#1f8a5b", "#6a53cf", "#d2762f"]}
+          options={["#1b7a5c", "#c0392b", "#b07d1a", "#1e7e84"]}
           onChange={(v) => setTweak("accent", v)} />
+        <TweakRadio label="Mật độ" value={t.density}
+          options={["Thoáng", "Gọn"]}
+          onChange={(v) => setTweak("density", v)} />
         <TweakSection label="Bảng đơn hàng" />
         <TweakRadio label="Bố cục mặc định" value={t.layout}
           options={["Bảng", "Danh sách", "Thẻ"]}
           onChange={(v) => setTweak("layout", v)} />
-        <TweakRadio label="Mật độ" value={t.density}
-          options={["Thoáng", "Gọn"]}
-          onChange={(v) => setTweak("density", v)} />
       </>
     );
   }

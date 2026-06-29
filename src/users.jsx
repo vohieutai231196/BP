@@ -25,7 +25,7 @@ const TABS = [
   { key: "active", label: "Hoạt động" },
   { key: "disabled", label: "Đã khóa" },
 ];
-const AV_TINTS = ["#2a6fdb", "#1f8a5b", "#6a53cf", "#d2762f", "#c0392b", "#0e7490", "#b8418f"];
+const AV_TINTS = ["#1b7a5c", "#c0392b", "#b07d1a", "#1e7e84", "#7e4e7e", "#b8418f", "#5f6b5f"];
 const tintFor = (s) => AV_TINTS[[...(s || "?")].reduce((a, c) => a + c.charCodeAt(0), 0) % AV_TINTS.length];
 const initial = (s) => (s || "?").trim().charAt(0).toUpperCase();
 const fmtDate = (d) => { try { return new Date(d).toLocaleDateString("vi-VN"); } catch { return "—"; } };

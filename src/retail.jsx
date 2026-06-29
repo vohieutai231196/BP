@@ -116,21 +116,21 @@ export function Inventory({ onToast, onOpenOrder }) {
     <div className="fade-in">
       {summary && (
         <div className="kpi-grid" style={{ marginBottom: 16 }}>
-          <div className="card kpi">
-            <div className="kpi-top"><div className="kpi-ic" style={{ background: "var(--st-blue-bg)", color: "var(--st-blue)" }}><Icon name="box" size={21} /></div></div>
-            <div><div className="kpi-label">Tổng SKU</div><div className="kpi-val" style={{ marginTop: 6 }}>{summary.totalSkus}</div></div>
+          <div className="card kpi" style={{ "--kc": "var(--st-blue)" }}>
+            <div className="kpi-label"><Icon name="box" size={14} stroke={2} /> Tổng SKU</div>
+            <div className="kpi-val">{summary.totalSkus}</div>
           </div>
-          <div className="card kpi">
-            <div className="kpi-top"><div className="kpi-ic" style={{ background: "var(--st-green-bg)", color: "var(--st-green)" }}><Icon name="warehouse" size={21} /></div></div>
-            <div><div className="kpi-label">Tồn kho</div><div className="kpi-val" style={{ marginTop: 6 }}>{Number(summary.totalStock).toLocaleString("vi-VN")}</div></div>
+          <div className="card kpi" style={{ "--kc": "var(--st-green)" }}>
+            <div className="kpi-label"><Icon name="warehouse" size={14} stroke={2} /> Tồn kho</div>
+            <div className="kpi-val">{Number(summary.totalStock).toLocaleString("vi-VN")}</div>
           </div>
-          <div className="card kpi">
-            <div className="kpi-top"><div className="kpi-ic" style={{ background: "var(--st-violet-bg)", color: "var(--st-violet)" }}><Icon name="coins" size={21} /></div></div>
-            <div><div className="kpi-label">Giá trị tồn</div><div className="kpi-val" style={{ marginTop: 6 }}>{Number(summary.stockValue).toLocaleString("vi-VN")}<small>₫</small></div></div>
+          <div className="card kpi" style={{ "--kc": "var(--st-violet)" }}>
+            <div className="kpi-label"><Icon name="coins" size={14} stroke={2} /> Giá trị tồn</div>
+            <div className="kpi-val">{Number(summary.stockValue).toLocaleString("vi-VN")}<small>₫</small></div>
           </div>
-          <div className="card kpi">
-            <div className="kpi-top"><div className="kpi-ic" style={{ background: "var(--st-amber-bg)", color: "var(--st-amber)" }}><Icon name="clock" size={21} /></div></div>
-            <div><div className="kpi-label">SKU sắp hết</div><div className="kpi-val" style={{ marginTop: 6 }}>{summary.lowStockCount}</div></div>
+          <div className="card kpi" style={{ "--kc": "var(--st-amber)" }}>
+            <div className="kpi-label"><Icon name="clock" size={14} stroke={2} /> SKU sắp hết</div>
+            <div className="kpi-val">{summary.lowStockCount}</div>
           </div>
         </div>
       )}

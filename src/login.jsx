@@ -47,12 +47,13 @@ export function Login({ onLogin }) {
     <div className="login-wrap">
       <div className="login-brand">
         <div className="lb-top">
-          <div className="sb-logo" style={{ width: 40, height: 40, fontSize: 17 }}>GĐ</div>
-          <div className="sb-name" style={{ color: "#fff" }}>Gom<b>Đơn</b></div>
+          <div className="sb-logo" style={{ width: 42, height: 42, fontSize: 16 }}>GĐ</div>
+          <div className="sb-name">Gom<b>Đơn</b></div>
         </div>
         <div className="lb-mid">
-          <h1>Quản lý đơn mua hộ <em>Trung Quốc → Việt Nam</em> trên một màn hình.</h1>
-          <p>Theo dõi toàn bộ vòng đời đơn hàng: đặt cọc, mua hàng, vận chuyển về kho VN và trả hàng — kèm chi phí, cân nặng và kiện hàng.</p>
+          <span className="eyebrow">Mua hộ · Gom kiện · Về kho VN</span>
+          <h1>Đưa đơn từ <em>Trung Quốc</em> về <em>Việt Nam</em>, gọn trong một màn hình.</h1>
+          <p>Theo dõi trọn vòng đời đơn hàng: đặt cọc, mua hàng, vận chuyển về kho VN và trả hàng — kèm chi phí, cân nặng và kiện hàng.</p>
         </div>
         <div className="lb-stats">
           <div className="lb-stat"><b>{DATA.PLATFORMS.length}</b><span>sàn thu thập</span></div>
@@ -61,10 +62,10 @@ export function Login({ onLogin }) {
         </div>
         <div className="lb-flow">
           {DATA.TIMELINE_STEPS.map((s, i) => (
-            <React.Fragment key={s.key}>
-              <span className="lbf-node">{s.label}</span>
-              {i < DATA.TIMELINE_STEPS.length - 1 && <span className="lbf-arrow">→</span>}
-            </React.Fragment>
+            <div className="lbf-step" key={s.key}>
+              <span className="lbf-num">{String(i + 1).padStart(2, "0")}</span>
+              <span className="lbf-label">{s.label}</span>
+            </div>
           ))}
         </div>
       </div>
@@ -85,13 +86,13 @@ export function Login({ onLogin }) {
 
           <label className="field">
             <span>Email</span>
-            <div className="input"><Icon name="user" size={17} /><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
+            <div className="input"><Icon name="mail" size={17} /><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
           </label>
 
           <label className="field">
             <span>Mật khẩu</span>
             <div className="input">
-              <Icon name="settings" size={17} />
+              <Icon name="lock" size={17} />
               <input type={show ? "text" : "password"} value={pw} onChange={(e) => setPw(e.target.value)} required minLength={6} />
               <button type="button" className="eye" onClick={() => setShow(!show)} aria-label="show"><Icon name="eye" size={17} /></button>
             </div>
@@ -100,7 +101,7 @@ export function Login({ onLogin }) {
           {mode === "register" && (
             <label className="field">
               <span>Nhập lại mật khẩu</span>
-              <div className="input"><Icon name="settings" size={17} /><input type={show ? "text" : "password"} value={pw2} onChange={(e) => setPw2(e.target.value)} required minLength={6} /></div>
+              <div className="input"><Icon name="lock" size={17} /><input type={show ? "text" : "password"} value={pw2} onChange={(e) => setPw2(e.target.value)} required minLength={6} /></div>
             </label>
           )}
 
