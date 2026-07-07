@@ -4,7 +4,7 @@
    (/orders, /reports…) hoạt động khi tải trực tiếp / mở tab mới.
    ============================================================ */
 export const ROUTES = [
-  "dashboard", "orders", "users", "inventory",
+  "dashboard", "orders", "users", "inventory", "receipts",
   "pricing", "costtypes", "sales", "promotions", "combos", "reports",
 ];
 

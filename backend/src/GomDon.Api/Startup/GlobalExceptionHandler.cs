@@ -39,6 +39,7 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         var (status, title) = ex switch
         {
             ValidationException => (StatusCodes.Status400BadRequest, "Dữ liệu không hợp lệ"),
+            GomDon.Shared.InsufficientStockException => (StatusCodes.Status409Conflict, "Không đủ tồn kho"),
             _ => (StatusCodes.Status500InternalServerError, "Lỗi máy chủ"),
         };
 

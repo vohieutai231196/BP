@@ -220,6 +220,7 @@ export function Sidebar({ route, onNav, collapsed, open, onCloseMobile, onLogout
         <NavLink to="orders" filter="khieu_nai" icon="bell" label="Khiếu nại" count={c.complaints} />
         <div className="sb-section-label"><span>Bán lẻ</span></div>
         <NavLink to="inventory" icon="warehouse" label="Kho & Sản phẩm" active={route === "inventory"} />
+        <NavLink to="receipts" icon="download" label="Nhập hàng" active={route === "receipts"} />
         <NavLink to="pricing" icon="coins" label="Máy tính giá" active={route === "pricing"} />
         <NavLink to="costtypes" icon="filter" label="Phụ phí" active={route === "costtypes"} />
         <NavLink to="sales" icon="wallet" label="Đơn bán" active={route === "sales"} />

@@ -20,6 +20,7 @@ import { OrderDetail } from "./orderDetail.jsx";
 import { Login } from "./login.jsx";
 import { Users } from "./users.jsx";
 import { Inventory } from "./retail.jsx";
+import { Receipts } from "./receipts.jsx";
 import { Pricing } from "./pricing.jsx";
 import { CostTypes } from "./costtypes.jsx";
 import { Sales } from "./sales.jsx";
@@ -219,6 +220,7 @@ function App() {
     orders: { t: "Đơn hàng", s: (summary ? summary.totalOrders : "—") + " đơn · cập nhật hôm nay" },
     users: { t: "Người dùng", s: "Quản lý tài khoản & phân quyền" },
     inventory: { t: "Kho & Sản phẩm", s: "Quản lý sản phẩm bán lẻ & tồn kho" },
+    receipts: { t: "Nhập hàng", s: "Phiếu nhập từ NCC, tồn đầu kỳ & đơn mua hộ" },
     pricing: { t: "Máy tính giá", s: "Tính giá bán & lợi nhuận theo mức lời" },
     costtypes: { t: "Phụ phí", s: "Danh mục chi phí phát sinh (ship, bao bì, in đơn…)" },
     sales: { t: "Đơn bán", s: "Tạo đơn bán & theo dõi lợi nhuận" },
@@ -261,6 +263,7 @@ function App() {
           )}
 
           {route === "inventory" && <Inventory onToast={showToast} onOpenOrder={openOrder} />}
+          {route === "receipts" && <Receipts onToast={showToast} onOpenOrder={openOrder} />}
           {route === "pricing" && <Pricing onToast={showToast} />}
           {route === "costtypes" && <CostTypes onToast={showToast} />}
           {route === "sales" && <Sales onToast={showToast} />}

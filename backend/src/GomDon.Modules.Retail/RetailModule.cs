@@ -40,6 +40,14 @@ public static class RetailModule
 
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IReportService, ReportService>();
+
+        services.AddScoped<ISupplierRepository, SupplierRepository>();
+        services.AddScoped<ISupplierService, SupplierService>();
+
+        services.AddScoped<IReceiptRepository, ReceiptRepository>();
+        services.AddScoped<IReceiptService, ReceiptService>();
+
+        services.AddScoped<IStockService, StockService>();
         return services;
     }
 }

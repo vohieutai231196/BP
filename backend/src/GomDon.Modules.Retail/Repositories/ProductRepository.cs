@@ -45,7 +45,7 @@ public sealed class ProductRepository : IProductRepository
         var rows = await conn.QueryAsync<ProductListRow>(new CommandDefinition(
             $@"SELECT p.id, p.sku, p.name, p.category, p.image_url AS ImageUrl, p.status, p.avg_cost AS AvgCost,
                       p.list_price AS ListPrice, p.created_at AS CreatedAt,
-                      COALESCE((SELECT SUM(qty) FROM stock_movements m WHERE m.product_id = p.id), 0) AS Stock,
+                      COALESCE((SELECT ps.qty FROM product_stock ps WHERE ps.product_id = p.id), 0) AS Stock,
                       (SELECT string_agg(ct.name, ', ' ORDER BY ct.name)
                          FROM product_cost_types pct JOIN cost_types ct ON ct.id = pct.cost_type_id
                         WHERE pct.product_id = p.id) AS CostTypeSummary,
@@ -158,7 +158,7 @@ public sealed class ProductRepository : IProductRepository
     {
         using var conn = _factory.Create();
         var row = await conn.QueryFirstOrDefaultAsync<(long stock, long avg_cost)>(new CommandDefinition(
-            @"SELECT COALESCE((SELECT SUM(qty) FROM stock_movements m WHERE m.product_id = p.id),0) AS stock, p.avg_cost
+            @"SELECT COALESCE((SELECT ps.qty FROM product_stock ps WHERE ps.product_id = p.id),0) AS stock, p.avg_cost
               FROM products p WHERE p.id = @productId;", new { productId }, cancellationToken: ct));
         return (row.stock, row.avg_cost);
     }

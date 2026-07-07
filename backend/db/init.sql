@@ -316,6 +316,59 @@ CREATE TABLE IF NOT EXISTS combo_items (
 );
 CREATE INDEX IF NOT EXISTS ix_combo_items_combo ON combo_items(combo_id);
 
+-- ============================================================
+--  GĐ1 — Nền kho + vòng nhập: tồn vật lý, NCC, phiếu nhập
+-- ============================================================
+
+-- ---------- Nhà cung cấp ----------
+CREATE TABLE IF NOT EXISTS suppliers (
+  id         BIGSERIAL PRIMARY KEY,
+  name       TEXT NOT NULL,
+  phone      TEXT,
+  note       TEXT,
+  active     BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- ---------- Phiếu nhập (thống nhất mọi nguồn: order | manual | opening) ----------
+CREATE TABLE IF NOT EXISTS receipts (
+  id          BIGSERIAL PRIMARY KEY,
+  code        TEXT NOT NULL UNIQUE,              -- PN-yyMMdd-<id>
+  source      TEXT NOT NULL,                     -- order | manual | opening
+  order_id    BIGINT REFERENCES orders(id) ON DELETE SET NULL,
+  supplier_id BIGINT REFERENCES suppliers(id),
+  note        TEXT,
+  total_cost  BIGINT NOT NULL DEFAULT 0,
+  received_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_by  BIGINT REFERENCES users(id),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ix_receipts_received ON receipts(received_at DESC);
+CREATE INDEX IF NOT EXISTS ix_receipts_supplier ON receipts(supplier_id);
+
+CREATE TABLE IF NOT EXISTS receipt_items (
+  id         BIGSERIAL PRIMARY KEY,
+  receipt_id BIGINT NOT NULL REFERENCES receipts(id) ON DELETE CASCADE,
+  product_id BIGINT NOT NULL REFERENCES products(id),
+  qty        INT NOT NULL,
+  unit_cost  BIGINT NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS ix_receipt_items_receipt ON receipt_items(receipt_id);
+CREATE INDEX IF NOT EXISTS ix_receipt_items_product ON receipt_items(product_id);
+
+-- ---------- Tồn kho vật lý (nguồn sự thật cho tồn, cập nhật atomic) ----------
+-- stock_movements vẫn là SỔ KHO (thẻ kho); product_stock là snapshot giao dịch.
+CREATE TABLE IF NOT EXISTS product_stock (
+  product_id BIGINT PRIMARY KEY REFERENCES products(id) ON DELETE CASCADE,
+  qty        BIGINT NOT NULL DEFAULT 0,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+-- Backfill 1 lần từ sổ kho (idempotent: chỉ chèn SKU chưa có dòng tồn).
+INSERT INTO product_stock(product_id, qty)
+SELECT p.id, COALESCE((SELECT SUM(m.qty) FROM stock_movements m WHERE m.product_id = p.id), 0)
+FROM products p
+ON CONFLICT (product_id) DO NOTHING;
+
 -- ---------- Seed lookup ----------
 INSERT INTO platforms (key, label, tint) VALUES
   ('taobao',  'Taobao',    '#ff6a00'),

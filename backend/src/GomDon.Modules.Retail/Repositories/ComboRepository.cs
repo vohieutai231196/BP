@@ -44,7 +44,7 @@ public sealed class ComboRepository : IComboRepository
         var rows = await conn.QueryAsync<ComboComponent>(new CommandDefinition(
             @"SELECT ci.product_id AS ProductId, ci.qty AS Qty, ci.line_type AS LineType,
                      COALESCE(p.list_price,0) AS ListPrice, p.avg_cost AS AvgCost,
-                     COALESCE((SELECT SUM(qty) FROM stock_movements m WHERE m.product_id=p.id),0) AS Stock
+                     COALESCE((SELECT ps.qty FROM product_stock ps WHERE ps.product_id=p.id),0) AS Stock
               FROM combo_items ci JOIN products p ON p.id = ci.product_id
               WHERE ci.combo_id = @comboId;", new { comboId }, cancellationToken: ct));
         return rows.ToList();

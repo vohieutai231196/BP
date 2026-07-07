@@ -10,11 +10,13 @@ public sealed class ReceiveService : IReceiveService
 {
     private readonly IOrderService _orders;
     private readonly IReceiveRepository _repo;
+    private readonly IReceiptRepository _receipts;
 
-    public ReceiveService(IOrderService orders, IReceiveRepository repo)
+    public ReceiveService(IOrderService orders, IReceiveRepository repo, IReceiptRepository receipts)
     {
         _orders = orders;
         _repo = repo;
+        _receipts = receipts;
     }
 
     public async Task<ReceivePreview> PreviewAsync(long orderId, CancellationToken ct = default)
@@ -54,10 +56,19 @@ public sealed class ReceiveService : IReceiveService
         return preview;
     }
 
-    public Task<int> ConfirmAsync(ConfirmReceiveRequest req, CancellationToken ct = default)
+    /// <summary>Nhận từ đơn mua hộ = tạo phiếu nhập source='order' — đi chung đường ghi kho.</summary>
+    public async Task<int> ConfirmAsync(ConfirmReceiveRequest req, CancellationToken ct = default)
     {
         if (req.Lines.Count == 0) throw new ValidationException("Không có dòng nào để nhận kho.");
-        return _repo.ConfirmAsync(req, ct);
+        var lines = req.Lines.Select(l => new ReceiptLineCommand(
+            ProductId: l.ProductId, NewSku: l.NewSku, NewName: l.NewName,
+            Category: l.Category, ImageUrl: l.ImageUrl,
+            Qty: l.Qty, UnitCost: l.UnitCost,
+            OrderLinkId: l.OrderLinkId, LinkCode: l.LinkCode)).ToList();
+        var created = await _receipts.CreateAsync(new CreateReceiptCommand(
+            Source: "order", OrderId: req.OrderId, SupplierId: null,
+            Note: $"Nhận từ đơn #{req.OrderId}", ReceivedAt: null, CreatedBy: null, Lines: lines), ct);
+        return created.LineCount;
     }
 
     /// <summary>Parse số lượng nhận từ chuỗi qty kiểu "5/5/5" → lấy số cuối; lỗi → 1.</summary>

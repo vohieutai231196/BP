@@ -7,6 +7,7 @@ import React from "react";
 import { Icon } from "./icons.jsx";
 import { api } from "./api.js";
 import { ReceiveModal } from "./receive.jsx";
+import { StockDrawer } from "./stockdrawer.jsx";
 import { MoneyInput, costUnitPrice, EmptyState, ProdName, ProductImg } from "./components.jsx";
 import { Select } from "./ui-controls.jsx";
 import { currentQuery, replaceUrl } from "./routes.js";
@@ -55,6 +56,7 @@ export function Inventory({ onToast, onOpenOrder }) {
   const [trash, setTrash] = React.useState(null);           // SKU đã xóa mềm (thùng rác)
   const [sel, setSel] = React.useState(() => new Set());    // id sản phẩm đã chọn (xóa nhiều)
   const [bulkConfirm, setBulkConfirm] = React.useState(false);
+  const [stockView, setStockView] = React.useState(null);   // sản phẩm đang xem thẻ kho
   React.useEffect(() => { api.retail.summary().then(setSummary).catch(() => {}); }, [reload]);
 
   React.useEffect(() => {
@@ -230,7 +232,9 @@ export function Inventory({ onToast, onOpenOrder }) {
                       </span>
                     ) : <span className="cell-sub" style={{ color: "var(--faint)" }}>—</span>}
                   </td>
-                  <td className="cell-money" style={{ color: p.stock <= 0 ? "var(--st-red)" : p.stock <= 10 ? "var(--st-amber)" : "inherit" }}>
+                  <td className="cell-money" title="Xem thẻ kho"
+                    onClick={(e) => { e.stopPropagation(); setStockView(p); }}
+                    style={{ cursor: "pointer", color: p.stock <= 0 ? "var(--st-red)" : p.stock <= 10 ? "var(--st-amber)" : "inherit" }}>
                     {Number(p.stock ?? 0).toLocaleString("vi-VN")}
                     <span className="stockbar"><i style={{ width: Math.min(100, (Number(p.stock ?? 0) / 120) * 100) + "%", background: p.stock <= 0 ? "var(--st-red)" : p.stock <= 10 ? "var(--st-amber)" : "var(--st-green)" }} /></span>
                   </td>
@@ -275,6 +279,8 @@ export function Inventory({ onToast, onOpenOrder }) {
       )}
       {receiving && <ReceiveModal onClose={() => setReceiving(false)}
         onDone={(msg) => { onToast && onToast(msg); setReceiving(false); refresh(); }} onToast={onToast} />}
+      {stockView && <StockDrawer product={stockView} onToast={onToast}
+        onClose={() => setStockView(null)} onChanged={refresh} />}
     </div>
   );
 }

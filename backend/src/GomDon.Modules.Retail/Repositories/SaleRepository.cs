@@ -30,15 +30,22 @@ public sealed class SaleRepository : ISaleRepository
         else conn.Open();
         using var tx = conn.BeginTransaction();
 
-        // chặn quá tồn (gộp nhu cầu theo product_id — item lẻ + thành phần combo)
+        // chặn quá tồn ATOMIC: trừ thẳng product_stock với guard qty >= need —
+        // 2 đơn đồng thời không thể cùng trừ quá tồn (UPDATE khoá row).
         foreach (var grp in pricedItems.GroupBy(i => i.ProductId))
         {
             int need = grp.Sum(i => i.Qty);
-            var stock = await conn.ExecuteScalarAsync<long>(new CommandDefinition(
-                "SELECT COALESCE(SUM(qty),0) FROM stock_movements WHERE product_id=@pid;",
-                new { pid = grp.Key }, tx, cancellationToken: ct));
-            if (stock < need)
-                throw new ValidationException($"Sản phẩm #{grp.Key} không đủ tồn (còn {stock}, cần {need}).");
+            var updated = await conn.ExecuteAsync(new CommandDefinition(
+                @"UPDATE product_stock SET qty = qty - @need, updated_at = now()
+                  WHERE product_id = @pid AND qty >= @need;",
+                new { pid = grp.Key, need }, tx, cancellationToken: ct));
+            if (updated == 0)
+            {
+                var stock = await conn.ExecuteScalarAsync<long>(new CommandDefinition(
+                    "SELECT COALESCE((SELECT qty FROM product_stock WHERE product_id=@pid),0);",
+                    new { pid = grp.Key }, tx, cancellationToken: ct));
+                throw new GomDon.Shared.InsufficientStockException(grp.Key, stock, need);
+            }
         }
 
         var saleId = await conn.ExecuteScalarAsync<long>(new CommandDefinition(
@@ -90,6 +97,14 @@ public sealed class SaleRepository : ISaleRepository
               SELECT product_id, 'return', qty, unit_cost, 'return', @saleId, @note
               FROM sale_items WHERE sale_id=@saleId AND product_id IS NOT NULL;",
             new { saleId, note = $"Trả đơn {code}" }, tx, cancellationToken: ct));
+
+        await conn.ExecuteAsync(new CommandDefinition(
+            @"INSERT INTO product_stock(product_id, qty)
+              SELECT product_id, SUM(qty) FROM sale_items
+              WHERE sale_id=@saleId AND product_id IS NOT NULL GROUP BY product_id
+              ON CONFLICT (product_id) DO UPDATE
+                SET qty = product_stock.qty + EXCLUDED.qty, updated_at = now();",
+            new { saleId }, tx, cancellationToken: ct));
 
         await conn.ExecuteAsync(new CommandDefinition(
             "UPDATE sales SET status='returned', returned_at=now() WHERE id=@saleId;",
